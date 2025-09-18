@@ -5,7 +5,7 @@
 /* ChurchFlow design tokens and base styles */
 :root{
   --primary:#0E4DA4; --primary-700:#0B3F86; --accent:#FFD60A;
-  --bg:#F8FAFC; --surface:#FFFFFF; --text:#1F2937; --muted:#6B7280; --line:#E5E7EB;
+  --bg:#FFFFFF; --surface:#FFFFFF; --text:#000000; --muted:#000000; --line:#E5E7EB;
   --success:#16A34A; --warning:#EAB308; --danger:#DC2626;
   --radius-card:12px; --radius-input:10px;
   --shadow-card:0 2px 8px rgba(0,0,0,.06); --shadow-pop:0 8px 24px rgba(0,0,0,.12);
@@ -33,7 +33,7 @@ a{color:var(--primary);text-decoration:none}
 .grid.cols-3{grid-template-columns:repeat(3,minmax(0,1fr))}
 .grid.cols-4{grid-template-columns:repeat(4,minmax(0,1fr))}
 .row{display:grid;gap:.75rem;grid-template-columns:1fr 1fr}
-label{font-size:14px;color:var(--muted)}
+label{font-size:14px;color:var(--text);font-weight:500}
 input,select,textarea{width:100%;padding:.75rem;border-radius:var(--radius-input);border:1px solid var(--line);background:#fff;outline:none}
 input:focus,select:focus,textarea:focus{box-shadow:0 0 0 2px rgba(14,77,164,.2);border-color:var(--primary)}
 .section-title{display:flex;align-items:center;justify-content:space-between;margin:.25rem 0 1rem}

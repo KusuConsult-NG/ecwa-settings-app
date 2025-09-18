@@ -1,3 +1,9 @@
+# Authentication
+AUTH_SECRET=your-super-secret-jwt-key-here-change-this-in-production
+
+# Key-Value Storage (Optional - falls back to memory if not provided)
 KV_REST_API_URL=
 KV_REST_API_TOKEN=
 
+# Environment
+NODE_ENV=development

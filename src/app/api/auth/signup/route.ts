@@ -1,36 +1,128 @@
 import { NextResponse } from "next/server"
 import { kv, type UserRecord } from "@/lib/kv"
+import { signToken, validateEmail, validatePassword, AuthenticationError } from "@/lib/auth"
+import bcrypt from "bcryptjs"
 import crypto from "crypto"
-import { signToken } from "@/lib/auth"
-
-function hashPassword(pw: string) {
-  return crypto.createHash("sha256").update(pw).digest("hex")
-}
 
 export async function POST(req: Request) {
   try {
+    // Parse and validate request body
     const body = await req.json()
-    const { name, email, password } = body || {}
-    if (!name || !email || !password) return NextResponse.json({ error: "Missing fields" }, { status: 400 })
+    const { name, email, phone, address, password } = body || {}
+    
+    // Input validation
+    if (!name || !email || !phone || !address || !password) {
+      return NextResponse.json(
+        { error: "Name, email, phone, address, and password are required", code: "MISSING_FIELDS" }, 
+        { status: 400 }
+      )
+    }
 
-    const existing = await kv.get(`user:${email}`)
-    if (existing) return NextResponse.json({ error: "User exists" }, { status: 409 })
+    // Validate email format
+    if (!validateEmail(email)) {
+      return NextResponse.json(
+        { error: "Invalid email format", code: "INVALID_EMAIL" }, 
+        { status: 400 }
+      )
+    }
 
-    const user: UserRecord & { orgId?: string; orgName?: string; role?: string } = {
+    // Validate password strength
+    const passwordValidation = validatePassword(password)
+    if (!passwordValidation.valid) {
+      return NextResponse.json(
+        { 
+          error: "Password does not meet requirements", 
+          code: "WEAK_PASSWORD",
+          details: passwordValidation.errors
+        }, 
+        { status: 400 }
+      )
+    }
+
+    // Validate name
+    if (name.trim().length < 2) {
+      return NextResponse.json(
+        { error: "Name must be at least 2 characters long", code: "INVALID_NAME" }, 
+        { status: 400 }
+      )
+    }
+
+    // Normalize email
+    const normalizedEmail = email.toLowerCase().trim()
+    const normalizedName = name.trim()
+    const normalizedPhone = phone.trim()
+    const normalizedAddress = address.trim()
+
+    // Check if user already exists
+    const existing = await kv.get(`user:${normalizedEmail}`)
+    if (existing) {
+      return NextResponse.json(
+        { error: "User already exists with this email", code: "USER_EXISTS" }, 
+        { status: 409 }
+      )
+    }
+
+    // Hash password with bcrypt
+    const saltRounds = 12
+    const passwordHash = await bcrypt.hash(password, saltRounds)
+
+    // Create user record
+    const user: UserRecord = {
       id: crypto.randomUUID(),
-      email,
-      name,
-      passwordHash: hashPassword(password),
+      email: normalizedEmail,
+      name: normalizedName,
+      phone: normalizedPhone,
+      address: normalizedAddress,
+      passwordHash,
       createdAt: new Date().toISOString(),
       role: "Secretary", // Default role for new users
+      isActive: true,
+      lastLogin: null
     }
-    await kv.set(`user:${email}`, JSON.stringify(user))
-    const token = await signToken({ sub: user.id, email: user.email, name: user.name, role: user.role })
-    const res = NextResponse.json({ ok: true, user: { id: user.id, name: user.name, email: user.email } })
-    res.headers.set("Set-Cookie", `cf_token=${token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${60*60*24*7}`)
+
+    // Save user to storage
+    await kv.set(`user:${normalizedEmail}`, JSON.stringify(user))
+
+    // Generate token
+    const token = await signToken({
+      sub: user.id,
+      email: user.email,
+      name: user.name,
+      role: user.role
+    })
+
+    // Create response
+    const res = NextResponse.json({ 
+      ok: true, 
+      user: { 
+        id: user.id, 
+        name: user.name, 
+        email: user.email,
+        role: user.role
+      } 
+    })
+
+    // Set secure cookie
+    res.headers.set("Set-Cookie", 
+      `cf_token=${token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${60*60*24*7}; Secure`
+    )
+
     return res
-  } catch (e) {
-    return NextResponse.json({ error: "Invalid request" }, { status: 400 })
+
+  } catch (error) {
+    console.error("Signup error:", error)
+    
+    if (error instanceof AuthenticationError) {
+      return NextResponse.json(
+        { error: error.message, code: error.code }, 
+        { status: error.statusCode }
+      )
+    }
+
+    return NextResponse.json(
+      { error: "Internal server error", code: "INTERNAL_ERROR" }, 
+      { status: 500 }
+    )
   }
 }
 

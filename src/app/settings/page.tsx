@@ -1,5 +1,5 @@
 "use client"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -96,13 +96,118 @@ const getStatusBadge = (status: string) => {
 export default function SettingsPage() {
   const [isAddOrgDialogOpen, setIsAddOrgDialogOpen] = useState(false)
   const [isAddRoleDialogOpen, setIsAddRoleDialogOpen] = useState(false)
+  const [mounted, setMounted] = useState(false)
+  const [user, setUser] = useState<any>(null)
+  const [orgData, setOrgData] = useState({
+    name: "",
+    type: "",
+    address: "",
+    phone: "",
+    email: ""
+  })
+  const [newOrgData, setNewOrgData] = useState({
+    name: "",
+    type: "",
+    parentId: ""
+  })
+  const [newUserData, setNewUserData] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    role: ""
+  })
+
+  useEffect(() => {
+    setMounted(true)
+    // Fetch user data
+    fetch('/api/me')
+      .then(res => res.json())
+      .then(data => {
+        setUser(data.user)
+        if (data.user?.orgName) {
+          setOrgData(prev => ({
+            ...prev,
+            name: data.user.orgName,
+            type: data.user.orgId?.startsWith('DCC') ? 'DCC' : 
+                  data.user.orgId?.startsWith('LCC') ? 'LCC' : 
+                  data.user.orgId?.startsWith('LC') ? 'LC' : 'GCC'
+          }))
+        }
+      })
+  }, [])
+
+  const handleSaveOrgInfo = async (e: React.FormEvent) => {
+    e.preventDefault()
+    try {
+      const res = await fetch('/api/me', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          orgId: user?.orgId,
+          orgName: orgData.name,
+          role: user?.role
+        })
+      })
+      if (res.ok) {
+        alert('Organization information saved successfully!')
+      }
+    } catch (error) {
+      console.error('Error saving org info:', error)
+      alert('Failed to save organization information')
+    }
+  }
+
+  const handleAddOrganization = async (e: React.FormEvent) => {
+    e.preventDefault()
+    try {
+      const res = await fetch('/api/org', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newOrgData)
+      })
+      if (res.ok) {
+        alert('Organization added successfully!')
+        setIsAddOrgDialogOpen(false)
+        setNewOrgData({ name: "", type: "", parentId: "" })
+      }
+    } catch (error) {
+      console.error('Error adding organization:', error)
+      alert('Failed to add organization')
+    }
+  }
+
+  const handleAddUser = async (e: React.FormEvent) => {
+    e.preventDefault()
+    try {
+      // This would need a proper user creation API
+      alert('User creation functionality needs to be implemented')
+      setIsAddRoleDialogOpen(false)
+      setNewUserData({ firstName: "", lastName: "", email: "", role: "" })
+    } catch (error) {
+      console.error('Error adding user:', error)
+      alert('Failed to add user')
+    }
+  }
+
+  if (!mounted) {
+    return (
+      <div className="space-y-8">
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <div>
+            <h1 className="font-heading text-3xl font-bold tracking-tight" style={{color: "white"}}>Settings</h1>
+            <p className="text-gray-300">Loading...</p>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-8">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="font-heading text-3xl font-bold tracking-tight">Settings</h1>
-          <p className="text-gray-600">Manage organization settings, user roles, and system configuration.</p>
+          <h1 className="font-heading text-3xl font-bold tracking-tight" style={{color: "white"}}>Settings</h1>
+          <p className="text-gray-300">Manage organization settings, user roles, and system configuration.</p>
         </div>
       </div>
 
@@ -115,60 +220,83 @@ export default function SettingsPage() {
         </TabsList>
 
         <TabsContent value="organization" className="space-y-6">
-          <Card>
+          <Card style={{backgroundColor: "transparent", border: "1px solid rgba(255, 255, 255, 0.2)"}}>
             <CardHeader>
-              <CardTitle className="font-heading flex items-center">
+              <CardTitle className="font-heading flex items-center" style={{color: "white"}}>
                 <Building2 className="mr-2 h-5 w-5" />
                 Organization Information
               </CardTitle>
-              <CardDescription>Basic information about your church organization</CardDescription>
+              <CardDescription style={{color: "rgba(255, 255, 255, 0.7)"}}>Basic information about your church organization</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="orgName">Organization Name</Label>
-                  <Input id="orgName" defaultValue="ECWA GoodNews HighCost - LC" />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="orgType">Organization Type</Label>
-                  <div>
-                    <Select>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="gcc">General Church Council (GCC)</SelectItem>
-                        <SelectItem value="dcc">District Church Council (DCC)</SelectItem>
-                        <SelectItem value="lcc">Local Church Council (LCC)</SelectItem>
-                        <SelectItem value="lc">Local Church (LC)</SelectItem>
-                      </SelectContent>
-                    </Select>
+              <form onSubmit={handleSaveOrgInfo}>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="orgName" style={{color: "white"}}>Organization Name</Label>
+                    <Input 
+                      id="orgName" 
+                      value={orgData.name}
+                      onChange={(e) => setOrgData(prev => ({...prev, name: e.target.value}))}
+                      style={{backgroundColor: "rgba(255, 255, 255, 0.1)", color: "white", border: "1px solid rgba(255, 255, 255, 0.3)"}}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="orgType" style={{color: "white"}}>Organization Type</Label>
+                    <div>
+                      <Select value={orgData.type} onValueChange={(value) => setOrgData(prev => ({...prev, type: value}))}>
+                        <SelectTrigger style={{backgroundColor: "rgba(255, 255, 255, 0.1)", color: "white", border: "1px solid rgba(255, 255, 255, 0.3)"}}>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="gcc">General Church Council (GCC)</SelectItem>
+                          <SelectItem value="dcc">District Church Council (DCC)</SelectItem>
+                          <SelectItem value="lcc">Local Church Council (LCC)</SelectItem>
+                          <SelectItem value="lc">Local Church (LC)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
                 </div>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="address">Address</Label>
-                <Textarea id="address" defaultValue="123 Church Street, Jos, Plateau State, Nigeria" />
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="phone">Phone Number</Label>
-                  <Input id="phone" defaultValue="+234 803 123 4567" />
+                  <Label htmlFor="address" style={{color: "white"}}>Address</Label>
+                  <Textarea 
+                    id="address" 
+                    value={orgData.address}
+                    onChange={(e) => setOrgData(prev => ({...prev, address: e.target.value}))}
+                    style={{backgroundColor: "rgba(255, 255, 255, 0.1)", color: "white", border: "1px solid rgba(255, 255, 255, 0.3)"}}
+                  />
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email Address</Label>
-                  <Input id="email" type="email" defaultValue="info@goodnewschurch.org" />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="phone" style={{color: "white"}}>Phone Number</Label>
+                    <Input 
+                      id="phone" 
+                      value={orgData.phone}
+                      onChange={(e) => setOrgData(prev => ({...prev, phone: e.target.value}))}
+                      style={{backgroundColor: "rgba(255, 255, 255, 0.1)", color: "white", border: "1px solid rgba(255, 255, 255, 0.3)"}}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="email" style={{color: "white"}}>Email Address</Label>
+                    <Input 
+                      id="email" 
+                      type="email" 
+                      value={orgData.email}
+                      onChange={(e) => setOrgData(prev => ({...prev, email: e.target.value}))}
+                      style={{backgroundColor: "rgba(255, 255, 255, 0.1)", color: "white", border: "1px solid rgba(255, 255, 255, 0.3)"}}
+                    />
+                  </div>
                 </div>
-              </div>
-              <Button className="btn-primary">Save Changes</Button>
+                <Button type="submit" className="btn-primary">Save Changes</Button>
+              </form>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card style={{backgroundColor: "transparent", border: "1px solid rgba(255, 255, 255, 0.2)"}}>
             <CardHeader className="flex flex-row items-center justify-between">
               <div>
-                <CardTitle className="font-heading">Organization Hierarchy</CardTitle>
-                <CardDescription>Manage the church organizational structure</CardDescription>
+                <CardTitle className="font-heading" style={{color: "white"}}>Organization Hierarchy</CardTitle>
+                <CardDescription style={{color: "rgba(255, 255, 255, 0.7)"}}>Manage the church organizational structure</CardDescription>
               </div>
               <Dialog open={isAddOrgDialogOpen} onOpenChange={setIsAddOrgDialogOpen}>
                 <DialogTrigger asChild>
@@ -177,49 +305,58 @@ export default function SettingsPage() {
                     Add Organization
                   </Button>
                 </DialogTrigger>
-                <DialogContent>
+                <DialogContent style={{backgroundColor: "rgba(0, 0, 0, 0.9)", border: "1px solid rgba(255, 255, 255, 0.2)"}}>
                   <DialogHeader>
-                    <DialogTitle>Add New Organization</DialogTitle>
-                    <DialogDescription>Create a new organization in the hierarchy</DialogDescription>
+                    <DialogTitle style={{color: "white"}}>Add New Organization</DialogTitle>
+                    <DialogDescription style={{color: "rgba(255, 255, 255, 0.7)"}}>Create a new organization in the hierarchy</DialogDescription>
                   </DialogHeader>
-                  <div className="grid gap-4 p-6 pt-0">
-                    <div className="space-y-2">
-                      <Label htmlFor="newOrgName">Organization Name</Label>
-                      <Input id="newOrgName" placeholder="Enter organization name" />
+                  <form onSubmit={handleAddOrganization}>
+                    <div className="grid gap-4 p-6 pt-0">
+                      <div className="space-y-2">
+                        <Label htmlFor="newOrgName" style={{color: "white"}}>Organization Name</Label>
+                        <Input 
+                          id="newOrgName" 
+                          placeholder="Enter organization name" 
+                          value={newOrgData.name}
+                          onChange={(e) => setNewOrgData(prev => ({...prev, name: e.target.value}))}
+                          style={{backgroundColor: "rgba(255, 255, 255, 0.1)", color: "white", border: "1px solid rgba(255, 255, 255, 0.3)"}}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="newOrgType" style={{color: "white"}}>Type</Label>
+                        <Select value={newOrgData.type} onValueChange={(value) => setNewOrgData(prev => ({...prev, type: value}))}>
+                          <SelectTrigger style={{backgroundColor: "rgba(255, 255, 255, 0.1)", color: "white", border: "1px solid rgba(255, 255, 255, 0.3)"}}>
+                            <SelectValue placeholder="Select type" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="dcc">District Church Council (DCC)</SelectItem>
+                            <SelectItem value="lcc">Local Church Council (LCC)</SelectItem>
+                            <SelectItem value="lc">Local Church (LC)</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="parentOrg" style={{color: "white"}}>Parent Organization</Label>
+                        <Select value={newOrgData.parentId} onValueChange={(value) => setNewOrgData(prev => ({...prev, parentId: value}))}>
+                          <SelectTrigger style={{backgroundColor: "rgba(255, 255, 255, 0.1)", color: "white", border: "1px solid rgba(255, 255, 255, 0.3)"}}>
+                            <SelectValue placeholder="Select parent" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="GCC-001">ECWA General Church Council</SelectItem>
+                            <SelectItem value="DCC-001">ECWA Jos DCC</SelectItem>
+                            <SelectItem value="DCC-002">ECWA Kaduna DCC</SelectItem>
+                            <SelectItem value="DCC-003">ECWA Abuja DCC</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
                     </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="newOrgType">Type</Label>
-                      <Select>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select type" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="dcc">District Church Council (DCC)</SelectItem>
-                          <SelectItem value="lcc">Local Church Council (LCC)</SelectItem>
-                          <SelectItem value="lc">Local Church (LC)</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="parentOrg">Parent Organization</Label>
-                      <Select>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select parent" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="gcc001">ECWA General Church Council</SelectItem>
-                          <SelectItem value="dcc001">ECWA Jos DCC</SelectItem>
-                          <SelectItem value="lcc001">ECWA Jos Central LCC</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-                  <DialogFooter>
-                    <Button variant="outline" onClick={() => setIsAddOrgDialogOpen(false)}>
-                      Cancel
-                    </Button>
-                    <Button onClick={() => setIsAddOrgDialogOpen(false)}>Add Organization</Button>
-                  </DialogFooter>
+                    <DialogFooter>
+                      <Button variant="outline" onClick={() => setIsAddOrgDialogOpen(false)}>
+                        Cancel
+                      </Button>
+                      <Button type="submit">Add Organization</Button>
+                    </DialogFooter>
+                  </form>
                 </DialogContent>
               </Dialog>
             </CardHeader>

@@ -67,13 +67,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               const orgLinks = document.getElementById('org-links');
               if (!orgLinks) return;
               
-              const canCreateDCC = ['President', 'General Secretary', 'Treasurer'].includes(user.role);
-              const canCreateLCC = ['President', 'General Secretary', 'Treasurer', 'Chairman', 'Secretary'].includes(user.role);
-              const canCreateLC = ['President', 'General Secretary', 'Treasurer', 'Chairman', 'Secretary', 'LO'].includes(user.role);
+              const canCreateDCC = ['admin', 'President', 'General Secretary', 'Treasurer'].includes(user.role);
+              const canCreateLC = ['admin', 'President', 'General Secretary', 'Treasurer', 'Chairman', 'Secretary', 'LO'].includes(user.role);
               
               let links = '';
               if (canCreateDCC) links += '<a href="/org/dcc">Create DCCs (HQ)</a>';
-              if (canCreateLCC) links += '<a href="/org/lcc">Create LCCs (DCC)</a>';
               if (canCreateLC) links += '<a href="/org/create">Create LC (LCC)</a>';
               
               if (links) {
