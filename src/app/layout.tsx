@@ -2,17 +2,33 @@ import type { Metadata } from "next"
 import "./globals.css"
 import Image from "next/image"
 import ClientTopbar from "./topbar-client"
+import { cookies } from 'next/headers'
+import { verifyJwt } from '@/lib/auth'
 
 export const metadata: Metadata = {
   title: "ECWA Settings",
   description: "Organization settings management",
 }
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  // Server-side authentication check
+  const token = cookies().get('auth')?.value || ''
+  const payload = token ? await verifyJwt(token) : null
+  const name = (payload as any)?.name as string | undefined
+
   return (
     <html lang="en">
       <body>
         <ClientTopbar />
+        {/* Add greeting in the topbar */}
+        <div className="topbar">
+          <div className="flex items-center gap-4">
+            <div className="font-semibold">ECWA Settings</div>
+          </div>
+          <div className="text-sm">
+            Hello, <span className="font-medium">{name || 'User'}</span>
+          </div>
+        </div>
 
         <div className="layout">
           <aside className="sidebar" id="sidebar">
