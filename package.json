@@ -6,9 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
-    "netlify:build": "next build && next export",
-    "netlify:dev": "netlify dev"
+    "lint": "next lint"
   },
   "dependencies": {
     "@types/bcryptjs": "^3.0.0",
