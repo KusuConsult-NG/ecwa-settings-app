@@ -19,6 +19,11 @@ export default function ClientTopbar() {
         <div className="badge"><Image src="/logo.svg" alt="ChurchFlow" width={20} height={20} /> {me?.name || 'CHURCHFLOW'}</div>
       </div>
       <div style={{display:"flex",gap:"0.5rem",alignItems:"center"}}>
+        {me && (
+          <div className="text-sm" style={{marginRight:"1rem"}}>
+            Hello, <span className="font-medium">{me.name || 'User'}</span>
+          </div>
+        )}
         {!me ? (
           <>
             {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}

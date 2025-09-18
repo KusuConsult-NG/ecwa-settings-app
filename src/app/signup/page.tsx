@@ -110,12 +110,12 @@ function SignupForm() {
       const data = await res.json()
 
       console.log("Signup successful, user data:", data.user)
-      console.log("Redirecting to login in 1000ms...")
+      console.log("Redirecting to dashboard in 1000ms...")
 
-      // Redirect to login after successful signup
+      // Redirect to dashboard after successful signup (user is already authenticated)
       setTimeout(() => {
-        console.log("Redirecting to login now...")
-        window.location.replace("/login")
+        console.log("Redirecting to dashboard now...")
+        window.location.replace("/dashboard")
       }, 1000)
     } catch (err: any) {
       setError({
