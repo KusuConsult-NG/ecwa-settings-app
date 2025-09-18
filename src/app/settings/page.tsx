@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { NativeSelect } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
 import { Textarea } from "@/components/ui/textarea"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -243,17 +243,16 @@ export default function SettingsPage() {
                   <div className="space-y-2">
                     <Label htmlFor="orgType" style={{color: "white"}}>Organization Type</Label>
                     <div>
-                      <Select value={orgData.type} onValueChange={(value) => setOrgData(prev => ({...prev, type: value}))}>
-                        <SelectTrigger style={{backgroundColor: "rgba(255, 255, 255, 0.1)", color: "white", border: "1px solid rgba(255, 255, 255, 0.3)"}}>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="gcc">General Church Council (GCC)</SelectItem>
-                          <SelectItem value="dcc">District Church Council (DCC)</SelectItem>
-                          <SelectItem value="lcc">Local Church Council (LCC)</SelectItem>
-                          <SelectItem value="lc">Local Church (LC)</SelectItem>
-                        </SelectContent>
-                      </Select>
+                      <NativeSelect 
+                        value={orgData.type} 
+                        onChange={(e) => setOrgData(prev => ({...prev, type: e.target.value}))}
+                        style={{backgroundColor: "rgba(255, 255, 255, 0.1)", color: "white", border: "1px solid rgba(255, 255, 255, 0.3)"}}
+                      >
+                        <option value="gcc">General Church Council (GCC)</option>
+                        <option value="dcc">District Church Council (DCC)</option>
+                        <option value="lcc">Local Church Council (LCC)</option>
+                        <option value="lc">Local Church (LC)</option>
+                      </NativeSelect>
                     </div>
                   </div>
                 </div>
@@ -324,30 +323,30 @@ export default function SettingsPage() {
                       </div>
                       <div className="space-y-2">
                         <Label htmlFor="newOrgType" style={{color: "white"}}>Type</Label>
-                        <Select value={newOrgData.type} onValueChange={(value) => setNewOrgData(prev => ({...prev, type: value}))}>
-                          <SelectTrigger style={{backgroundColor: "rgba(255, 255, 255, 0.1)", color: "white", border: "1px solid rgba(255, 255, 255, 0.3)"}}>
-                            <SelectValue placeholder="Select type" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="dcc">District Church Council (DCC)</SelectItem>
-                            <SelectItem value="lcc">Local Church Council (LCC)</SelectItem>
-                            <SelectItem value="lc">Local Church (LC)</SelectItem>
-                          </SelectContent>
-                        </Select>
+                        <NativeSelect 
+                          value={newOrgData.type} 
+                          onChange={(e) => setNewOrgData(prev => ({...prev, type: e.target.value}))}
+                          style={{backgroundColor: "rgba(255, 255, 255, 0.1)", color: "white", border: "1px solid rgba(255, 255, 255, 0.3)"}}
+                        >
+                          <option value="">Select type</option>
+                          <option value="dcc">District Church Council (DCC)</option>
+                          <option value="lcc">Local Church Council (LCC)</option>
+                          <option value="lc">Local Church (LC)</option>
+                        </NativeSelect>
                       </div>
                       <div className="space-y-2">
                         <Label htmlFor="parentOrg" style={{color: "white"}}>Parent Organization</Label>
-                        <Select value={newOrgData.parentId} onValueChange={(value) => setNewOrgData(prev => ({...prev, parentId: value}))}>
-                          <SelectTrigger style={{backgroundColor: "rgba(255, 255, 255, 0.1)", color: "white", border: "1px solid rgba(255, 255, 255, 0.3)"}}>
-                            <SelectValue placeholder="Select parent" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="GCC-001">ECWA General Church Council</SelectItem>
-                            <SelectItem value="DCC-001">ECWA Jos DCC</SelectItem>
-                            <SelectItem value="DCC-002">ECWA Kaduna DCC</SelectItem>
-                            <SelectItem value="DCC-003">ECWA Abuja DCC</SelectItem>
-                          </SelectContent>
-                        </Select>
+                        <NativeSelect 
+                          value={newOrgData.parentId} 
+                          onChange={(e) => setNewOrgData(prev => ({...prev, parentId: e.target.value}))}
+                          style={{backgroundColor: "rgba(255, 255, 255, 0.1)", color: "white", border: "1px solid rgba(255, 255, 255, 0.3)"}}
+                        >
+                          <option value="">Select parent</option>
+                          <option value="GCC-001">ECWA General Church Council</option>
+                          <option value="DCC-001">ECWA Jos DCC</option>
+                          <option value="DCC-002">ECWA Kaduna DCC</option>
+                          <option value="DCC-003">ECWA Abuja DCC</option>
+                        </NativeSelect>
                       </div>
                     </div>
                     <DialogFooter>
@@ -439,19 +438,15 @@ export default function SettingsPage() {
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="userRole">Role</Label>
-                      <Select>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select role" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="senior-minister">Senior Minister</SelectItem>
-                          <SelectItem value="assistant-pastor">Assistant Pastor</SelectItem>
-                          <SelectItem value="financial-secretary">Financial Secretary</SelectItem>
-                          <SelectItem value="treasurer">Treasurer</SelectItem>
-                          <SelectItem value="secretary">Secretary</SelectItem>
-                          <SelectItem value="cel">CEL</SelectItem>
-                        </SelectContent>
-                      </Select>
+                      <NativeSelect>
+                        <option value="">Select role</option>
+                        <option value="senior-minister">Senior Minister</option>
+                        <option value="assistant-pastor">Assistant Pastor</option>
+                        <option value="financial-secretary">Financial Secretary</option>
+                        <option value="treasurer">Treasurer</option>
+                        <option value="secretary">Secretary</option>
+                        <option value="cel">CEL</option>
+                      </NativeSelect>
                     </div>
                   </div>
                   <DialogFooter>
@@ -537,16 +532,11 @@ export default function SettingsPage() {
               <div className="space-y-2">
                 <Label htmlFor="currency">Default Currency</Label>
                 <div>
-                  <Select>
-                    <SelectTrigger className="w-[200px]">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="ngn">Nigerian Naira (₦)</SelectItem>
-                      <SelectItem value="usd">US Dollar ($)</SelectItem>
-                      <SelectItem value="eur">Euro (€)</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <NativeSelect className="w-[200px]">
+                    <option value="ngn">Nigerian Naira (₦)</option>
+                    <option value="usd">US Dollar ($)</option>
+                    <option value="eur">Euro (€)</option>
+                  </NativeSelect>
                 </div>
               </div>
               <Button className="btn-primary">Save System Settings</Button>
@@ -590,17 +580,12 @@ export default function SettingsPage() {
               <div className="space-y-2">
                 <Label htmlFor="sessionTimeout">Session Timeout (minutes)</Label>
                 <div>
-                  <Select>
-                    <SelectTrigger className="w-[200px]">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="15">15 minutes</SelectItem>
-                      <SelectItem value="30">30 minutes</SelectItem>
-                      <SelectItem value="60">1 hour</SelectItem>
-                      <SelectItem value="120">2 hours</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <NativeSelect className="w-[200px]">
+                    <option value="15">15 minutes</option>
+                    <option value="30">30 minutes</option>
+                    <option value="60">1 hour</option>
+                    <option value="120">2 hours</option>
+                  </NativeSelect>
                 </div>
               </div>
               <Button className="btn-primary">Save Security Settings</Button>
