@@ -25,6 +25,7 @@ export async function middleware(req: NextRequest) {
 
   // Get token from cookies
   const token = req.cookies.get("cf_token")?.value
+  console.log(`Middleware: Checking ${pathname}, token present:`, token ? "YES" : "NO")
   if (!token) {
     const loginUrl = new URL("/login", req.url)
     loginUrl.searchParams.set("redirect", pathname)

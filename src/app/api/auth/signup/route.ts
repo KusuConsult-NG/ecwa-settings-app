@@ -84,7 +84,6 @@ export async function POST(req: Request) {
 
     // Save user to storage
     await kv.set(`user:${normalizedEmail}`, JSON.stringify(user))
-    console.log(`User created and stored for ${normalizedEmail}`)
 
     // Generate token
     const token = await signToken({

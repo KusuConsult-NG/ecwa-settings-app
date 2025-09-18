@@ -36,7 +36,6 @@ export async function POST(req: Request) {
 
     // Get user from storage
     const raw = await kv.get(`user:${normalizedEmail}`)
-    console.log(`Login attempt for ${normalizedEmail}, found user data:`, raw ? "YES" : "NO")
     if (!raw) {
       return NextResponse.json(
         { error: "Invalid credentials", code: "INVALID_CREDENTIALS" }, 
