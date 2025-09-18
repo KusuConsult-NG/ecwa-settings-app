@@ -177,6 +177,19 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 2px rgba(14,77,164,.2);
   .grid.cols-3,.grid.cols-4{grid-template-columns:repeat(2,minmax(0,1fr))}
   .row{grid-template-columns:1fr}
   .bottomnav{display:flex}
+  
+  /* Mobile form improvements */
+  .auth{max-width:100%;margin:1rem auto;padding:1rem}
+  .auth.card{padding:1.5rem}
+  .container{padding:.75rem}
+  
+  /* Mobile button improvements */
+  .auth.card .btn{width:100%;justify-content:center;margin-top:.5rem}
+  .auth.card .btn.ghost{margin-bottom:.5rem}
+  
+  /* Mobile form layout */
+  .auth form .row{grid-template-columns:1fr;gap:0}
+  .auth form .row > div{margin-bottom:1rem}
 }
 .bottomnav{display:none;position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--line);padding:.25rem;gap:.25rem;z-index:20}
 .bottomnav a{flex:1;text-align:center;padding:.5rem;color:var(--muted);font-size:12px}
