@@ -59,7 +59,7 @@ export async function POST(req: Request) {
     }
 
     // Update persisted user (if available)
-    if (userToken.email) {
+    if (userToken && userToken.email) {
       const raw = await kv.get(`user:${userToken.email}`)
       if (raw) {
         try {
@@ -81,12 +81,12 @@ export async function POST(req: Request) {
 
     // Reissue token with org info
     const newToken = await signToken({
-      sub: userToken.sub,
-      email: userToken.email,
-      name: userToken.name,
+      sub: userToken?.sub || '',
+      email: userToken?.email || '',
+      name: userToken?.name || '',
       orgId,
       orgName,
-      role: role || userToken.role,
+      role: role || userToken?.role || 'Secretary',
     })
 
     const res = NextResponse.json({ 

@@ -2,15 +2,15 @@
 const nextConfig = {
   reactStrictMode: true,
   experimental: {
-    serverComponentsExternalPackages: ['bcryptjs']
+    serverComponentsExternalPackages: ['bcryptjs'],
   },
-  // Netlify specific configuration
-  trailingSlash: true,
   images: {
-    unoptimized: true
-  }
-}
+    unoptimized: true,
+  },
+  // NOTE: Do NOT use trailingSlash on Vercel — it can cause /login <-> /login/ loops
+  // trailingSlash: true, // ← leave this line OUT
+};
 
-module.exports = nextConfig
+module.exports = nextConfig;
 
 
