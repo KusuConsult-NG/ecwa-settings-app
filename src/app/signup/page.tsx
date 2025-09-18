@@ -120,22 +120,21 @@ function SignupForm() {
   if (!mounted) {
     return (
       <section className="container">
-        <div className="auth card" style={{ backgroundColor: "transparent", color: "white" }}>
-          <h2 style={{ color: "white" }}>Sign Up & Create Organization</h2>
+        <div className="auth card" >
+          <h2 >Sign Up & Create Organization</h2>
           <form className="row">
             <div>
-              <label htmlFor="name" style={{ color: "white" }}>Full name*</label>
+              <label htmlFor="name" >Full name*</label>
               <input
                 id="name"
                 required
                 placeholder="Your name"
                 autoComplete="name"
                 disabled
-                style={{ backgroundColor: "rgba(255, 255, 255, 0.1)", color: "white", border: "1px solid rgba(255, 255, 255, 0.3)" }}
               />
             </div>
             <div>
-              <label htmlFor="email" style={{ color: "white" }}>Email*</label>
+              <label htmlFor="email" >Email*</label>
               <input
                 id="email"
                 type="email"
@@ -143,13 +142,12 @@ function SignupForm() {
                 placeholder="you@church.org"
                 autoComplete="email"
                 disabled
-                style={{ backgroundColor: "rgba(255, 255, 255, 0.1)", color: "white", border: "1px solid rgba(255, 255, 255, 0.3)" }}
               />
             </div>
           </form>
           <div className="row">
             <div>
-              <label htmlFor="phone" style={{ color: "white" }}>Phone number*</label>
+              <label htmlFor="phone" >Phone number*</label>
               <input
                 id="phone"
                 type="tel"
@@ -157,24 +155,22 @@ function SignupForm() {
                 placeholder="+1 (555) 123-4567"
                 autoComplete="tel"
                 disabled
-                style={{ backgroundColor: "rgba(255, 255, 255, 0.1)", color: "white", border: "1px solid rgba(255, 255, 255, 0.3)" }}
               />
             </div>
             <div>
-              <label htmlFor="address" style={{ color: "white" }}>Address*</label>
+              <label htmlFor="address" >Address*</label>
               <input
                 id="address"
                 required
                 placeholder="123 Church Street, City, State"
                 autoComplete="street-address"
                 disabled
-                style={{ backgroundColor: "rgba(255, 255, 255, 0.1)", color: "white", border: "1px solid rgba(255, 255, 255, 0.3)" }}
               />
             </div>
           </div>
           <div className="row">
             <div>
-              <label htmlFor="password" style={{ color: "white" }}>Password*</label>
+              <label htmlFor="password" >Password*</label>
               <input
                 id="password"
                 type="password"
@@ -182,11 +178,10 @@ function SignupForm() {
                 placeholder="••••••••"
                 autoComplete="new-password"
                 disabled
-                style={{ backgroundColor: "rgba(255, 255, 255, 0.1)", color: "white", border: "1px solid rgba(255, 255, 255, 0.3)" }}
               />
             </div>
             <div>
-              <label htmlFor="confirmPassword" style={{ color: "white" }}>Confirm password*</label>
+              <label htmlFor="confirmPassword" >Confirm password*</label>
               <input
                 id="confirmPassword"
                 type="password"
@@ -194,12 +189,11 @@ function SignupForm() {
                 placeholder="••••••••"
                 autoComplete="new-password"
                 disabled
-                style={{ backgroundColor: "rgba(255, 255, 255, 0.1)", color: "white", border: "1px solid rgba(255, 255, 255, 0.3)" }}
               />
             </div>
           </div>
           <div style={{ marginTop: "1rem", display: "flex", gap: ".5rem", justifyContent: "flex-end" }}>
-            <a className="btn ghost" href="/" style={{ color: "white" }}>Cancel</a>
+            <a className="btn ghost" href="/" >Cancel</a>
             <button className="btn primary" disabled>Create</button>
           </div>
         </div>
@@ -209,11 +203,11 @@ function SignupForm() {
 
   return (
     <section className="container">
-      <div className="auth card" style={{ backgroundColor: "transparent", color: "white" }}>
-        <h2 style={{ color: "white" }}>Sign Up & Create Organization</h2>
+      <div className="auth card" >
+        <h2 >Sign Up & Create Organization</h2>
         <form onSubmit={onSubmit} className="row">
           <div>
-            <label htmlFor="name" style={{ color: "white" }}>Full name*</label>
+            <label htmlFor="name" >Full name*</label>
             <input
               id="name"
               required
@@ -222,11 +216,10 @@ function SignupForm() {
               placeholder="Your name"
               disabled={loading}
               autoComplete="name"
-              style={{ backgroundColor: "rgba(255, 255, 255, 0.1)", color: "white", border: "1px solid rgba(255, 255, 255, 0.3)" }}
             />
           </div>
           <div>
-            <label htmlFor="email" style={{ color: "white" }}>Email*</label>
+            <label htmlFor="email" >Email*</label>
             <input
               id="email"
               type="email"
@@ -236,14 +229,13 @@ function SignupForm() {
               placeholder="you@church.org"
               disabled={loading}
               autoComplete="email"
-              style={{ backgroundColor: "rgba(255, 255, 255, 0.1)", color: "white", border: "1px solid rgba(255, 255, 255, 0.3)" }}
             />
           </div>
         </form>
         
         <div className="row">
           <div>
-            <label htmlFor="phone" style={{ color: "white" }}>Phone number*</label>
+            <label htmlFor="phone" >Phone number*</label>
             <input
               id="phone"
               type="tel"
@@ -253,11 +245,10 @@ function SignupForm() {
               placeholder="+1 (555) 123-4567"
               disabled={loading}
               autoComplete="tel"
-              style={{ backgroundColor: "rgba(255, 255, 255, 0.1)", color: "white", border: "1px solid rgba(255, 255, 255, 0.3)" }}
             />
           </div>
           <div>
-            <label htmlFor="address" style={{ color: "white" }}>Address*</label>
+            <label htmlFor="address" >Address*</label>
             <input
               id="address"
               required
@@ -266,14 +257,13 @@ function SignupForm() {
               placeholder="123 Church Street, City, State"
               disabled={loading}
               autoComplete="street-address"
-              style={{ backgroundColor: "rgba(255, 255, 255, 0.1)", color: "white", border: "1px solid rgba(255, 255, 255, 0.3)" }}
             />
           </div>
         </div>
         
         <div className="row">
           <div>
-            <label htmlFor="password" style={{ color: "white" }}>Password*</label>
+            <label htmlFor="password" >Password*</label>
             <input
               id="password"
               type="password"
@@ -283,7 +273,6 @@ function SignupForm() {
               placeholder="••••••••"
               disabled={loading}
               autoComplete="new-password"
-              style={{ backgroundColor: "rgba(255, 255, 255, 0.1)", color: "white", border: "1px solid rgba(255, 255, 255, 0.3)" }}
             />
             {password && !passwordValidation.valid && (
               <div style={{ fontSize: "0.75rem", color: "#FCA5A5", marginTop: "0.25rem" }}>
@@ -292,7 +281,7 @@ function SignupForm() {
             )}
           </div>
           <div>
-            <label htmlFor="confirmPassword" style={{ color: "white" }}>Confirm password*</label>
+            <label htmlFor="confirmPassword" >Confirm password*</label>
             <input
               id="confirmPassword"
               type="password"
@@ -302,7 +291,6 @@ function SignupForm() {
               placeholder="••••••••"
               disabled={loading}
               autoComplete="new-password"
-              style={{ backgroundColor: "rgba(255, 255, 255, 0.1)", color: "white", border: "1px solid rgba(255, 255, 255, 0.3)" }}
             />
             {confirmPassword && !passwordsMatch && (
               <div style={{ fontSize: "0.75rem", color: "#FCA5A5", marginTop: "0.25rem" }}>
@@ -327,7 +315,7 @@ function SignupForm() {
         
         <div style={{ marginTop: "1rem", display: "flex", gap: ".5rem", justifyContent: "flex-end" }}>
           {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
-          <a className="btn ghost" href="/" style={{ color: "white" }}>Cancel</a>
+          <a className="btn ghost" href="/" >Cancel</a>
           <button 
             className="btn primary" 
             disabled={loading || !passwordValidation.valid || !passwordsMatch}

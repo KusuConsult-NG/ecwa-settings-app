@@ -81,11 +81,11 @@ function LoginForm() {
   if (!mounted) {
     return (
       <section className="container">
-        <div className="auth card" style={{ backgroundColor: "transparent", color: "white" }}>
-          <h2 style={{ color: "white" }}>Log In</h2>
+        <div className="auth card" >
+          <h2 >Log In</h2>
           <form className="row">
             <div>
-              <label htmlFor="email" style={{ color: "white" }}>Email*</label>
+              <label htmlFor="email" >Email*</label>
               <input
                 id="email"
                 type="email"
@@ -93,11 +93,10 @@ function LoginForm() {
                 placeholder="you@church.org"
                 autoComplete="email"
                 disabled
-                style={{ backgroundColor: "rgba(255, 255, 255, 0.1)", color: "white", border: "1px solid rgba(255, 255, 255, 0.3)" }}
               />
             </div>
             <div>
-              <label htmlFor="password" style={{ color: "white" }}>Password*</label>
+              <label htmlFor="password" >Password*</label>
               <input
                 id="password"
                 type="password"
@@ -105,16 +104,15 @@ function LoginForm() {
                 placeholder="••••••••"
                 autoComplete="current-password"
                 disabled
-                style={{ backgroundColor: "rgba(255, 255, 255, 0.1)", color: "white", border: "1px solid rgba(255, 255, 255, 0.3)" }}
               />
             </div>
           </form>
           <div style={{ marginTop: "1rem", display: "flex", gap: ".5rem", justifyContent: "space-between", alignItems: "center" }}>
-            <a href="/reset" style={{ color: "rgba(255, 255, 255, 0.7)" }}>Forgot password?</a>
+            <a href="/reset" >Forgot password?</a>
             <button className="btn primary" disabled>Log In</button>
           </div>
           <div style={{ marginTop: "1rem", color: "rgba(255, 255, 255, 0.7)" }}>
-            No account? <a href="/signup" style={{ color: "white" }}>Sign up</a>
+            No account? <a href="/signup" >Sign up</a>
           </div>
         </div>
       </section>
@@ -123,11 +121,11 @@ function LoginForm() {
 
   return (
     <section className="container">
-      <div className="auth card" style={{ backgroundColor: "transparent", color: "white" }}>
-        <h2 style={{ color: "white" }}>Log In</h2>
+      <div className="auth card" >
+        <h2 >Log In</h2>
         <form onSubmit={onSubmit} className="row">
           <div>
-            <label htmlFor="email" style={{ color: "white" }}>Email*</label>
+            <label htmlFor="email" >Email*</label>
             <input
               id="email"
               type="email"
@@ -137,11 +135,10 @@ function LoginForm() {
               placeholder="you@church.org"
               disabled={loading}
               autoComplete="email"
-              style={{ backgroundColor: "rgba(255, 255, 255, 0.1)", color: "white", border: "1px solid rgba(255, 255, 255, 0.3)" }}
             />
           </div>
           <div>
-            <label htmlFor="password" style={{ color: "white" }}>Password*</label>
+            <label htmlFor="password" >Password*</label>
             <input
               id="password"
               type="password"
@@ -151,7 +148,6 @@ function LoginForm() {
               placeholder="••••••••"
               disabled={loading}
               autoComplete="current-password"
-              style={{ backgroundColor: "rgba(255, 255, 255, 0.1)", color: "white", border: "1px solid rgba(255, 255, 255, 0.3)" }}
             />
           </div>
         </form>
@@ -171,7 +167,7 @@ function LoginForm() {
         
         <div style={{ marginTop: "1rem", display: "flex", gap: ".5rem", justifyContent: "space-between", alignItems: "center" }}>
           {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
-          <a href="/reset" style={{ color: "rgba(255, 255, 255, 0.7)" }}>Forgot password?</a>
+          <a href="/reset" >Forgot password?</a>
           <button 
             className="btn primary" 
             disabled={loading}
@@ -183,7 +179,7 @@ function LoginForm() {
         
         <div style={{ marginTop: "1rem", color: "rgba(255, 255, 255, 0.7)" }}>
           No account? {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
-          <a href="/signup" style={{ color: "white" }}>Sign up</a>
+          <a href="/signup" >Sign up</a>
         </div>
       </div>
     </section>

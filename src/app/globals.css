@@ -49,6 +49,51 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 2px rgba(14,77,164,.2);
 .hero{display:grid;place-items:center;min-height:calc(100vh - 56px);padding:2rem;text-align:center}
 .auth{max-width:480px;margin:2rem auto;padding:1.25rem}
 .auth h2{margin:.25rem 0 1rem}
+
+/* Auth form styling */
+.auth.card {
+  background: transparent !important;
+  color: white !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+}
+
+.auth.card h2 {
+  color: white !important;
+}
+
+.auth.card label {
+  color: white !important;
+}
+
+.auth.card a {
+  color: rgba(255, 255, 255, 0.7) !important;
+}
+
+.auth.card a:hover {
+  color: white !important;
+}
+
+.auth.card input,
+.auth.card select,
+.auth.card textarea {
+  background: rgba(255, 255, 255, 0.1) !important;
+  color: white !important;
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+}
+
+.auth.card input::placeholder,
+.auth.card select::placeholder,
+.auth.card textarea::placeholder {
+  color: rgba(255, 255, 255, 0.6) !important;
+}
+
+.auth.card input:focus,
+.auth.card select:focus,
+.auth.card textarea:focus {
+  background: rgba(255, 255, 255, 0.15) !important;
+  border-color: rgba(255, 255, 255, 0.5) !important;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.2) !important;
+}
 .toast{position:fixed;right:1rem;bottom:4.5rem;background:#111827;color:#fff;padding:.5rem .75rem;border-radius:8px;opacity:0;transform:translateY(8px);transition:.2s}
 .toast.show{opacity:1;transform:translateY(0)}
 
