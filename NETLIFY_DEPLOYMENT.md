@@ -15,6 +15,7 @@
    - **Build command**: `bun run build`
    - **Publish directory**: `.next`
    - **Node version**: `18`
+   - **Functions directory**: `netlify/functions` (if using Netlify functions)
 
 ## Step 2: Configure Environment Variables
 
@@ -50,10 +51,23 @@ The `netlify.toml` file is already configured with:
 
 ## Important Notes
 
+- **API Routes**: Netlify doesn't natively support Next.js API routes. You'll need to either:
+  - Use Vercel (recommended for Next.js apps)
+  - Convert API routes to Netlify Functions
+  - Use an external API service
 - **Database**: You'll need to set up a database service (Netlify KV, PlanetScale, or similar)
 - **Environment Variables**: Make sure to set all required environment variables
 - **Build Time**: First build may take 5-10 minutes
 - **Custom Domain**: You can add a custom domain in Site Settings
+
+## Alternative: Use Vercel Instead
+
+For Next.js apps with API routes, Vercel is the recommended platform:
+
+1. Go to [Vercel Dashboard](https://vercel.com)
+2. Import your GitHub repository
+3. Deploy automatically with full Next.js support
+4. API routes work out of the box
 
 ## Troubleshooting
 
