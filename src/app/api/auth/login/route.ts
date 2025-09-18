@@ -99,8 +99,9 @@ export async function POST(req: Request) {
     })
 
     // Set secure cookie
+    const isProduction = process.env.NODE_ENV === 'production'
     res.headers.set("Set-Cookie", 
-      `cf_token=${token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${60*60*24*7}; Secure`
+      `cf_token=${token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${60*60*24*7}${isProduction ? '; Secure' : ''}`
     )
 
     return res

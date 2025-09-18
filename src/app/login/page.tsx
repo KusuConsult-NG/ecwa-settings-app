@@ -66,8 +66,10 @@ function LoginForm() {
         throw new Error(data.error || "Login failed")
       }
 
-      // Redirect to intended page or dashboard
-      window.location.href = redirect
+      // Small delay to ensure cookie is set before redirect
+      setTimeout(() => {
+        window.location.href = redirect
+      }, 100)
     } catch (err: any) {
       setError({
         message: err.message || "An unexpected error occurred",

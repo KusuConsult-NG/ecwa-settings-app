@@ -106,7 +106,10 @@ function SignupForm() {
         throw new Error(data.error || "Signup failed")
       }
 
-      window.location.href = "/dashboard"
+      // Small delay to ensure cookie is set before redirect
+      setTimeout(() => {
+        window.location.href = "/dashboard"
+      }, 100)
     } catch (err: any) {
       setError({
         message: err.message || "An unexpected error occurred",

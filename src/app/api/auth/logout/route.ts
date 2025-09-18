@@ -8,8 +8,9 @@ export async function POST() {
     })
     
     // Clear the authentication cookie
+    const isProduction = process.env.NODE_ENV === 'production'
     res.headers.set("Set-Cookie", 
-      "cf_token=; Path=/; HttpOnly; Max-Age=0; SameSite=Lax; Secure"
+      `cf_token=; Path=/; HttpOnly; Max-Age=0; SameSite=Lax${isProduction ? '; Secure' : ''}`
     )
     
     return res
