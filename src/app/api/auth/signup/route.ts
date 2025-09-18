@@ -75,6 +75,8 @@ export async function POST(req: Request) {
       address: normalizedAddress,
       passwordHash,
       createdAt: new Date().toISOString(),
+      orgId: crypto.randomUUID(), // Generate a unique org ID for the user
+      orgName: `${normalizedName}'s Organization`, // Default org name
       role: "Secretary", // Default role for new users
       isActive: true,
       lastLogin: null
@@ -88,6 +90,8 @@ export async function POST(req: Request) {
       sub: user.id,
       email: user.email,
       name: user.name,
+      orgId: user.orgId,
+      orgName: user.orgName,
       role: user.role
     })
 
@@ -98,7 +102,9 @@ export async function POST(req: Request) {
         id: user.id, 
         name: user.name, 
         email: user.email,
-        role: user.role
+        role: user.role,
+        orgId: user.orgId,
+        orgName: user.orgName
       } 
     })
 
