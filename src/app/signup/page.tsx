@@ -16,11 +16,6 @@ function SignupForm() {
   const [confirmPassword, setConfirmPassword] = useState("")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<SignupError | null>(null)
-  const [mounted, setMounted] = useState(false)
-
-  useEffect(() => {
-    setMounted(true)
-  }, [])
 
   // Password strength validation
   const validatePassword = (pwd: string) => {
@@ -124,91 +119,6 @@ function SignupForm() {
     }
   }
 
-  if (!mounted) {
-  return (
-    <section className="container">
-      <div className="auth card">
-        <h2>Sign Up & Create Organization</h2>
-          <form>
-            <div className="row">
-              <div style={{ marginBottom: "1rem" }}>
-                <label htmlFor="name">Full name*</label>
-                <input
-                  id="name"
-                  required
-                  placeholder="Your name"
-                  autoComplete="name"
-                  disabled
-                />
-              </div>
-              <div style={{ marginBottom: "1rem" }}>
-                <label htmlFor="email">Email*</label>
-                <input
-                  id="email"
-                  type="email"
-                  required
-                  placeholder="you@church.org"
-                  autoComplete="email"
-                  disabled
-                />
-              </div>
-            </div>
-            <div className="row">
-              <div style={{ marginBottom: "1rem" }}>
-                <label htmlFor="phone">Phone number*</label>
-                <input
-                  id="phone"
-                  type="tel"
-                  required
-                  placeholder="+1 (555) 123-4567"
-                  autoComplete="tel"
-                  disabled
-                />
-              </div>
-              <div style={{ marginBottom: "1rem" }}>
-                <label htmlFor="address">Address*</label>
-                <input
-                  id="address"
-                  required
-                  placeholder="123 Church Street, City, State"
-                  autoComplete="street-address"
-                  disabled
-                />
-              </div>
-            </div>
-            <div className="row">
-              <div style={{ marginBottom: "1rem" }}>
-                <label htmlFor="password">Password*</label>
-                <input
-                  id="password"
-                  type="password"
-                  required
-                  placeholder="••••••••"
-                  autoComplete="new-password"
-                  disabled
-                />
-              </div>
-              <div style={{ marginBottom: "1rem" }}>
-                <label htmlFor="confirmPassword">Confirm password*</label>
-                <input
-                  id="confirmPassword"
-                  type="password"
-                  required
-                  placeholder="••••••••"
-                  autoComplete="new-password"
-                  disabled
-                />
-              </div>
-            </div>
-            <div style={{ marginTop: "1rem", display: "flex", gap: ".5rem", justifyContent: "flex-end" }}>
-              <a className="btn ghost" href="/">Cancel</a>
-              <button className="btn primary" disabled>Create</button>
-            </div>
-        </form>
-        </div>
-      </section>
-    )
-  }
 
   return (
     <section className="container">

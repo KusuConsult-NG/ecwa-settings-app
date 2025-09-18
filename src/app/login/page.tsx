@@ -14,15 +14,10 @@ function LoginForm() {
   const [password, setPassword] = useState("")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<LoginError | null>(null)
-  const [mounted, setMounted] = useState(false)
   const searchParams = useSearchParams()
 
   // Check for redirect parameter
   const redirect = searchParams?.get("redirect") || "/dashboard"
-
-  useEffect(() => {
-    setMounted(true)
-  }, [])
 
   // Check for error parameter from middleware
   useEffect(() => {
@@ -54,6 +49,7 @@ function LoginForm() {
     }
 
     try {
+      console.log("Frontend: Attempting login for:", email.trim())
       const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -61,10 +57,13 @@ function LoginForm() {
       })
       
       const data = await res.json()
+      console.log("Frontend: Login response status:", res.status)
+      console.log("Frontend: Login response data:", data)
       
-             if (!res.ok) {
-               throw new Error(data.error || "Login failed")
-             }
+      if (!res.ok) {
+        console.log("Frontend: Login failed with error:", data.error)
+        throw new Error(data.error || "Login failed")
+      }
 
              console.log("Login successful, redirecting to:", redirect)
              console.log("Redirecting in 1000ms...")
@@ -75,6 +74,8 @@ function LoginForm() {
                window.location.replace(redirect)
              }, 1000)
     } catch (err: any) {
+      console.log("Frontend: Login error caught:", err)
+      console.log("Frontend: Error message:", err.message)
       setError({
         message: err.message || "An unexpected error occurred",
         code: "LOGIN_FAILED"
@@ -84,46 +85,6 @@ function LoginForm() {
     }
   }
 
-  if (!mounted) {
-    return (
-      <section className="container">
-        <div className="auth card">
-          <h2>Log In</h2>
-          <form>
-            <div style={{ marginBottom: "1rem" }}>
-              <label htmlFor="email">Email*</label>
-              <input
-                id="email"
-                type="email"
-                required
-                placeholder="you@church.org"
-                autoComplete="email"
-                disabled
-              />
-            </div>
-            <div style={{ marginBottom: "1rem" }}>
-              <label htmlFor="password">Password*</label>
-              <input
-                id="password"
-                type="password"
-                required
-                placeholder="••••••••"
-                autoComplete="current-password"
-                disabled
-              />
-            </div>
-            <div style={{ marginTop: "1rem", display: "flex", gap: ".5rem", justifyContent: "space-between", alignItems: "center" }}>
-              <a href="/reset">Forgot password?</a>
-              <button className="btn primary" disabled>Log In</button>
-            </div>
-          </form>
-          <div style={{ marginTop: "1rem", color: "var(--muted)", textAlign: "center" }}>
-            No account? <a href="/signup">Sign up</a>
-          </div>
-        </div>
-      </section>
-    )
-  }
 
   return (
     <section className="container">
