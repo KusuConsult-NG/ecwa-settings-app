@@ -6,6 +6,10 @@ export async function POST(req: Request) {
   try {
     const { email, password } = await req.json();
 
+    if (!email || !password) {
+      return NextResponse.json({ error: 'Email and password are required' }, { status: 400 });
+    }
+
     // TODO: Replace with REAL database lookup.
     // For now, only admin@example.com / admin123 will work.
     const user = await fakeFindUserByEmail(email);
@@ -21,17 +25,25 @@ export async function POST(req: Request) {
     const token = await signJwt({ sub: user.id, role: user.role, email: user.email });
 
     // IMPORTANT: Set the cookie on the SAME response you return
-    const res = NextResponse.json({ ok: true });
+    const res = NextResponse.json({ 
+      ok: true, 
+      user: {
+        id: user.id,
+        email: user.email,
+        role: user.role
+      }
+    });
     res.cookies.set('auth', token, {
       httpOnly: true,
-      secure: true,        // Vercel uses HTTPS
+      secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
       path: '/',
       maxAge: 60 * 60 * 24 * 7, // 7 days
     });
     return res;
   } catch (e) {
-    return NextResponse.json({ error: 'Unexpected' }, { status: 500 });
+    console.error('Login error:', e);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
 

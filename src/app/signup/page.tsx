@@ -95,11 +95,19 @@ function SignupForm() {
         })
       })
       
-      const data = await res.json()
-      
       if (!res.ok) {
-        throw new Error(data.error || "Signup failed")
+        const errorText = await res.text()
+        console.log("Frontend: Signup failed with error text:", errorText)
+        let errorData
+        try {
+          errorData = JSON.parse(errorText)
+        } catch {
+          errorData = { error: errorText || "Signup failed" }
+        }
+        throw new Error(errorData.error || "Signup failed")
       }
+      
+      const data = await res.json()
 
       console.log("Signup successful, user data:", data.user)
       console.log("Redirecting to login in 1000ms...")

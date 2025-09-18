@@ -44,14 +44,22 @@ function LoginForm() {
         body: JSON.stringify({ email: email.trim(), password })
       })
       
-      const data = await res.json()
       console.log("Frontend: Login response status:", res.status)
-      console.log("Frontend: Login response data:", data)
       
       if (!res.ok) {
-        console.log("Frontend: Login failed with error:", data.error)
-        throw new Error(data.error || "Login failed")
+        const errorText = await res.text()
+        console.log("Frontend: Login failed with error text:", errorText)
+        let errorData
+        try {
+          errorData = JSON.parse(errorText)
+        } catch {
+          errorData = { error: errorText || "Login failed" }
+        }
+        throw new Error(errorData.error || "Login failed")
       }
+      
+      const data = await res.json()
+      console.log("Frontend: Login response data:", data)
 
       console.log("Login successful, redirecting to:", redirect)
       console.log("Redirecting in 1000ms...")

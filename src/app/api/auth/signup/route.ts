@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import { kv, type UserRecord } from "@/lib/kv"
-import { signToken, validateEmail, validatePassword, AuthenticationError } from "@/lib/auth"
+import { signJwt, validateEmail, validatePassword, AuthenticationError } from "@/lib/auth"
 import bcrypt from "bcryptjs"
 import crypto from "crypto"
 
@@ -85,8 +85,8 @@ export async function POST(req: Request) {
     // Save user to storage
     await kv.set(`user:${normalizedEmail}`, JSON.stringify(user))
 
-    // Generate token
-    const token = await signToken({
+    // Generate token using new JWT system
+    const token = await signJwt({
       sub: user.id,
       email: user.email,
       name: user.name,
@@ -95,7 +95,7 @@ export async function POST(req: Request) {
       role: user.role
     })
 
-    // Create response
+    // Create response with new cookie system
     const res = NextResponse.json({ 
       ok: true, 
       user: { 
@@ -108,11 +108,14 @@ export async function POST(req: Request) {
       } 
     })
 
-    // Set secure cookie
-    const isProduction = process.env.NODE_ENV === 'production'
-    const cookieString = `cf_token=${token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${60*60*24*7}${isProduction ? '; Secure' : ''}`
-    res.headers.set("Set-Cookie", cookieString)
-    
+    // Set cookie using new system
+    res.cookies.set('auth', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path: '/',
+      maxAge: 60 * 60 * 24 * 7, // 7 days
+    })
 
     return res
 
