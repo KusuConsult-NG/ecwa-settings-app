@@ -95,54 +95,40 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 2px rgba(14,77,164,.2);
   box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.2) !important;
 }
 
-/* General form styling for specific pages */
-.settings .card,
-.org .card {
+/* Auth pages styling */
+.auth.card {
   background: transparent !important;
   border: 1px solid rgba(255, 255, 255, 0.2) !important;
   color: white !important;
 }
 
-.settings .card h2,
-.settings .card h3,
-.settings .card .font-heading,
-.org .card h2,
-.org .card h3,
-.org .card .font-heading {
+.auth.card h2,
+.auth.card h3,
+.auth.card .font-heading {
   color: white !important;
 }
 
-.settings .card label,
-.org .card label {
+.auth.card label {
   color: white !important;
 }
 
-.settings .card input,
-.settings .card select,
-.settings .card textarea,
-.org .card input,
-.org .card select,
-.org .card textarea {
+.auth.card input,
+.auth.card select,
+.auth.card textarea {
   background: rgba(255, 255, 255, 0.1) !important;
   color: white !important;
   border: 1px solid rgba(255, 255, 255, 0.3) !important;
 }
 
-.settings .card input::placeholder,
-.settings .card select::placeholder,
-.settings .card textarea::placeholder,
-.org .card input::placeholder,
-.org .card select::placeholder,
-.org .card textarea::placeholder {
+.auth.card input::placeholder,
+.auth.card select::placeholder,
+.auth.card textarea::placeholder {
   color: rgba(255, 255, 255, 0.6) !important;
 }
 
-.settings .card input:focus,
-.settings .card select:focus,
-.settings .card textarea:focus,
-.org .card input:focus,
-.org .card select:focus,
-.org .card textarea:focus {
+.auth.card input:focus,
+.auth.card select:focus,
+.auth.card textarea:focus {
   background: rgba(255, 255, 255, 0.15) !important;
   border-color: rgba(255, 255, 255, 0.5) !important;
   box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.2) !important;

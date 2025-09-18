@@ -150,6 +150,18 @@ function LoginForm() {
               autoComplete="current-password"
             />
           </div>
+          
+          <div style={{ marginTop: "1rem", display: "flex", gap: ".5rem", justifyContent: "space-between", alignItems: "center" }}>
+            {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
+            <a href="/reset" >Forgot password?</a>
+            <button 
+              type="submit"
+              className="btn primary" 
+              disabled={loading}
+            >
+              {loading ? "Logging in…" : "Log In"}
+            </button>
+          </div>
         </form>
         
         {error && (
@@ -164,18 +176,6 @@ function LoginForm() {
             )}
           </div>
         )}
-        
-        <div style={{ marginTop: "1rem", display: "flex", gap: ".5rem", justifyContent: "space-between", alignItems: "center" }}>
-          {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
-          <a href="/reset" >Forgot password?</a>
-          <button 
-            type="submit"
-            className="btn primary" 
-            disabled={loading}
-          >
-            {loading ? "Logging in…" : "Log In"}
-          </button>
-        </div>
         
         <div style={{ marginTop: "1rem", color: "rgba(255, 255, 255, 0.7)" }}>
           No account? {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
