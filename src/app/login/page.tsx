@@ -81,11 +81,11 @@ function LoginForm() {
   if (!mounted) {
     return (
       <section className="container">
-        <div className="auth card" >
-          <h2 >Log In</h2>
-          <form className="row">
-            <div>
-              <label htmlFor="email" >Email*</label>
+        <div className="auth card">
+          <h2>Log In</h2>
+          <form>
+            <div style={{ marginBottom: "1rem" }}>
+              <label htmlFor="email">Email*</label>
               <input
                 id="email"
                 type="email"
@@ -95,8 +95,8 @@ function LoginForm() {
                 disabled
               />
             </div>
-            <div>
-              <label htmlFor="password" >Password*</label>
+            <div style={{ marginBottom: "1rem" }}>
+              <label htmlFor="password">Password*</label>
               <input
                 id="password"
                 type="password"
@@ -106,13 +106,13 @@ function LoginForm() {
                 disabled
               />
             </div>
+            <div style={{ marginTop: "1rem", display: "flex", gap: ".5rem", justifyContent: "space-between", alignItems: "center" }}>
+              <a href="/reset">Forgot password?</a>
+              <button className="btn primary" disabled>Log In</button>
+            </div>
           </form>
-          <div style={{ marginTop: "1rem", display: "flex", gap: ".5rem", justifyContent: "space-between", alignItems: "center" }}>
-            <a href="/reset" >Forgot password?</a>
-            <button className="btn primary" disabled>Log In</button>
-          </div>
-          <div style={{ marginTop: "1rem", color: "rgba(255, 255, 255, 0.7)" }}>
-            No account? <a href="/signup" >Sign up</a>
+          <div style={{ marginTop: "1rem", color: "var(--muted)", textAlign: "center" }}>
+            No account? <a href="/signup">Sign up</a>
           </div>
         </div>
       </section>
@@ -121,11 +121,11 @@ function LoginForm() {
 
   return (
     <section className="container">
-      <div className="auth card" >
-        <h2 >Log In</h2>
-        <form onSubmit={onSubmit} className="row">
-          <div>
-            <label htmlFor="email" >Email*</label>
+      <div className="auth card">
+        <h2>Log In</h2>
+        <form onSubmit={onSubmit}>
+          <div style={{ marginBottom: "1rem" }}>
+            <label htmlFor="email">Email*</label>
             <input
               id="email"
               type="email"
@@ -137,8 +137,8 @@ function LoginForm() {
               autoComplete="email"
             />
           </div>
-          <div>
-            <label htmlFor="password" >Password*</label>
+          <div style={{ marginBottom: "1rem" }}>
+            <label htmlFor="password">Password*</label>
             <input
               id="password"
               type="password"
@@ -153,7 +153,7 @@ function LoginForm() {
           
           <div style={{ marginTop: "1rem", display: "flex", gap: ".5rem", justifyContent: "space-between", alignItems: "center" }}>
             {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
-            <a href="/reset" >Forgot password?</a>
+            <a href="/reset">Forgot password?</a>
             <button 
               type="submit"
               className="btn primary" 
@@ -177,9 +177,9 @@ function LoginForm() {
           </div>
         )}
         
-        <div style={{ marginTop: "1rem", color: "rgba(255, 255, 255, 0.7)" }}>
+        <div style={{ marginTop: "1rem", color: "var(--muted)", textAlign: "center" }}>
           No account? {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
-          <a href="/signup" >Sign up</a>
+          <a href="/signup">Sign up</a>
         </div>
       </div>
     </section>
