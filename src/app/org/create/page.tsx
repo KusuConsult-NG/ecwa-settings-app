@@ -74,7 +74,7 @@ export default function OrgCreatePage() {
           <h3 style={{marginTop:0, color: "white"}}>Create Organization</h3>
           <form className="row">
             <div>
-              <label style={{color: "white"}}>DCC</label>
+              <label >DCC</label>
               <select disabled>
                 <option value="">Loading...</option>
               </select>
@@ -92,12 +92,11 @@ export default function OrgCreatePage() {
         <form onSubmit={createLC}>
           <div className="row">
             <div>
-              <label style={{color: "white"}}>DCC *</label>
+              <label >DCC *</label>
               <select 
                 value={selectedDcc} 
                 onChange={(e)=>setSelectedDcc(e.target.value)}
                 required
-                style={{backgroundColor: "rgba(255, 255, 255, 0.1)", color: "white", border: "1px solid rgba(255, 255, 255, 0.3)"}}
               >
                 <option value="">Select DCC</option>
                 {dccs.map(d=> <option key={d.id} value={d.id}>{d.name}</option>)}
@@ -106,13 +105,12 @@ export default function OrgCreatePage() {
           </div>
           <div className="row">
             <div>
-              <label style={{color: "white"}}>LCC *</label>
+              <label >LCC *</label>
               <select 
                 value={selectedLcc} 
                 onChange={(e)=>setSelectedLcc(e.target.value)} 
                 disabled={!selectedDcc}
                 required
-                style={{backgroundColor: "rgba(255, 255, 255, 0.1)", color: "white", border: "1px solid rgba(255, 255, 255, 0.3)"}}
               >
                 <option value="">Select LCC</option>
                 {lccs.map(l=> <option key={l.id} value={l.id}>{l.name}</option>)}
@@ -121,33 +119,30 @@ export default function OrgCreatePage() {
           </div>
           <div className="row">
             <div>
-              <label style={{color: "white"}}>LC Name *</label>
+              <label >LC Name *</label>
               <input 
                 value={lcName} 
                 onChange={(e)=>setLcName(e.target.value)} 
                 placeholder="ECWA • LC – ..." 
                 required
-                style={{backgroundColor: "rgba(255, 255, 255, 0.1)", color: "white", border: "1px solid rgba(255, 255, 255, 0.3)"}}
               />
             </div>
           </div>
           <div className="row">
             <div>
-              <label style={{color: "white"}}>Address</label>
+              <label >Address</label>
               <input 
                 value={address} 
                 onChange={(e)=>setAddress(e.target.value)} 
                 placeholder="123 Church Street, City, State"
-                style={{backgroundColor: "rgba(255, 255, 255, 0.1)", color: "white", border: "1px solid rgba(255, 255, 255, 0.3)"}}
               />
             </div>
             <div>
-              <label style={{color: "white"}}>Phone</label>
+              <label >Phone</label>
               <input 
                 value={phone} 
                 onChange={(e)=>setPhone(e.target.value)} 
                 placeholder="+234 803 123 4567"
-                style={{backgroundColor: "rgba(255, 255, 255, 0.1)", color: "white", border: "1px solid rgba(255, 255, 255, 0.3)"}}
               />
             </div>
           </div>

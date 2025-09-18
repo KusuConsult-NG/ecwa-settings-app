@@ -112,14 +112,14 @@ function ResetForm() {
 
   return (
     <section className="container">
-      <div className="auth card" style={{ backgroundColor: "transparent", color: "white" }}>
-        <h2 style={{ color: "white" }}>Reset Password</h2>
+      <div className="auth card">
+        <h2>Reset Password</h2>
         <p style={{ color: "rgba(255, 255, 255, 0.7)", marginBottom: "1rem", fontSize: "0.875rem" }}>
           Enter your email address and we'll send you a link to reset your password.
         </p>
         <form onSubmit={onSubmit} className="row">
           <div>
-            <label htmlFor="email" style={{ color: "white" }}>Email*</label>
+            <label htmlFor="email">Email*</label>
             <input
               id="email"
               type="email"
@@ -129,7 +129,6 @@ function ResetForm() {
               placeholder="you@church.org"
               disabled={loading}
               autoComplete="email"
-              style={{ backgroundColor: "rgba(255, 255, 255, 0.1)", color: "white", border: "1px solid rgba(255, 255, 255, 0.3)" }}
             />
           </div>
         </form>

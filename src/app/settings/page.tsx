@@ -194,7 +194,7 @@ export default function SettingsPage() {
       <div className="space-y-8">
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
-            <h1 className="font-heading text-3xl font-bold tracking-tight" style={{color: "white"}}>Settings</h1>
+            <h1 className="font-heading text-3xl font-bold tracking-tight" >Settings</h1>
             <p className="text-gray-300">Loading...</p>
           </div>
         </div>
@@ -206,7 +206,7 @@ export default function SettingsPage() {
     <div className="space-y-8">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="font-heading text-3xl font-bold tracking-tight" style={{color: "white"}}>Settings</h1>
+          <h1 className="font-heading text-3xl font-bold tracking-tight" >Settings</h1>
           <p className="text-gray-300">Manage organization settings, user roles, and system configuration.</p>
         </div>
       </div>
@@ -220,33 +220,31 @@ export default function SettingsPage() {
         </TabsList>
 
         <TabsContent value="organization" className="space-y-6">
-          <Card style={{backgroundColor: "transparent", border: "1px solid rgba(255, 255, 255, 0.2)"}}>
+          <Card>
             <CardHeader>
-              <CardTitle className="font-heading flex items-center" style={{color: "white"}}>
+              <CardTitle className="font-heading flex items-center">
                 <Building2 className="mr-2 h-5 w-5" />
                 Organization Information
               </CardTitle>
-              <CardDescription style={{color: "rgba(255, 255, 255, 0.7)"}}>Basic information about your church organization</CardDescription>
+              <CardDescription>Basic information about your church organization</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <form onSubmit={handleSaveOrgInfo}>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="orgName" style={{color: "white"}}>Organization Name</Label>
+                    <Label htmlFor="orgName" >Organization Name</Label>
                     <Input 
                       id="orgName" 
                       value={orgData.name}
                       onChange={(e) => setOrgData(prev => ({...prev, name: e.target.value}))}
-                      style={{backgroundColor: "rgba(255, 255, 255, 0.1)", color: "white", border: "1px solid rgba(255, 255, 255, 0.3)"}}
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="orgType" style={{color: "white"}}>Organization Type</Label>
+                    <Label htmlFor="orgType" >Organization Type</Label>
                     <div>
                       <NativeSelect 
                         value={orgData.type} 
                         onChange={(e) => setOrgData(prev => ({...prev, type: e.target.value}))}
-                        style={{backgroundColor: "rgba(255, 255, 255, 0.1)", color: "white", border: "1px solid rgba(255, 255, 255, 0.3)"}}
                       >
                         <option value="gcc">General Church Council (GCC)</option>
                         <option value="dcc">District Church Council (DCC)</option>
@@ -257,32 +255,29 @@ export default function SettingsPage() {
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="address" style={{color: "white"}}>Address</Label>
+                  <Label htmlFor="address" >Address</Label>
                   <Textarea 
                     id="address" 
                     value={orgData.address}
                     onChange={(e) => setOrgData(prev => ({...prev, address: e.target.value}))}
-                    style={{backgroundColor: "rgba(255, 255, 255, 0.1)", color: "white", border: "1px solid rgba(255, 255, 255, 0.3)"}}
                   />
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="phone" style={{color: "white"}}>Phone Number</Label>
+                    <Label htmlFor="phone" >Phone Number</Label>
                     <Input 
                       id="phone" 
                       value={orgData.phone}
                       onChange={(e) => setOrgData(prev => ({...prev, phone: e.target.value}))}
-                      style={{backgroundColor: "rgba(255, 255, 255, 0.1)", color: "white", border: "1px solid rgba(255, 255, 255, 0.3)"}}
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="email" style={{color: "white"}}>Email Address</Label>
+                    <Label htmlFor="email" >Email Address</Label>
                     <Input 
                       id="email" 
                       type="email" 
                       value={orgData.email}
                       onChange={(e) => setOrgData(prev => ({...prev, email: e.target.value}))}
-                      style={{backgroundColor: "rgba(255, 255, 255, 0.1)", color: "white", border: "1px solid rgba(255, 255, 255, 0.3)"}}
                     />
                   </div>
                 </div>
@@ -294,7 +289,7 @@ export default function SettingsPage() {
           <Card style={{backgroundColor: "transparent", border: "1px solid rgba(255, 255, 255, 0.2)"}}>
             <CardHeader className="flex flex-row items-center justify-between">
               <div>
-                <CardTitle className="font-heading" style={{color: "white"}}>Organization Hierarchy</CardTitle>
+                <CardTitle className="font-heading" >Organization Hierarchy</CardTitle>
                 <CardDescription style={{color: "rgba(255, 255, 255, 0.7)"}}>Manage the church organizational structure</CardDescription>
               </div>
               <Dialog open={isAddOrgDialogOpen} onOpenChange={setIsAddOrgDialogOpen}>
@@ -306,27 +301,25 @@ export default function SettingsPage() {
                 </DialogTrigger>
                 <DialogContent style={{backgroundColor: "rgba(0, 0, 0, 0.9)", border: "1px solid rgba(255, 255, 255, 0.2)"}}>
                   <DialogHeader>
-                    <DialogTitle style={{color: "white"}}>Add New Organization</DialogTitle>
+                    <DialogTitle >Add New Organization</DialogTitle>
                     <DialogDescription style={{color: "rgba(255, 255, 255, 0.7)"}}>Create a new organization in the hierarchy</DialogDescription>
                   </DialogHeader>
                   <form onSubmit={handleAddOrganization}>
                     <div className="grid gap-4 p-6 pt-0">
                       <div className="space-y-2">
-                        <Label htmlFor="newOrgName" style={{color: "white"}}>Organization Name</Label>
+                        <Label htmlFor="newOrgName" >Organization Name</Label>
                         <Input 
                           id="newOrgName" 
                           placeholder="Enter organization name" 
                           value={newOrgData.name}
                           onChange={(e) => setNewOrgData(prev => ({...prev, name: e.target.value}))}
-                          style={{backgroundColor: "rgba(255, 255, 255, 0.1)", color: "white", border: "1px solid rgba(255, 255, 255, 0.3)"}}
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="newOrgType" style={{color: "white"}}>Type</Label>
+                        <Label htmlFor="newOrgType" >Type</Label>
                         <NativeSelect 
                           value={newOrgData.type} 
                           onChange={(e) => setNewOrgData(prev => ({...prev, type: e.target.value}))}
-                          style={{backgroundColor: "rgba(255, 255, 255, 0.1)", color: "white", border: "1px solid rgba(255, 255, 255, 0.3)"}}
                         >
                           <option value="">Select type</option>
                           <option value="dcc">District Church Council (DCC)</option>
@@ -335,11 +328,10 @@ export default function SettingsPage() {
                         </NativeSelect>
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="parentOrg" style={{color: "white"}}>Parent Organization</Label>
+                        <Label htmlFor="parentOrg" >Parent Organization</Label>
                         <NativeSelect 
                           value={newOrgData.parentId} 
                           onChange={(e) => setNewOrgData(prev => ({...prev, parentId: e.target.value}))}
-                          style={{backgroundColor: "rgba(255, 255, 255, 0.1)", color: "white", border: "1px solid rgba(255, 255, 255, 0.3)"}}
                         >
                           <option value="">Select parent</option>
                           <option value="GCC-001">ECWA General Church Council</option>

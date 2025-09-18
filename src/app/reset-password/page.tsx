@@ -179,7 +179,7 @@ function ResetPasswordForm() {
     <section className="container">
       <div className="auth card">
         <h2>Reset Password</h2>
-        <p style={{ color: "#6B7280", marginBottom: "1rem", fontSize: "0.875rem" }}>
+        <p style={{ color: "rgba(255, 255, 255, 0.7)", marginBottom: "1rem", fontSize: "0.875rem" }}>
           Enter your new password below.
         </p>
         <form onSubmit={onSubmit} className="row">
