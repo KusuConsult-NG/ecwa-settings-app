@@ -4,8 +4,52 @@ import Image from "next/image"
 
 export default function ClientTopbar() {
   const [me, setMe] = useState<any>(null)
-  useEffect(() => { fetch('/api/me').then(r=>r.json()).then(d=>setMe(d.user||null)) }, [])
-  async function logout(){ await fetch('/api/auth/logout',{method:'POST'}); window.location.href='/' }
+  
+  const fetchUser = async () => {
+    try {
+      const response = await fetch('/api/me')
+      const data = await response.json()
+      setMe(data.user || null)
+    } catch (error) {
+      console.error('Failed to fetch user:', error)
+      setMe(null)
+    }
+  }
+  
+  useEffect(() => { 
+    fetchUser()
+    
+    // Listen for storage events (when user logs in/out in another tab)
+    const handleStorageChange = () => {
+      fetchUser()
+    }
+    
+    // Listen for custom login event
+    const handleUserLoggedIn = (event: CustomEvent) => {
+      setMe(event.detail)
+    }
+    
+    // Also listen for focus events to refresh user data when returning to tab
+    const handleFocus = () => {
+      fetchUser()
+    }
+    
+    window.addEventListener('storage', handleStorageChange)
+    window.addEventListener('userLoggedIn', handleUserLoggedIn as EventListener)
+    window.addEventListener('focus', handleFocus)
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange)
+      window.removeEventListener('userLoggedIn', handleUserLoggedIn as EventListener)
+      window.removeEventListener('focus', handleFocus)
+    }
+  }, [])
+  
+  async function logout(){ 
+    await fetch('/api/auth/logout',{method:'POST'})
+    setMe(null) // Clear user state immediately
+    window.location.href='/' 
+  }
   
   // Role-based access helpers
   const canCreateDCC = me?.role && ["President", "General Secretary", "Treasurer"].includes(me.role)

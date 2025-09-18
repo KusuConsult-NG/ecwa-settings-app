@@ -112,6 +112,9 @@ function SignupForm() {
       console.log("Signup successful, user data:", data.user)
       console.log("Redirecting to dashboard in 1000ms...")
 
+      // Dispatch a custom event to notify other components of successful signup
+      window.dispatchEvent(new CustomEvent('userLoggedIn', { detail: data.user }))
+
       // Redirect to dashboard after successful signup (user is already authenticated)
       setTimeout(() => {
         console.log("Redirecting to dashboard now...")

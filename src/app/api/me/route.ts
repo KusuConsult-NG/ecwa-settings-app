@@ -8,7 +8,7 @@ function getTokenFromRequest(req: Request): string | null {
   
   const tokenCookie = cookie
     .split(";")
-    .find((c) => c.trim().startsWith("cf_token="))
+    .find((c) => c.trim().startsWith("auth="))
   
   return tokenCookie?.split("=")[1] || null
 }
@@ -95,7 +95,7 @@ export async function POST(req: Request) {
     })
     
     res.headers.set("Set-Cookie", 
-      `cf_token=${newToken}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${60*60*24*7}; Secure`
+      `auth=${newToken}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${60*60*24*7}; Secure`
     )
     
     return res

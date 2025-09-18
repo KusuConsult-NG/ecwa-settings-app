@@ -64,6 +64,9 @@ function LoginForm() {
       console.log("Login successful, redirecting to:", redirect)
       console.log("Redirecting in 1000ms...")
 
+      // Dispatch a custom event to notify other components of successful login
+      window.dispatchEvent(new CustomEvent('userLoggedIn', { detail: data.user }))
+
       // Longer delay to ensure cookie is set before redirect
       setTimeout(() => {
         console.log("Redirecting now...")

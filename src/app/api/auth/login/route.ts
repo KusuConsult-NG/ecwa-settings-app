@@ -22,7 +22,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
     }
 
-    const token = await signJwt({ sub: user.id, role: user.role, email: user.email });
+    const token = await signJwt({ sub: user.id, role: user.role, email: user.email, name: user.name });
 
     // IMPORTANT: Set the cookie on the SAME response you return
     const res = NextResponse.json({ 
@@ -30,7 +30,8 @@ export async function POST(req: Request) {
       user: {
         id: user.id,
         email: user.email,
-        role: user.role
+        role: user.role,
+        name: user.name
       }
     });
     res.cookies.set('auth', token, {
@@ -52,5 +53,5 @@ async function fakeFindUserByEmail(email: string) {
   if (email !== 'admin@example.com') return null;
   // password is "admin123" for this mock
   const passwordHash = await bcrypt.hash('admin123', 10);
-  return { id: 'u1', email, role: 'admin', passwordHash };
+  return { id: 'u1', email, role: 'admin', name: 'Admin User', passwordHash };
 }
