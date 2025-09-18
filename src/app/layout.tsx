@@ -28,7 +28,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <a href="/dashboard" >📊 Dashboard</a>
               <a href="/expenditures" >🧾 Expenditures</a>
               <a href="/expenditures/new" >➕ Raise Expenditure</a>
-              <a href="/approvals" >✅ Approvals</a>
               <a href="/income" >💰 Income</a>
               <a href="/reports" >📈 Reports</a>
               <a href="/audit" >🔍 Audit Logs</a>

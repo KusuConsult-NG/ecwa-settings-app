@@ -27,7 +27,6 @@ export default function DashboardPage() {
 
   const quickActions = [
     { title: "Raise Expenditure", href: "/expenditures/new", icon: "➕", color: "primary" },
-    { title: "View Approvals", href: "/approvals", icon: "✅", color: "secondary" },
     { title: "Add Income", href: "/income", icon: "💰", color: "primary" },
     { title: "Generate Report", href: "/reports", icon: "📈", color: "secondary" },
     { title: "HR Management", href: "/hr", icon: "🧑‍💼", color: "secondary" },
