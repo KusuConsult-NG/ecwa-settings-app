@@ -19,7 +19,7 @@ export default function CreateLccPage(){
   }
 
   return (
-    <section className="container">
+    <section className="org container">
       <div className="section-title"><h2>DCC: Create LCCs</h2></div>
       <div className="card" style={{padding:'1rem'}}>
         <div className="row">

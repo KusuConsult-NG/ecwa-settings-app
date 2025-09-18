@@ -86,7 +86,7 @@ export default function OrgCreatePage() {
   }
 
   return (
-    <section className="container">
+    <section className="org container">
       <div className="card" style={{padding:"1rem", backgroundColor: "transparent"}}>
         <h3 style={{marginTop:0, color: "white"}}>Create Organization</h3>
         <form onSubmit={createLC}>

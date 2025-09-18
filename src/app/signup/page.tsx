@@ -317,9 +317,9 @@ function SignupForm() {
           {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
           <a className="btn ghost" href="/" >Cancel</a>
           <button 
+            type="submit"
             className="btn primary" 
             disabled={loading || !passwordValidation.valid || !passwordsMatch}
-            onClick={onSubmit}
           >
             {loading ? "Creating…" : "Create"}
           </button>

@@ -95,40 +95,54 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 2px rgba(14,77,164,.2);
   box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.2) !important;
 }
 
-/* General form styling for all pages */
-.card {
+/* General form styling for specific pages */
+.settings .card,
+.org .card {
   background: transparent !important;
   border: 1px solid rgba(255, 255, 255, 0.2) !important;
   color: white !important;
 }
 
-.card h2,
-.card h3,
-.card .font-heading {
+.settings .card h2,
+.settings .card h3,
+.settings .card .font-heading,
+.org .card h2,
+.org .card h3,
+.org .card .font-heading {
   color: white !important;
 }
 
-.card label {
+.settings .card label,
+.org .card label {
   color: white !important;
 }
 
-.card input,
-.card select,
-.card textarea {
+.settings .card input,
+.settings .card select,
+.settings .card textarea,
+.org .card input,
+.org .card select,
+.org .card textarea {
   background: rgba(255, 255, 255, 0.1) !important;
   color: white !important;
   border: 1px solid rgba(255, 255, 255, 0.3) !important;
 }
 
-.card input::placeholder,
-.card select::placeholder,
-.card textarea::placeholder {
+.settings .card input::placeholder,
+.settings .card select::placeholder,
+.settings .card textarea::placeholder,
+.org .card input::placeholder,
+.org .card select::placeholder,
+.org .card textarea::placeholder {
   color: rgba(255, 255, 255, 0.6) !important;
 }
 
-.card input:focus,
-.card select:focus,
-.card textarea:focus {
+.settings .card input:focus,
+.settings .card select:focus,
+.settings .card textarea:focus,
+.org .card input:focus,
+.org .card select:focus,
+.org .card textarea:focus {
   background: rgba(255, 255, 255, 0.15) !important;
   border-color: rgba(255, 255, 255, 0.5) !important;
   box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.2) !important;

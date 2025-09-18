@@ -169,9 +169,9 @@ function LoginForm() {
           {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
           <a href="/reset" >Forgot password?</a>
           <button 
+            type="submit"
             className="btn primary" 
             disabled={loading}
-            onClick={onSubmit}
           >
             {loading ? "Logging in…" : "Log In"}
           </button>
