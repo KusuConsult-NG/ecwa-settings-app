@@ -8,8 +8,8 @@ const PUBLIC = new Set<string>(['/', '/login', '/signup', '/favicon.ico']);
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
-  // Allow public paths and Next.js internal/static assets
-  if (PUBLIC.has(pathname) || pathname.startsWith('/_next') || pathname.startsWith('/api/public')) {
+  // Allow public paths, auth API routes, and Next.js internal/static assets
+  if (PUBLIC.has(pathname) || pathname.startsWith('/_next') || pathname.startsWith('/api/public') || pathname.startsWith('/api/auth')) {
     return NextResponse.next();
   }
 
@@ -26,7 +26,7 @@ export async function middleware(req: NextRequest) {
   return NextResponse.next();
 }
 
-// Apply to all routes except _next, favicon, and /api/public
+// Apply to all routes except _next, favicon, api/public, and api/auth
 export const config = {
-  matcher: ['/((?!_next|favicon.ico|api/public).*)'],
+  matcher: ['/((?!_next|favicon.ico|api/public|api/auth).*)'],
 };
