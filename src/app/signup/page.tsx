@@ -107,13 +107,13 @@ function SignupForm() {
       }
 
       console.log("Signup successful, user data:", data.user)
-      console.log("Redirecting to dashboard in 500ms...")
+      console.log("Redirecting to dashboard in 1000ms...")
 
       // Longer delay to ensure cookie is set before redirect
       setTimeout(() => {
         console.log("Redirecting now...")
-        window.location.href = "/dashboard"
-      }, 500)
+        window.location.replace("/dashboard")
+      }, 1000)
     } catch (err: any) {
       setError({
         message: err.message || "An unexpected error occurred",
@@ -125,10 +125,10 @@ function SignupForm() {
   }
 
   if (!mounted) {
-    return (
-      <section className="container">
-        <div className="auth card">
-          <h2>Sign Up & Create Organization</h2>
+  return (
+    <section className="container">
+      <div className="auth card">
+        <h2>Sign Up & Create Organization</h2>
           <form>
             <div className="row">
               <div style={{ marginBottom: "1rem" }}>
@@ -204,7 +204,7 @@ function SignupForm() {
               <a className="btn ghost" href="/">Cancel</a>
               <button className="btn primary" disabled>Create</button>
             </div>
-          </form>
+        </form>
         </div>
       </section>
     )
@@ -324,7 +324,7 @@ function SignupForm() {
           )}
           
           <div style={{ marginTop: "1rem", display: "flex", gap: ".5rem", justifyContent: "flex-end" }}>
-            {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
+          {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
             <a className="btn ghost" href="/" >Cancel</a>
             <button 
               type="submit"
@@ -333,7 +333,7 @@ function SignupForm() {
             >
               {loading ? "Creating…" : "Create"}
             </button>
-          </div>
+        </div>
         </form>
       </div>
     </section>

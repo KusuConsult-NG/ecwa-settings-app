@@ -67,13 +67,13 @@ function LoginForm() {
              }
 
              console.log("Login successful, redirecting to:", redirect)
-             console.log("Redirecting in 500ms...")
+             console.log("Redirecting in 1000ms...")
 
              // Longer delay to ensure cookie is set before redirect
              setTimeout(() => {
                console.log("Redirecting now...")
-               window.location.href = redirect
-             }, 500)
+               window.location.replace(redirect)
+             }, 1000)
     } catch (err: any) {
       setError({
         message: err.message || "An unexpected error occurred",
