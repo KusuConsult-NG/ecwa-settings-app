@@ -103,8 +103,6 @@ export async function POST(req: Request) {
     const cookieString = `cf_token=${token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${60*60*24*7}${isProduction ? '; Secure' : ''}`
     res.headers.set("Set-Cookie", cookieString)
     
-    console.log("Login: Cookie set:", cookieString.substring(0, 50) + "...")
-    console.log("Login attempt for", normalizedEmail, "found user data:", user ? "YES" : "NO")
 
     return res
 

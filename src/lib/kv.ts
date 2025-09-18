@@ -27,6 +27,41 @@ export class KVError extends Error {
 
 const memory = new Map<string, string>()
 
+// Simple file-based storage fallback for development
+import fs from 'fs/promises'
+import path from 'path'
+
+const STORAGE_FILE = path.join(process.cwd(), '.data', 'users.json')
+
+async function ensureStorageDir() {
+  try {
+    await fs.mkdir(path.dirname(STORAGE_FILE), { recursive: true })
+  } catch (error) {
+    // Directory might already exist
+  }
+}
+
+async function loadFromFile(): Promise<Map<string, string>> {
+  try {
+    await ensureStorageDir()
+    const data = await fs.readFile(STORAGE_FILE, 'utf-8')
+    const parsed = JSON.parse(data)
+    return new Map(Object.entries(parsed))
+  } catch (error) {
+    return new Map()
+  }
+}
+
+async function saveToFile(data: Map<string, string>): Promise<void> {
+  try {
+    await ensureStorageDir()
+    const obj = Object.fromEntries(data)
+    await fs.writeFile(STORAGE_FILE, JSON.stringify(obj, null, 2))
+  } catch (error) {
+    console.error('Failed to save to file:', error)
+  }
+}
+
 async function kvFetch(path: string, init?: RequestInit) {
   const base = process.env.KV_REST_API_URL
   const token = process.env.KV_REST_API_TOKEN
@@ -65,16 +100,18 @@ export const kv = {
     try {
       const res = await kvFetch(`/get/${encodeURIComponent(key)}`)
       if (!res) {
-        // Fallback to memory storage
-        return memory.get(key) ?? null
+        // Fallback to file storage
+        const fileData = await loadFromFile()
+        return fileData.get(key) ?? null
       }
       
       const data = await res.json()
       return data?.result ?? null
     } catch (error) {
       console.error(`KV get error for key ${key}:`, error)
-      // Fallback to memory storage on error
-      return memory.get(key) ?? null
+      // Fallback to file storage on error
+      const fileData = await loadFromFile()
+      return fileData.get(key) ?? null
     }
   },
   
@@ -86,17 +123,23 @@ export const kv = {
       })
       
       if (!res) {
-        // Fallback to memory storage
-        memory.set(key, value)
+        // Fallback to file storage
+        const fileData = await loadFromFile()
+        fileData.set(key, value)
+        await saveToFile(fileData)
         return
       }
       
-      // Also store in memory as backup
-      memory.set(key, value)
+      // Also store in file as backup
+      const fileData = await loadFromFile()
+      fileData.set(key, value)
+      await saveToFile(fileData)
     } catch (error) {
       console.error(`KV set error for key ${key}:`, error)
-      // Fallback to memory storage on error
-      memory.set(key, value)
+      // Fallback to file storage on error
+      const fileData = await loadFromFile()
+      fileData.set(key, value)
+      await saveToFile(fileData)
     }
   },
   
@@ -106,15 +149,17 @@ export const kv = {
         method: 'POST',
       })
       
-      // Always remove from memory
-      memory.delete(key)
+      // Always remove from file storage
+      const fileData = await loadFromFile()
+      fileData.delete(key)
+      await saveToFile(fileData)
       
       if (!res) {
-        return // Memory fallback completed
+        return // File fallback completed
       }
     } catch (error) {
       console.error(`KV delete error for key ${key}:`, error)
-      // Memory fallback completed above
+      // File fallback completed above
     }
   },
   
