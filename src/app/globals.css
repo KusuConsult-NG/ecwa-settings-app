@@ -24,6 +24,8 @@ a{color:var(--primary);text-decoration:none}
 .badge{display:inline-flex;align-items:center;gap:.5rem;padding:.125rem .5rem;border-radius:999px;border:1px solid var(--line);background:#fff}
 .layout{display:grid;grid-template-columns:264px 1fr;min-height:calc(100vh - 56px)}
 .sidebar{background:#0C2C5C;color:#EAF2FF;padding:1rem;position:sticky;top:56px;height:calc(100vh - 56px);overflow-y:auto}
+.logo{display:flex;align-items:center;gap:.75rem;padding:.75rem;border-radius:10px;background:rgba(255,255,255,.1);margin-bottom:1rem}
+.logo span{font-weight:600;font-size:16px;color:#EAF2FF}
 .nav{margin-top:1rem;display:flex;flex-direction:column;gap:.25rem}
 .nav a{color:#EAF2FF;padding:.625rem .75rem;border-radius:10px;display:flex;gap:.5rem}
 .nav a.active,.nav a:hover{background:rgba(255,255,255,.1)}

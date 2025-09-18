@@ -16,7 +16,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
         <div className="layout">
           <aside className="sidebar" id="sidebar">
-            <div className="badge" style={{background:'#0b3f86',color:'#fff',borderColor:'rgba(255,255,255,.2)'}}>✚ CHURCHFLOW</div>
+            <div className="logo">
+              <Image src="/logo.svg" alt="ECWA Settings" width={32} height={32} />
+              <span>ECWA Settings</span>
+            </div>
             <nav className="nav" id="nav">
               <a href="/" >🏠 Home</a>
               <a href="/dashboard" >📊 Dashboard</a>
