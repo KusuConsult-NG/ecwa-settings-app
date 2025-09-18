@@ -106,10 +106,14 @@ function SignupForm() {
         throw new Error(data.error || "Signup failed")
       }
 
-      // Small delay to ensure cookie is set before redirect
+      console.log("Signup successful, user data:", data.user)
+      console.log("Redirecting to dashboard in 500ms...")
+
+      // Longer delay to ensure cookie is set before redirect
       setTimeout(() => {
+        console.log("Redirecting now...")
         window.location.href = "/dashboard"
-      }, 100)
+      }, 500)
     } catch (err: any) {
       setError({
         message: err.message || "An unexpected error occurred",

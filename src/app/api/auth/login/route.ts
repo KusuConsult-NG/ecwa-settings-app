@@ -100,9 +100,11 @@ export async function POST(req: Request) {
 
     // Set secure cookie
     const isProduction = process.env.NODE_ENV === 'production'
-    res.headers.set("Set-Cookie", 
-      `cf_token=${token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${60*60*24*7}${isProduction ? '; Secure' : ''}`
-    )
+    const cookieString = `cf_token=${token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${60*60*24*7}${isProduction ? '; Secure' : ''}`
+    res.headers.set("Set-Cookie", cookieString)
+    
+    console.log("Login: Cookie set:", cookieString.substring(0, 50) + "...")
+    console.log("Login attempt for", normalizedEmail, "found user data:", user ? "YES" : "NO")
 
     return res
 

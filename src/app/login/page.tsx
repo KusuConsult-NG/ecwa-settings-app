@@ -62,14 +62,18 @@ function LoginForm() {
       
       const data = await res.json()
       
-      if (!res.ok) {
-        throw new Error(data.error || "Login failed")
-      }
+             if (!res.ok) {
+               throw new Error(data.error || "Login failed")
+             }
 
-      // Small delay to ensure cookie is set before redirect
-      setTimeout(() => {
-        window.location.href = redirect
-      }, 100)
+             console.log("Login successful, redirecting to:", redirect)
+             console.log("Redirecting in 500ms...")
+
+             // Longer delay to ensure cookie is set before redirect
+             setTimeout(() => {
+               console.log("Redirecting now...")
+               window.location.href = redirect
+             }, 500)
     } catch (err: any) {
       setError({
         message: err.message || "An unexpected error occurred",
