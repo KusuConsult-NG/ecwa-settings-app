@@ -1,31 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyJwt } from '@/lib/auth';
 import { kv } from '@/lib/kv';
+import { StaffRecord, CreateStaffRequest, generateStaffId } from '@/lib/staff';
 import crypto from 'crypto';
-
-// Interface moved to @/lib/staff
-interface StaffRecord {
-  id: string;
-  name: string;
-  email: string;
-  phone: string;
-  address: string;
-  position: string;
-  department: string;
-  salary: number;
-  startDate: string;
-  status: 'active' | 'inactive' | 'suspended';
-  emergencyContact: {
-    name: string;
-    phone: string;
-    relationship: string;
-  };
-  createdAt: string;
-  updatedAt: string;
-  createdBy: string;
-  orgId: string;
-  orgName: string;
-}
 
 // GET /api/staff - Get all staff
 export async function GET(req: NextRequest) {

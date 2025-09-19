@@ -1,42 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyJwt } from '@/lib/auth';
 import { kv } from '@/lib/kv';
+import { PayrollRecord, CreatePayrollRequest, generatePayrollId } from '@/lib/payroll';
 import crypto from 'crypto';
-
-// Interface moved to @/lib/payroll
-interface PayrollRecord {
-  id: string;
-  staffId: string;
-  staffName: string;
-  staffEmail: string;
-  month: string; // YYYY-MM format
-  year: number;
-  basicSalary: number;
-  allowances: {
-    housing: number;
-    transport: number;
-    medical: number;
-    other: number;
-  };
-  deductions: {
-    tax: number;
-    pension: number;
-    loan: number;
-    other: number;
-  };
-  overtime: number;
-  bonus: number;
-  netSalary: number;
-  status: 'pending' | 'approved' | 'paid' | 'rejected';
-  paymentMethod: 'bank_transfer' | 'cash' | 'cheque';
-  paymentDate?: string;
-  notes?: string;
-  createdAt: string;
-  updatedAt: string;
-  createdBy: string;
-  orgId: string;
-  orgName: string;
-}
 
 // GET /api/payroll - Get all payroll records
 export async function GET(req: NextRequest) {
@@ -52,51 +18,35 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
     }
 
+    // Get query parameters
     const { searchParams } = new URL(req.url);
     const status = searchParams.get('status');
     const month = searchParams.get('month');
-    const year = searchParams.get('year');
-    const staffId = searchParams.get('staffId');
+    const search = searchParams.get('search');
 
-    // Get payroll from database
+    // Get all payroll records from KV store
     const payrollData = await kv.get('payroll:index');
-    let payroll: PayrollRecord[] = payrollData ? JSON.parse(payrollData) : [];
+    const allPayroll: PayrollRecord[] = payrollData ? JSON.parse(payrollData) : [];
 
-    // Filter by organization
-    payroll = payroll.filter(p => p.orgId === payload.orgId);
+    // Filter payroll records by organization
+    let filteredPayroll = allPayroll.filter(record => record.orgId === payload.orgId);
 
-    // Apply filters
+    // Apply additional filters
     if (status) {
-      payroll = payroll.filter(p => p.status === status);
+      filteredPayroll = filteredPayroll.filter(record => record.status === status);
     }
-
     if (month) {
-      payroll = payroll.filter(p => p.month === month);
+      filteredPayroll = filteredPayroll.filter(record => record.month === month);
+    }
+    if (search) {
+      filteredPayroll = filteredPayroll.filter(record => 
+        record.staffName.toLowerCase().includes(search.toLowerCase())
+      );
     }
 
-    if (year) {
-      payroll = payroll.filter(p => p.year === parseInt(year));
-    }
-
-    if (staffId) {
-      payroll = payroll.filter(p => p.staffId === staffId);
-    }
-
-    // Sort by month/year descending
-    payroll.sort((a, b) => {
-      const dateA = new Date(`${a.year}-${a.month}-01`);
-      const dateB = new Date(`${b.year}-${b.month}-01`);
-      return dateB.getTime() - dateA.getTime();
-    });
-
-    return NextResponse.json({
-      payroll,
-      total: payroll.length,
-      totalAmount: payroll.reduce((sum, p) => sum + p.netSalary, 0)
-    });
-
+    return NextResponse.json({ payroll: filteredPayroll });
   } catch (error) {
-    console.error('Get payroll error:', error);
+    console.error('Payroll GET error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
@@ -115,107 +65,74 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
     }
 
-    const body = await req.json();
-    const {
-      staffId,
-      month,
-      year,
-      basicSalary,
-      allowances,
-      deductions,
-      overtime,
-      bonus,
-      paymentMethod,
-      notes
-    } = body;
+    const body: CreatePayrollRequest = await req.json();
 
-    // Validation
-    if (!staffId || !month || !year || !basicSalary) {
-      return NextResponse.json(
-        { error: 'Missing required fields' },
-        { status: 400 }
-      );
+    // Validate required fields
+    if (!body.staffId || !body.month || !body.year || !body.baseSalary || !body.paymentDate) {
+      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
-    // Get staff member details
-    const staffData = await kv.get(`staff:${staffId}`);
-    if (!staffData) {
+    // Get staff information
+    const staffData = await kv.get('staff:index');
+    const allStaff = staffData ? JSON.parse(staffData) : [];
+    const staff = allStaff.find((s: any) => s.id === body.staffId && s.orgId === payload.orgId);
+
+    if (!staff) {
       return NextResponse.json({ error: 'Staff member not found' }, { status: 404 });
     }
 
-    const staff = JSON.parse(staffData);
-
-    // Check if payroll already exists for this staff and month
+    // Check for duplicate payroll record
     const payrollData = await kv.get('payroll:index');
     const existingPayroll: PayrollRecord[] = payrollData ? JSON.parse(payrollData) : [];
-    
-    const duplicateExists = existingPayroll.some(p => 
-      p.staffId === staffId && p.month === month && p.year === parseInt(year) && p.orgId === payload.orgId
+    const duplicate = existingPayroll.find(record => 
+      record.staffId === body.staffId && 
+      record.month === body.month && 
+      record.year === body.year &&
+      record.orgId === payload.orgId
     );
 
-    if (duplicateExists) {
-      return NextResponse.json(
-        { error: 'Payroll record already exists for this staff member and month' },
-        { status: 409 }
-      );
+    if (duplicate) {
+      return NextResponse.json({ error: 'Payroll record already exists for this staff member and period' }, { status: 409 });
     }
 
     // Calculate net salary
-    const totalAllowances = (allowances?.housing || 0) + (allowances?.transport || 0) + 
-                           (allowances?.medical || 0) + (allowances?.other || 0);
-    const totalDeductions = (deductions?.tax || 0) + (deductions?.pension || 0) + 
-                           (deductions?.loan || 0) + (deductions?.other || 0);
-    const netSalary = basicSalary + totalAllowances + (overtime || 0) + (bonus || 0) - totalDeductions;
+    const netSalary = body.baseSalary + body.allowances - body.deductions;
 
     // Create payroll record
-    const payroll: PayrollRecord = {
-      id: crypto.randomUUID(),
-      staffId,
+    const payrollRecord: PayrollRecord = {
+      id: generatePayrollId(),
+      staffId: body.staffId,
       staffName: staff.name,
       staffEmail: staff.email,
-      month,
-      year: parseInt(year),
-      basicSalary: Number(basicSalary),
-      allowances: {
-        housing: Number(allowances?.housing || 0),
-        transport: Number(allowances?.transport || 0),
-        medical: Number(allowances?.medical || 0),
-        other: Number(allowances?.other || 0)
-      },
-      deductions: {
-        tax: Number(deductions?.tax || 0),
-        pension: Number(deductions?.pension || 0),
-        loan: Number(deductions?.loan || 0),
-        other: Number(deductions?.other || 0)
-      },
-      overtime: Number(overtime || 0),
-      bonus: Number(bonus || 0),
-      netSalary,
+      month: body.month,
+      year: body.year,
+      baseSalary: body.baseSalary,
+      allowances: body.allowances,
+      deductions: body.deductions,
+      netSalary: netSalary,
+      paymentDate: body.paymentDate,
       status: 'pending',
-      paymentMethod: paymentMethod || 'bank_transfer',
-      notes: notes?.trim() || '',
+      notes: body.notes || '',
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
-      createdBy: payload.sub as string,
-      orgId: payload.orgId as string,
-      orgName: payload.orgName as string
+      createdBy: payload.sub,
+      orgId: payload.orgId,
+      orgName: payload.orgName
     };
 
-    // Save to database
-    await kv.set(`payroll:${payroll.id}`, JSON.stringify(payroll));
-    
+    // Save individual payroll record
+    await kv.set(`payroll:${payrollRecord.id}`, JSON.stringify(payrollRecord));
+
     // Update payroll index
-    existingPayroll.push(payroll);
-    await kv.set('payroll:index', JSON.stringify(existingPayroll));
+    const updatedPayroll = [...existingPayroll, payrollRecord];
+    await kv.set('payroll:index', JSON.stringify(updatedPayroll));
 
-    return NextResponse.json({
-      success: true,
-      payroll,
-      message: 'Payroll record created successfully'
-    });
-
+    return NextResponse.json({ 
+      message: 'Payroll record created successfully', 
+      payroll: payrollRecord 
+    }, { status: 201 });
   } catch (error) {
-    console.error('Create payroll error:', error);
+    console.error('Payroll POST error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

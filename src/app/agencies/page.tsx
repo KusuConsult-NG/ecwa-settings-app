@@ -1,7 +1,6 @@
 "use client"
 import { useState, useEffect } from "react"
-import { AgencyRecord, getStatusColor, getStatusIcon, getTypeColor } from '@/lib/agencies'
-import { formatCurrency } from '@/lib/income'
+import { AgencyRecord, formatCurrency, getStatusColor, getStatusIcon, getTypeColor } from '@/lib/agencies'
 
 export default function AgenciesPage() {
   const [agencies, setAgencies] = useState<AgencyRecord[]>([])

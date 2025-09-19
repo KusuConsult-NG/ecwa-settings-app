@@ -1,35 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyJwt } from '@/lib/auth';
 import { kv } from '@/lib/kv';
+import { LeaveRecord, CreateLeaveRequest, generateLeaveId } from '@/lib/leave';
 import crypto from 'crypto';
 
-// Interface moved to @/lib/leave
-interface LeaveRecord {
-  id: string;
-  staffId: string;
-  staffName: string;
-  staffEmail: string;
-  leaveType: 'annual' | 'sick' | 'maternity' | 'paternity' | 'emergency' | 'unpaid' | 'study';
-  startDate: string;
-  endDate: string;
-  daysRequested: number;
-  reason: string;
-  status: 'pending' | 'approved' | 'rejected' | 'cancelled';
-  approvedBy?: string;
-  approvedByName?: string;
-  rejectedBy?: string;
-  rejectedByName?: string;
-  rejectionReason?: string;
-  approvedAt?: string;
-  rejectedAt?: string;
-  createdAt: string;
-  updatedAt: string;
-  createdBy: string;
-  orgId: string;
-  orgName: string;
-}
-
-// GET /api/leave - Get all leave records
+// GET /api/leave - Get all leave requests
 export async function GET(req: NextRequest) {
   try {
     // Authentication check
@@ -43,59 +18,35 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
     }
 
+    // Get query parameters
     const { searchParams } = new URL(req.url);
     const status = searchParams.get('status');
-    const staffId = searchParams.get('staffId');
     const leaveType = searchParams.get('leaveType');
-    const year = searchParams.get('year');
+    const search = searchParams.get('search');
 
-    // Get leave records from database
+    // Get all leave records from KV store
     const leaveData = await kv.get('leave:index');
-    let leaveRecords: LeaveRecord[] = leaveData ? JSON.parse(leaveData) : [];
+    const allLeave: LeaveRecord[] = leaveData ? JSON.parse(leaveData) : [];
 
-    // Filter by organization
-    leaveRecords = leaveRecords.filter(l => l.orgId === payload.orgId);
+    // Filter leave records by organization
+    let filteredLeave = allLeave.filter(record => record.orgId === payload.orgId);
 
-    // Apply filters
+    // Apply additional filters
     if (status) {
-      leaveRecords = leaveRecords.filter(l => l.status === status);
+      filteredLeave = filteredLeave.filter(record => record.status === status);
     }
-
-    if (staffId) {
-      leaveRecords = leaveRecords.filter(l => l.staffId === staffId);
-    }
-
     if (leaveType) {
-      leaveRecords = leaveRecords.filter(l => l.leaveType === leaveType);
+      filteredLeave = filteredLeave.filter(record => record.leaveType === leaveType);
+    }
+    if (search) {
+      filteredLeave = filteredLeave.filter(record => 
+        record.staffName.toLowerCase().includes(search.toLowerCase())
+      );
     }
 
-    if (year) {
-      const yearNum = parseInt(year);
-      leaveRecords = leaveRecords.filter(l => {
-        const startYear = new Date(l.startDate).getFullYear();
-        return startYear === yearNum;
-      });
-    }
-
-    // Sort by start date descending
-    leaveRecords.sort((a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime());
-
-    // Calculate summary statistics
-    const summary = {
-      total: leaveRecords.length,
-      pending: leaveRecords.filter(l => l.status === 'pending').length,
-      approved: leaveRecords.filter(l => l.status === 'approved').length,
-      rejected: leaveRecords.filter(l => l.status === 'rejected').length,
-      totalDays: leaveRecords.reduce((sum, l) => sum + l.daysRequested, 0)
-    };
-
-    return NextResponse.json({
-      leaveRecords,
-      summary
-    });
-
+    return NextResponse.json({ leave: filteredLeave });
   } catch (error) {
-    console.error('Get leave records error:', error);
+    console.error('Leave GET error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
@@ -114,107 +65,83 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
     }
 
-    const body = await req.json();
-    const {
-      staffId,
-      leaveType,
-      startDate,
-      endDate,
-      reason
-    } = body;
+    const body: CreateLeaveRequest = await req.json();
 
-    // Validation
-    if (!staffId || !leaveType || !startDate || !endDate || !reason) {
-      return NextResponse.json(
-        { error: 'Missing required fields' },
-        { status: 400 }
-      );
+    // Validate required fields
+    if (!body.staffId || !body.leaveType || !body.startDate || !body.endDate || !body.reason) {
+      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
-    // Validate dates
-    const start = new Date(startDate);
-    const end = new Date(endDate);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    // Get staff information
+    const staffData = await kv.get('staff:index');
+    const allStaff = staffData ? JSON.parse(staffData) : [];
+    const staff = allStaff.find((s: any) => s.id === body.staffId && s.orgId === payload.orgId);
 
-    if (start < today) {
-      return NextResponse.json(
-        { error: 'Start date cannot be in the past' },
-        { status: 400 }
-      );
-    }
-
-    if (end <= start) {
-      return NextResponse.json(
-        { error: 'End date must be after start date' },
-        { status: 400 }
-      );
-    }
-
-    // Calculate days requested
-    const timeDiff = end.getTime() - start.getTime();
-    const daysRequested = Math.ceil(timeDiff / (1000 * 3600 * 24)) + 1; // +1 to include both start and end days
-
-    // Get staff member details
-    const staffData = await kv.get(`staff:${staffId}`);
-    if (!staffData) {
+    if (!staff) {
       return NextResponse.json({ error: 'Staff member not found' }, { status: 404 });
     }
 
-    const staff = JSON.parse(staffData);
+    // Calculate duration
+    const startDate = new Date(body.startDate);
+    const endDate = new Date(body.endDate);
+    const durationDays = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 3600 * 24)) + 1;
+
+    if (durationDays <= 0) {
+      return NextResponse.json({ error: 'End date must be after start date' }, { status: 400 });
+    }
 
     // Check for overlapping leave requests
     const leaveData = await kv.get('leave:index');
     const existingLeave: LeaveRecord[] = leaveData ? JSON.parse(leaveData) : [];
-    
-    const overlappingLeave = existingLeave.some(l => 
-      l.staffId === staffId && 
-      l.status !== 'rejected' && 
-      l.status !== 'cancelled' &&
-      ((new Date(l.startDate) <= end && new Date(l.endDate) >= start))
+    const overlapping = existingLeave.find(record => 
+      record.staffId === body.staffId && 
+      record.status !== 'rejected' &&
+      record.status !== 'cancelled' &&
+      record.orgId === payload.orgId &&
+      (
+        (new Date(record.startDate) <= startDate && new Date(record.endDate) >= startDate) ||
+        (new Date(record.startDate) <= endDate && new Date(record.endDate) >= endDate) ||
+        (startDate <= new Date(record.startDate) && endDate >= new Date(record.endDate))
+      )
     );
 
-    if (overlappingLeave) {
-      return NextResponse.json(
-        { error: 'Leave request overlaps with existing approved or pending leave' },
-        { status: 409 }
-      );
+    if (overlapping) {
+      return NextResponse.json({ error: 'Leave request overlaps with existing request' }, { status: 409 });
     }
 
     // Create leave record
     const leaveRecord: LeaveRecord = {
-      id: crypto.randomUUID(),
-      staffId,
+      id: generateLeaveId(),
+      staffId: body.staffId,
       staffName: staff.name,
       staffEmail: staff.email,
-      leaveType,
-      startDate,
-      endDate,
-      daysRequested,
-      reason: reason.trim(),
+      leaveType: body.leaveType,
+      startDate: body.startDate,
+      endDate: body.endDate,
+      durationDays: durationDays,
+      reason: body.reason,
       status: 'pending',
+      attachmentUrl: body.attachmentUrl || '',
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
-      createdBy: payload.sub as string,
-      orgId: payload.orgId as string,
-      orgName: payload.orgName as string
+      createdBy: payload.sub,
+      orgId: payload.orgId,
+      orgName: payload.orgName
     };
 
-    // Save to database
+    // Save individual leave record
     await kv.set(`leave:${leaveRecord.id}`, JSON.stringify(leaveRecord));
-    
+
     // Update leave index
-    existingLeave.push(leaveRecord);
-    await kv.set('leave:index', JSON.stringify(existingLeave));
+    const updatedLeave = [...existingLeave, leaveRecord];
+    await kv.set('leave:index', JSON.stringify(updatedLeave));
 
-    return NextResponse.json({
-      success: true,
-      leaveRecord,
-      message: 'Leave request submitted successfully'
-    });
-
+    return NextResponse.json({ 
+      message: 'Leave request created successfully', 
+      leave: leaveRecord 
+    }, { status: 201 });
   } catch (error) {
-    console.error('Create leave request error:', error);
+    console.error('Leave POST error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
