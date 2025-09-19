@@ -32,6 +32,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <a href="/reports" >📈 Reports</a>
               <a href="/audit" >🔍 Audit Logs</a>
               <a href="/hr" >🧑‍💼 HR Dashboard</a>
+              <a href="/hr/staff" >👥 Staff</a>
+              <a href="/hr/payroll" >🧾 Payroll</a>
+              <a href="/hr/leave" >🏖️ Leave</a>
+              <a href="/hr/queries" >📨 Queries</a>
+              <a href="/org/create" >🏢 Create LC</a>
+              <a href="/org/lcc" >🏛️ Create LCC</a>
               {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
               <a href="/agencies">🏛️ Agencies & Groups</a>
               <div style={{marginTop:'.5rem'}} className="badge">Organizations</div>
@@ -41,15 +47,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               {/* Account menu */}
               <div style={{marginTop:'.5rem'}} className="badge">Account</div>
               {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
-              <a href="/account/new">New</a>
-              {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
-              <a href="/account/history">View History</a>
-              {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
               <a href="/account/statements">Generate Statements</a>
-              <a href="/hr/staff" >👥 Staff</a>
-              <a href="/hr/payroll" >🧾 Payroll</a>
-              <a href="/hr/leave" >🏖️ Leave</a>
-              <a href="/hr/queries" >📨 Queries</a>
               <a href="/bank" >🏦 Bank</a>
               <a href="/executive" >⭐ Executive</a>
               <a href="/settings" >⚙️ Settings</a>
