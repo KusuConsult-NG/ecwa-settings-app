@@ -1,10 +1,10 @@
-import { NextResponse } from "next/server"
+import { NextRequest, NextResponse } from "next/server"
 import { verifyJwt } from "@/lib/auth"
 import { kv } from "@/lib/kv"
 import { ExpenditureRecord, CreateExpenditureRequest } from "@/lib/expenditure"
 import crypto from "crypto"
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
     // Get user from JWT token
     const token = req.cookies.get('auth')?.value
@@ -47,11 +47,11 @@ export async function POST(req: Request) {
       accountNumber: accountNumber?.trim(),
       viaAgency: Boolean(viaAgency),
       status: 'pending',
-      submittedBy: payload.sub,
-      submittedByName: payload.name || 'Unknown User',
+      submittedBy: payload.sub as string,
+      submittedByName: (payload.name as string) || 'Unknown User',
       submittedAt: new Date().toISOString(),
-      orgId: payload.orgId || '',
-      orgName: payload.orgName || 'ECWA Organization',
+      orgId: (payload.orgId as string) || '',
+      orgName: (payload.orgName as string) || 'ECWA Organization',
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     }
@@ -94,7 +94,7 @@ export async function POST(req: Request) {
   }
 }
 
-export async function GET(req: Request) {
+export async function GET(req: NextRequest) {
   try {
     // Get user from JWT token
     const token = req.cookies.get('auth')?.value

@@ -1,10 +1,10 @@
-import { NextResponse } from "next/server"
+import { NextRequest, NextResponse } from "next/server"
 import { verifyJwt } from "@/lib/auth"
 import { kv } from "@/lib/kv"
 import { ExpenditureRecord, UpdateExpenditureStatusRequest } from "@/lib/expenditure"
 
 export async function PATCH(
-  req: Request,
+  req: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
@@ -20,7 +20,7 @@ export async function PATCH(
     }
 
     // Check if user has permission to approve/reject
-    const userRole = payload.role
+    const userRole = payload.role as string
     const canApprove = ['admin', 'President', 'General Secretary', 'Treasurer', 'Chairman', 'Secretary'].includes(userRole)
     
     if (!canApprove) {
@@ -80,11 +80,11 @@ export async function PATCH(
       ...expenditure,
       status,
       rejectionNote: status === 'rejected' ? rejectionNote?.trim() : undefined,
-      approvedBy: status === 'approved' ? payload.sub : undefined,
-      approvedByName: status === 'approved' ? payload.name : undefined,
+      approvedBy: status === 'approved' ? payload.sub as string : undefined,
+      approvedByName: status === 'approved' ? payload.name as string : undefined,
       approvedAt: status === 'approved' ? new Date().toISOString() : undefined,
-      rejectedBy: status === 'rejected' ? payload.sub : undefined,
-      rejectedByName: status === 'rejected' ? payload.name : undefined,
+      rejectedBy: status === 'rejected' ? payload.sub as string : undefined,
+      rejectedByName: status === 'rejected' ? payload.name as string : undefined,
       rejectedAt: status === 'rejected' ? new Date().toISOString() : undefined,
       updatedAt: new Date().toISOString(),
     }
