@@ -99,7 +99,7 @@ export default function LCPage() {
       leaderName: lc.leaderName,
       leaderEmail: lc.leaderEmail,
       leaderPhone: lc.leaderPhone,
-      maxCapacity: lc.maxCapacity,
+      maxCapacity: lc.memberCount,
       establishedDate: lc.establishedDate
     })
     setEditingId(lc.id)

@@ -9,6 +9,7 @@ export interface LCCRecord {
   establishedDate: string;
   status: 'active' | 'inactive' | 'suspended';
   capacity: number;
+  memberCount: number;
   leaderId: string;
   leaderName: string;
   contactEmail: string;

@@ -99,7 +99,7 @@ export default function LCCPage() {
       leaderName: lcc.leaderName,
       leaderEmail: lcc.leaderEmail,
       leaderPhone: lcc.leaderPhone,
-      maxCapacity: lcc.maxCapacity,
+      maxCapacity: lcc.capacity,
       establishedDate: lcc.establishedDate
     })
     setEditingId(lcc.id)
@@ -373,7 +373,7 @@ export default function LCCPage() {
                         <small style={{color: 'var(--muted)'}}>{lcc.leaderEmail}</small>
                       </div>
                     </td>
-                    <td>{lcc.memberCount}/{lcc.maxCapacity}</td>
+                    <td>{lcc.memberCount}/{lcc.capacity}</td>
                     <td>
                       <span 
                         className="badge"
