@@ -112,6 +112,28 @@ export default function BankPage() {
     }
   }
 
+  const handleEdit = (account: BankAccount) => {
+    setFormData({
+      accountName: account.accountName,
+      accountNumber: account.accountNumber,
+      bankName: account.bankName,
+      accountType: account.accountType,
+      currency: account.currency,
+      openingDate: account.openingDate,
+      branch: account.branch,
+      swiftCode: account.swiftCode || '',
+      iban: account.iban || ''
+    })
+    setEditingId(account.id)
+    setShowForm(true)
+  }
+
+  const handleDelete = (id: string) => {
+    if (confirm('Are you sure you want to delete this account?')) {
+      setAccounts(prev => prev.filter(acc => acc.id !== id))
+    }
+  }
+
   const formatCurrency = (amount: number, currency: string = 'NGN') => {
     return new Intl.NumberFormat('en-NG', {
       style: 'currency',
@@ -299,8 +321,18 @@ export default function BankPage() {
                     <td><strong>{formatCurrency(account.balance, account.currency)}</strong></td>
                     <td>
                       <div className="btn-group">
-                        <button className="btn btn-sm btn-secondary">Edit</button>
-                        <button className="btn btn-sm btn-danger">Delete</button>
+                        <button 
+                          className="btn btn-sm btn-secondary"
+                          onClick={() => handleEdit(account)}
+                        >
+                          Edit
+                        </button>
+                        <button 
+                          className="btn btn-sm btn-danger"
+                          onClick={() => handleDelete(account.id)}
+                        >
+                          Delete
+                        </button>
                       </div>
                     </td>
                   </tr>

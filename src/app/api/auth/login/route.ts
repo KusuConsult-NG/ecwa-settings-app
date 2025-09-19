@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import { signJwt } from '@/lib/auth';
+import { kv, type UserRecord } from '@/lib/kv';
 
 export async function POST(req: Request) {
   try {
@@ -10,30 +11,56 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Email and password are required' }, { status: 400 });
     }
 
-    // TODO: Replace with REAL database lookup.
-    // For now, only admin@example.com / admin123 will work.
-    const user = await fakeFindUserByEmail(email);
-    if (!user) {
+    // Normalize email
+    const normalizedEmail = email.toLowerCase().trim();
+
+    // Look up user in KV store
+    const userData = await kv.get(`user:${normalizedEmail}`);
+    if (!userData) {
       return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
     }
 
+    const user: UserRecord = JSON.parse(userData);
+
+    // Check if user is active
+    if (!user.isActive) {
+      return NextResponse.json({ error: 'Account is deactivated' }, { status: 401 });
+    }
+
+    // Verify password
     const ok = await bcrypt.compare(password, user.passwordHash);
     if (!ok) {
       return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
     }
 
-    const token = await signJwt({ sub: user.id, role: user.role, email: user.email, name: user.name });
+    // Update last login
+    user.lastLogin = new Date().toISOString();
+    await kv.set(`user:${normalizedEmail}`, JSON.stringify(user));
 
-    // IMPORTANT: Set the cookie on the SAME response you return
+    // Generate JWT token
+    const token = await signJwt({ 
+      sub: user.id, 
+      role: user.role, 
+      email: user.email, 
+      name: user.name,
+      orgId: user.orgId,
+      orgName: user.orgName
+    });
+
+    // Create response
     const res = NextResponse.json({ 
       ok: true, 
       user: {
         id: user.id,
         email: user.email,
         role: user.role,
-        name: user.name
+        name: user.name,
+        orgId: user.orgId,
+        orgName: user.orgName
       }
     });
+
+    // Set authentication cookie
     res.cookies.set('auth', token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
@@ -41,17 +68,10 @@ export async function POST(req: Request) {
       path: '/',
       maxAge: 60 * 60 * 24 * 7, // 7 days
     });
+
     return res;
   } catch (e) {
     console.error('Login error:', e);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
-}
-
-// Mock user; replace with DB user lookup
-async function fakeFindUserByEmail(email: string) {
-  if (email !== 'admin@example.com') return null;
-  // password is "admin123" for this mock
-  const passwordHash = await bcrypt.hash('admin123', 10);
-  return { id: 'u1', email, role: 'admin', name: 'Admin User', passwordHash };
 }
