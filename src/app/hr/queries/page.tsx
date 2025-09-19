@@ -5,471 +5,768 @@ interface QueryRecord {
   id: string;
   title: string;
   description: string;
-  category: string;
+  category: 'general' | 'technical' | 'financial' | 'hr' | 'administrative' | 'other';
   priority: 'low' | 'medium' | 'high' | 'urgent';
-  status: 'open' | 'in_progress' | 'resolved' | 'closed';
+  status: 'open' | 'in_progress' | 'resolved' | 'closed' | 'cancelled';
   submittedBy: string;
   submittedByName: string;
+  submittedByEmail: string;
   assignedTo?: string;
   assignedToName?: string;
-  response?: string;
-  submittedAt: string;
+  assignedToEmail?: string;
+  assignedAt?: string;
   resolvedAt?: string;
+  closedAt?: string;
+  resolution?: string;
+  tags: string[];
+  attachments?: string[];
   createdAt: string;
   updatedAt: string;
 }
 
+interface StaffMember {
+  id: string;
+  name: string;
+  email: string;
+  position: string;
+  department: string;
+}
+
 export default function QueriesPage() {
   const [queries, setQueries] = useState<QueryRecord[]>([])
+  const [staff, setStaff] = useState<StaffMember[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [showForm, setShowForm] = useState(false)
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    category: '',
-    priority: 'medium' as 'low' | 'medium' | 'high' | 'urgent'
+    category: 'general' as 'general' | 'technical' | 'financial' | 'hr' | 'administrative' | 'other',
+    priority: 'medium' as 'low' | 'medium' | 'high' | 'urgent',
+    tags: [] as string[],
+    attachments: [] as string[]
   })
   const [submitting, setSubmitting] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
-  const [responseText, setResponseText] = useState('')
-  const [respondingToId, setRespondingToId] = useState<string | null>(null)
+  const [filters, setFilters] = useState({
+    status: '',
+    category: '',
+    priority: '',
+    assignedTo: '',
+    search: ''
+  })
+  const [selectedQuery, setSelectedQuery] = useState<QueryRecord | null>(null)
+  const [showAssignModal, setShowAssignModal] = useState(false)
+  const [showResolveModal, setShowResolveModal] = useState(false)
+  const [resolution, setResolution] = useState('')
 
   const categories = [
-    'General Inquiry', 'Technical Issue', 'HR Related', 'Financial', 
-    'Administrative', 'Complaint', 'Suggestion', 'Other'
+    { value: 'general', label: 'General', color: 'var(--muted)' },
+    { value: 'technical', label: 'Technical', color: 'var(--info)' },
+    { value: 'financial', label: 'Financial', color: 'var(--warning)' },
+    { value: 'hr', label: 'HR', color: 'var(--primary)' },
+    { value: 'administrative', label: 'Administrative', color: 'var(--success)' },
+    { value: 'other', label: 'Other', color: 'var(--danger)' }
   ]
 
-  // Mock data
+  const priorities = [
+    { value: 'low', label: 'Low', color: 'var(--success)' },
+    { value: 'medium', label: 'Medium', color: 'var(--info)' },
+    { value: 'high', label: 'High', color: 'var(--warning)' },
+    { value: 'urgent', label: 'Urgent', color: 'var(--danger)' }
+  ]
+
+  const statuses = [
+    { value: '', label: 'All Status' },
+    { value: 'open', label: 'Open' },
+    { value: 'in_progress', label: 'In Progress' },
+    { value: 'resolved', label: 'Resolved' },
+    { value: 'closed', label: 'Closed' },
+    { value: 'cancelled', label: 'Cancelled' }
+  ]
+
+  // Fetch data from APIs
   useEffect(() => {
-    setQueries([
-      {
-        id: 'query1',
-        title: 'Password Reset Request',
-        description: 'I forgot my password and need help resetting it. Can someone assist me?',
-        category: 'Technical Issue',
-        priority: 'medium',
-        status: 'open',
-        submittedBy: 'user1',
-        submittedByName: 'John Doe',
-        submittedAt: '2024-01-15T10:30:00Z',
-        createdAt: '2024-01-15T10:30:00Z',
-        updatedAt: '2024-01-15T10:30:00Z'
-      },
-      {
-        id: 'query2',
-        title: 'Leave Application Question',
-        description: 'I want to apply for annual leave but I\'m not sure about the process. Can you guide me?',
-        category: 'HR Related',
-        priority: 'low',
-        status: 'resolved',
-        submittedBy: 'user2',
-        submittedByName: 'Mary Johnson',
-        assignedTo: 'admin1',
-        assignedToName: 'Admin User',
-        response: 'You can apply for leave through the HR section. Go to HR > Leave and fill out the application form.',
-        submittedAt: '2024-01-14T14:20:00Z',
-        resolvedAt: '2024-01-15T09:15:00Z',
-        createdAt: '2024-01-14T14:20:00Z',
-        updatedAt: '2024-01-15T09:15:00Z'
+    fetchData()
+  }, [filters])
+
+  const fetchData = async () => {
+    try {
+      setLoading(true)
+      
+      // Build query parameters
+      const params = new URLSearchParams()
+      if (filters.status) params.append('status', filters.status)
+      if (filters.category) params.append('category', filters.category)
+      if (filters.priority) params.append('priority', filters.priority)
+      if (filters.assignedTo) params.append('assignedTo', filters.assignedTo)
+      if (filters.search) params.append('search', filters.search)
+
+      // Fetch data in parallel
+      const [staffResponse, queriesResponse] = await Promise.all([
+        fetch('/api/staff/list'),
+        fetch(`/api/queries?${params.toString()}`)
+      ])
+
+      const [staffData, queriesData] = await Promise.all([
+        staffResponse.json(),
+        queriesResponse.json()
+      ])
+
+      if (staffResponse.ok) {
+        setStaff(staffData.staff || [])
       }
-    ])
-    setLoading(false)
-  }, [])
+
+      if (queriesResponse.ok) {
+        setQueries(queriesData.queries || [])
+      } else {
+        setError(queriesData.error || 'Failed to fetch queries data')
+      }
+    } catch (err) {
+      setError('Failed to fetch data')
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setSubmitting(true)
     
     try {
-      if (editingId) {
-        // Update existing query
-        setQueries(prev => prev.map(q => 
-          q.id === editingId 
-            ? { ...q, ...formData, updatedAt: new Date().toISOString() }
-            : q
-        ))
-      } else {
-        // Create new query
-        const newQuery: QueryRecord = {
-          id: `query_${Date.now()}`,
-          ...formData,
-          status: 'open',
-          submittedBy: 'current_user',
-          submittedByName: 'Current User',
-          submittedAt: new Date().toISOString(),
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        }
-        setQueries(prev => [...prev, newQuery])
-      }
-      
-      setFormData({
-        title: '',
-        description: '',
-        category: '',
-        priority: 'medium'
+      const response = await fetch('/api/queries', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
       })
-      setShowForm(false)
-      setEditingId(null)
+
+      const data = await response.json()
+
+      if (response.ok) {
+        // Refresh queries list
+        await fetchData()
+        
+        // Reset form
+        setFormData({
+          title: '',
+          description: '',
+          category: 'general',
+          priority: 'medium',
+          tags: [],
+          attachments: []
+        })
+        setShowForm(false)
+        setEditingId(null)
+      } else {
+        setError(data.error || 'Failed to submit query')
+      }
     } catch (error) {
-      setError('Failed to save query')
+      setError('Failed to submit query')
     } finally {
       setSubmitting(false)
     }
   }
 
-  const handleEdit = (query: QueryRecord) => {
-    setFormData({
-      title: query.title,
-      description: query.description,
-      category: query.category,
-      priority: query.priority
-    })
-    setEditingId(query.id)
-    setShowForm(true)
-  }
+  const handleStatusChange = async (id: string, status: 'open' | 'in_progress' | 'resolved' | 'closed' | 'cancelled') => {
+    try {
+      const response = await fetch(`/api/queries/${id}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status })
+      })
 
-  const handleDelete = (id: string) => {
-    if (confirm('Are you sure you want to delete this query?')) {
-      setQueries(prev => prev.filter(q => q.id !== id))
+      const data = await response.json()
+
+      if (response.ok) {
+        // Refresh queries list
+        await fetchData()
+      } else {
+        setError(data.error || 'Failed to update query status')
+      }
+    } catch (error) {
+      setError('Failed to update query status')
     }
   }
 
-  const handleStatusChange = (id: string, status: 'open' | 'in_progress' | 'resolved' | 'closed') => {
-    setQueries(prev => prev.map(q => 
-      q.id === id 
-        ? { 
-            ...q, 
-            status, 
-            resolvedAt: status === 'resolved' ? new Date().toISOString() : undefined,
-            updatedAt: new Date().toISOString() 
-          }
-        : q
-    ))
-  }
+  const handleAssign = async (queryId: string, assignedTo: string) => {
+    try {
+      const response = await fetch('/api/queries/assign', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ queryId, assignedTo })
+      })
 
-  const handleResponse = (id: string) => {
-    if (responseText.trim()) {
-      setQueries(prev => prev.map(q => 
-        q.id === id 
-          ? { 
-              ...q, 
-              response: responseText,
-              status: 'resolved' as const,
-              resolvedAt: new Date().toISOString(),
-              updatedAt: new Date().toISOString() 
-            }
-          : q
-      ))
-      setResponseText('')
-      setRespondingToId(null)
+      const data = await response.json()
+
+      if (response.ok) {
+        // Refresh queries list
+        await fetchData()
+        setShowAssignModal(false)
+        setSelectedQuery(null)
+      } else {
+        setError(data.error || 'Failed to assign query')
+      }
+    } catch (error) {
+      setError('Failed to assign query')
     }
   }
 
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case 'urgent': return 'var(--danger)'
-      case 'high': return '#ff6b35'
-      case 'medium': return 'var(--warning)'
-      case 'low': return 'var(--success)'
-      default: return 'var(--muted)'
+  const handleResolve = async (queryId: string) => {
+    try {
+      const response = await fetch(`/api/queries/${queryId}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'resolved', resolution })
+      })
+
+      const data = await response.json()
+
+      if (response.ok) {
+        // Refresh queries list
+        await fetchData()
+        setShowResolveModal(false)
+        setSelectedQuery(null)
+        setResolution('')
+      } else {
+        setError(data.error || 'Failed to resolve query')
+      }
+    } catch (error) {
+      setError('Failed to resolve query')
     }
   }
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'open': return 'var(--primary)'
-      case 'in_progress': return 'var(--warning)'
+      case 'open': return 'var(--warning)'
+      case 'in_progress': return 'var(--info)'
       case 'resolved': return 'var(--success)'
       case 'closed': return 'var(--muted)'
+      case 'cancelled': return 'var(--danger)'
       default: return 'var(--muted)'
     }
   }
 
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-NG', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    })
+  }
+
+  const getTimeAgo = (dateString: string) => {
+    const now = new Date()
+    const date = new Date(dateString)
+    const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60))
+    
+    if (diffInHours < 1) return 'Just now'
+    if (diffInHours < 24) return `${diffInHours}h ago`
+    const diffInDays = Math.floor(diffInHours / 24)
+    if (diffInDays < 7) return `${diffInDays}d ago`
+    const diffInWeeks = Math.floor(diffInDays / 7)
+    return `${diffInWeeks}w ago`
+  }
+
   if (loading) {
     return (
-      <section className="container">
-        <div className="section-title"><h2>Queries Management</h2></div>
-        <div className="card" style={{padding:'1rem'}}>
-          <p>Loading queries...</p>
-        </div>
-      </section>
+      <div className="container">
+        <div className="loading">Loading queries data...</div>
+      </div>
     )
   }
 
   return (
-    <section className="container">
-      <div className="section-title">
-        <h2>Queries Management</h2>
+    <div className="container">
+      <div className="header">
+        <h1>Queries Management</h1>
         <button 
           className="btn btn-primary"
           onClick={() => setShowForm(!showForm)}
         >
-          {showForm ? 'Cancel' : 'Submit New Query'}
+          {showForm ? 'Cancel' : 'Submit Query'}
         </button>
       </div>
 
       {error && (
-        <div className="alert alert-error" style={{marginBottom: '1rem'}}>
+        <div className="alert alert-error">
           {error}
+          <button onClick={() => setError(null)}>×</button>
         </div>
       )}
 
-      {showForm && (
-        <div className="card" style={{marginBottom: '2rem'}}>
-          <h3 style={{marginBottom: '1rem'}}>
-            {editingId ? 'Edit Query' : 'Submit New Query'}
-          </h3>
-          <form onSubmit={handleSubmit} className="form">
-            <div className="form-group">
-              <label htmlFor="title">Query Title *</label>
-              <input
-                type="text"
-                id="title"
-                value={formData.title}
-                onChange={(e) => setFormData(prev => ({...prev, title: e.target.value}))}
-                required
-                placeholder="Enter query title"
-              />
-            </div>
+      {/* Filters */}
+      <div className="card">
+        <h3>Filters</h3>
+        <div className="form-row">
+          <div className="form-group">
+            <label>Status</label>
+            <select
+              value={filters.status}
+              onChange={(e) => setFilters({ ...filters, status: e.target.value })}
+            >
+              {statuses.map(s => (
+                <option key={s.value} value={s.value}>{s.label}</option>
+              ))}
+            </select>
+          </div>
+          <div className="form-group">
+            <label>Category</label>
+            <select
+              value={filters.category}
+              onChange={(e) => setFilters({ ...filters, category: e.target.value })}
+            >
+              <option value="">All Categories</option>
+              {categories.map(c => (
+                <option key={c.value} value={c.value}>{c.label}</option>
+              ))}
+            </select>
+          </div>
+          <div className="form-group">
+            <label>Priority</label>
+            <select
+              value={filters.priority}
+              onChange={(e) => setFilters({ ...filters, priority: e.target.value })}
+            >
+              <option value="">All Priorities</option>
+              {priorities.map(p => (
+                <option key={p.value} value={p.value}>{p.label}</option>
+              ))}
+            </select>
+          </div>
+          <div className="form-group">
+            <label>Assigned To</label>
+            <select
+              value={filters.assignedTo}
+              onChange={(e) => setFilters({ ...filters, assignedTo: e.target.value })}
+            >
+              <option value="">All Staff</option>
+              {staff.map(s => (
+                <option key={s.id} value={s.id}>{s.name}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+        <div className="form-row">
+          <div className="form-group">
+            <label>Search</label>
+            <input
+              type="text"
+              value={filters.search}
+              onChange={(e) => setFilters({ ...filters, search: e.target.value })}
+              placeholder="Search by title, description, or tags..."
+            />
+          </div>
+        </div>
+      </div>
 
+      {/* Query Submission Form */}
+      {showForm && (
+        <div className="card">
+          <h2>Submit New Query</h2>
+          <form onSubmit={handleSubmit} className="form">
             <div className="form-row">
               <div className="form-group">
-                <label htmlFor="category">Category *</label>
+                <label>Title *</label>
+                <input
+                  type="text"
+                  value={formData.title}
+                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                  placeholder="Brief description of the query"
+                  required
+                />
+              </div>
+              <div className="form-group">
+                <label>Category *</label>
                 <select
-                  id="category"
                   value={formData.category}
-                  onChange={(e) => setFormData(prev => ({...prev, category: e.target.value}))}
+                  onChange={(e) => setFormData({ ...formData, category: e.target.value as any })}
                   required
                 >
-                  <option value="">Select Category</option>
-                  {categories.map(cat => (
-                    <option key={cat} value={cat}>{cat}</option>
+                  {categories.map(c => (
+                    <option key={c.value} value={c.value}>
+                      {c.label}
+                    </option>
                   ))}
                 </select>
               </div>
               <div className="form-group">
-                <label htmlFor="priority">Priority *</label>
+                <label>Priority *</label>
                 <select
-                  id="priority"
                   value={formData.priority}
-                  onChange={(e) => setFormData(prev => ({...prev, priority: e.target.value as 'low' | 'medium' | 'high' | 'urgent'}))}
+                  onChange={(e) => setFormData({ ...formData, priority: e.target.value as any })}
                   required
                 >
-                  <option value="low">Low</option>
-                  <option value="medium">Medium</option>
-                  <option value="high">High</option>
-                  <option value="urgent">Urgent</option>
+                  {priorities.map(p => (
+                    <option key={p.value} value={p.value}>
+                      {p.label}
+                    </option>
+                  ))}
                 </select>
               </div>
             </div>
 
             <div className="form-group">
-              <label htmlFor="description">Description *</label>
+              <label>Description *</label>
               <textarea
-                id="description"
                 value={formData.description}
-                onChange={(e) => setFormData(prev => ({...prev, description: e.target.value}))}
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                rows={6}
+                placeholder="Provide detailed information about your query..."
                 required
-                placeholder="Describe your query in detail"
-                rows={4}
+              />
+            </div>
+
+            <div className="form-group">
+              <label>Tags (comma-separated)</label>
+              <input
+                type="text"
+                value={formData.tags.join(', ')}
+                onChange={(e) => setFormData({ 
+                  ...formData, 
+                  tags: e.target.value.split(',').map(tag => tag.trim()).filter(tag => tag)
+                })}
+                placeholder="e.g., urgent, bug, feature-request"
               />
             </div>
 
             <div className="form-actions">
-              <button
-                type="button"
+              <button type="submit" className="btn btn-primary" disabled={submitting}>
+                {submitting ? 'Submitting...' : 'Submit Query'}
+              </button>
+              <button 
+                type="button" 
                 className="btn btn-secondary"
                 onClick={() => {
                   setShowForm(false)
                   setEditingId(null)
-                  setFormData({
-                    title: '',
-                    description: '',
-                    category: '',
-                    priority: 'medium'
-                  })
                 }}
-                disabled={submitting}
               >
                 Cancel
-              </button>
-              <button
-                type="submit"
-                className="btn btn-primary"
-                disabled={submitting}
-              >
-                {submitting ? 'Submitting...' : (editingId ? 'Update Query' : 'Submit Query')}
               </button>
             </div>
           </form>
         </div>
       )}
 
+      {/* Queries List */}
       <div className="card">
-        <h3 style={{marginBottom: '1rem'}}>Queries ({queries.length})</h3>
-        
+        <h2>Queries ({queries.length})</h2>
         {queries.length === 0 ? (
-          <p>No queries found. Submit one using the form above.</p>
+          <div className="empty-state">
+            <p>No queries found. Submit a query to get started.</p>
+          </div>
         ) : (
-          <div className="table-responsive">
-            <table className="table">
-              <thead>
-                <tr>
-                  <th>Title</th>
-                  <th>Category</th>
-                  <th>Priority</th>
-                  <th>Status</th>
-                  <th>Submitted By</th>
-                  <th>Submitted At</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {queries.map((query) => (
-                  <tr key={query.id}>
-                    <td>
-                      <strong>{query.title}</strong>
-                      {query.description && (
-                        <div style={{fontSize: '12px', color: 'var(--muted)', marginTop: '4px'}}>
-                          {query.description.length > 50 
-                            ? `${query.description.substring(0, 50)}...` 
-                            : query.description
-                          }
-                        </div>
-                      )}
-                    </td>
-                    <td>{query.category}</td>
-                    <td>
+          <div className="queries-list">
+            {queries.map(query => (
+              <div key={query.id} className="query-card">
+                <div className="query-header">
+                  <div className="query-title">
+                    <h3>{query.title}</h3>
+                    <div className="query-meta">
                       <span 
                         className="badge"
-                        style={{
-                          backgroundColor: getPriorityColor(query.priority),
-                          color: 'white'
-                        }}
+                        style={{ backgroundColor: categories.find(c => c.value === query.category)?.color }}
                       >
-                        {query.priority}
+                        {categories.find(c => c.value === query.category)?.label}
                       </span>
-                    </td>
-                    <td>
                       <span 
                         className="badge"
-                        style={{
-                          backgroundColor: getStatusColor(query.status),
-                          color: 'white'
-                        }}
+                        style={{ backgroundColor: priorities.find(p => p.value === query.priority)?.color }}
                       >
-                        {query.status}
+                        {priorities.find(p => p.value === query.priority)?.label}
                       </span>
-                    </td>
-                    <td>{query.submittedByName}</td>
-                    <td>{new Date(query.submittedAt).toLocaleDateString()}</td>
-                    <td>
-                      <div className="btn-group">
-                        <button
-                          className="btn btn-sm btn-secondary"
-                          onClick={() => handleEdit(query)}
-                        >
-                          Edit
-                        </button>
-                        <button
-                          className="btn btn-sm btn-danger"
-                          onClick={() => handleDelete(query.id)}
-                        >
-                          Delete
-                        </button>
-                        {query.status === 'open' && (
-                          <button
+                      <span 
+                        className="badge"
+                        style={{ backgroundColor: getStatusColor(query.status) }}
+                      >
+                        {query.status.replace('_', ' ').toUpperCase()}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="query-actions">
+                    <div className="btn-group">
+                      {query.status === 'open' && (
+                        <>
+                          <button 
+                            className="btn btn-sm btn-primary"
+                            onClick={() => {
+                              setSelectedQuery(query)
+                              setShowAssignModal(true)
+                            }}
+                          >
+                            Assign
+                          </button>
+                          <button 
                             className="btn btn-sm btn-success"
                             onClick={() => handleStatusChange(query.id, 'in_progress')}
                           >
                             Start
                           </button>
-                        )}
-                        {query.status === 'in_progress' && (
-                          <button
-                            className="btn btn-sm btn-primary"
-                            onClick={() => setRespondingToId(query.id)}
-                          >
-                            Respond
-                          </button>
-                        )}
-                        {query.status === 'resolved' && (
-                          <button
-                            className="btn btn-sm btn-secondary"
-                            onClick={() => handleStatusChange(query.id, 'closed')}
-                          >
-                            Close
-                          </button>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                        </>
+                      )}
+                      {query.status === 'in_progress' && (
+                        <button 
+                          className="btn btn-sm btn-success"
+                          onClick={() => {
+                            setSelectedQuery(query)
+                            setShowResolveModal(true)
+                          }}
+                        >
+                          Resolve
+                        </button>
+                      )}
+                      {query.status === 'resolved' && (
+                        <button 
+                          className="btn btn-sm btn-secondary"
+                          onClick={() => handleStatusChange(query.id, 'closed')}
+                        >
+                          Close
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="query-body">
+                  <p>{query.description}</p>
+                  
+                  {query.tags.length > 0 && (
+                    <div className="query-tags">
+                      {query.tags.map((tag, index) => (
+                        <span key={index} className="tag">#{tag}</span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                
+                <div className="query-footer">
+                  <div className="query-info">
+                    <span>Submitted by <strong>{query.submittedByName}</strong></span>
+                    <span>•</span>
+                    <span>{getTimeAgo(query.createdAt)}</span>
+                    {query.assignedToName && (
+                      <>
+                        <span>•</span>
+                        <span>Assigned to <strong>{query.assignedToName}</strong></span>
+                      </>
+                    )}
+                  </div>
+                  {query.resolution && (
+                    <div className="query-resolution">
+                      <strong>Resolution:</strong> {query.resolution}
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
           </div>
         )}
       </div>
 
-      {/* Response Modal */}
-      {respondingToId && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          background: 'rgba(0, 0, 0, 0.5)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 1000
-        }}>
-          <div style={{
-            background: 'var(--surface)',
-            border: '1px solid var(--line)',
-            borderRadius: 'var(--radius-card)',
-            padding: '2rem',
-            maxWidth: '500px',
-            width: '90%',
-            maxHeight: '90vh',
-            overflow: 'auto'
-          }}>
-            <h3 style={{marginBottom: '1rem'}}>Respond to Query</h3>
-            <div className="form-group">
-              <label htmlFor="response">Response</label>
-              <textarea
-                id="response"
-                value={responseText}
-                onChange={(e) => setResponseText(e.target.value)}
-                placeholder="Enter your response"
-                rows={4}
-                style={{width: '100%'}}
-              />
-            </div>
-            <div className="form-actions">
-              <button
+      {/* Assign Modal */}
+      {showAssignModal && selectedQuery && (
+        <div className="modal-overlay">
+          <div className="modal">
+            <h3>Assign Query</h3>
+            <p>Assign "{selectedQuery.title}" to a staff member:</p>
+            <select
+              onChange={(e) => {
+                if (e.target.value) {
+                  handleAssign(selectedQuery.id, e.target.value)
+                }
+              }}
+            >
+              <option value="">Select staff member</option>
+              {staff.map(s => (
+                <option key={s.id} value={s.id}>
+                  {s.name} - {s.position}
+                </option>
+              ))}
+            </select>
+            <div className="modal-actions">
+              <button 
                 className="btn btn-secondary"
                 onClick={() => {
-                  setRespondingToId(null)
-                  setResponseText('')
+                  setShowAssignModal(false)
+                  setSelectedQuery(null)
                 }}
               >
                 Cancel
-              </button>
-              <button
-                className="btn btn-primary"
-                onClick={() => handleResponse(respondingToId)}
-                disabled={!responseText.trim()}
-              >
-                Send Response
               </button>
             </div>
           </div>
         </div>
       )}
-    </section>
+
+      {/* Resolve Modal */}
+      {showResolveModal && selectedQuery && (
+        <div className="modal-overlay">
+          <div className="modal">
+            <h3>Resolve Query</h3>
+            <p>Provide resolution details for "{selectedQuery.title}":</p>
+            <textarea
+              value={resolution}
+              onChange={(e) => setResolution(e.target.value)}
+              rows={4}
+              placeholder="Describe how the query was resolved..."
+            />
+            <div className="modal-actions">
+              <button 
+                className="btn btn-primary"
+                onClick={() => handleResolve(selectedQuery.id)}
+                disabled={!resolution.trim()}
+              >
+                Resolve
+              </button>
+              <button 
+                className="btn btn-secondary"
+                onClick={() => {
+                  setShowResolveModal(false)
+                  setSelectedQuery(null)
+                  setResolution('')
+                }}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <style jsx>{`
+        .queries-list {
+          display: flex;
+          flex-direction: column;
+          gap: 1rem;
+        }
+        
+        .query-card {
+          background: var(--background);
+          border: 1px solid var(--border);
+          border-radius: 0.5rem;
+          padding: 1.5rem;
+          transition: all 0.2s ease;
+        }
+        
+        .query-card:hover {
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        .query-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+          margin-bottom: 1rem;
+        }
+        
+        .query-title h3 {
+          margin: 0 0 0.5rem 0;
+          color: var(--text);
+        }
+        
+        .query-meta {
+          display: flex;
+          gap: 0.5rem;
+          flex-wrap: wrap;
+        }
+        
+        .query-body {
+          margin-bottom: 1rem;
+        }
+        
+        .query-body p {
+          margin: 0 0 1rem 0;
+          color: var(--text-secondary);
+          line-height: 1.6;
+        }
+        
+        .query-tags {
+          display: flex;
+          gap: 0.5rem;
+          flex-wrap: wrap;
+        }
+        
+        .tag {
+          background: var(--background-secondary);
+          color: var(--text-secondary);
+          padding: 0.25rem 0.5rem;
+          border-radius: 0.25rem;
+          font-size: 0.8rem;
+        }
+        
+        .query-footer {
+          border-top: 1px solid var(--border);
+          padding-top: 1rem;
+        }
+        
+        .query-info {
+          display: flex;
+          gap: 0.5rem;
+          align-items: center;
+          color: var(--text-secondary);
+          font-size: 0.9rem;
+          margin-bottom: 0.5rem;
+        }
+        
+        .query-resolution {
+          background: var(--success-light);
+          padding: 0.75rem;
+          border-radius: 0.25rem;
+          font-size: 0.9rem;
+        }
+        
+        .modal-overlay {
+          position: fixed;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background: rgba(0, 0, 0, 0.5);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          z-index: 1000;
+        }
+        
+        .modal {
+          background: var(--background);
+          border-radius: 0.5rem;
+          padding: 2rem;
+          max-width: 500px;
+          width: 90%;
+          max-height: 80vh;
+          overflow-y: auto;
+        }
+        
+        .modal h3 {
+          margin: 0 0 1rem 0;
+        }
+        
+        .modal p {
+          margin: 0 0 1rem 0;
+          color: var(--text-secondary);
+        }
+        
+        .modal select,
+        .modal textarea {
+          width: 100%;
+          margin-bottom: 1rem;
+        }
+        
+        .modal-actions {
+          display: flex;
+          gap: 1rem;
+          justify-content: flex-end;
+        }
+        
+        .empty-state {
+          text-align: center;
+          padding: 2rem;
+          color: var(--muted);
+        }
+      `}</style>
+    </div>
   )
 }
