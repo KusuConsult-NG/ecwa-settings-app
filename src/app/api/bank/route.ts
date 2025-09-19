@@ -1,30 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyJwt } from '@/lib/auth';
 import { kv } from '@/lib/kv';
-import crypto from 'crypto';
-
-export interface BankAccount {
-  id: string;
-  accountName: string;
-  accountNumber: string;
-  bankName: string;
-  bankCode: string;
-  accountType: 'savings' | 'current' | 'fixed_deposit' | 'investment';
-  currency: string;
-  openingDate: string;
-  branch: string;
-  swiftCode?: string;
-  iban?: string;
-  currentBalance: number;
-  status: 'active' | 'inactive' | 'suspended' | 'closed';
-  authorizedSignatories: string[];
-  notes?: string;
-  createdAt: string;
-  updatedAt: string;
-  createdBy: string;
-  orgId: string;
-  orgName: string;
-}
+import { BankAccount, CreateBankAccountRequest, generateAccountId } from '@/lib/bank';
 
 export async function GET(req: NextRequest) {
   try {
@@ -92,11 +69,10 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
     }
 
-    const body = await req.json();
     const {
       accountName, accountNumber, bankName, bankCode, accountType, currency,
       openingDate, branch, swiftCode, iban, currentBalance, authorizedSignatories, notes
-    } = body;
+    }: CreateBankAccountRequest = await req.json();
 
     if (!accountName || !accountNumber || !bankName || !accountType || !currency || !openingDate) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
@@ -119,7 +95,7 @@ export async function POST(req: NextRequest) {
     }
 
     const account: BankAccount = {
-      id: crypto.randomUUID(),
+      id: generateAccountId(),
       accountName: accountName.trim(),
       accountNumber: accountNumber.trim(),
       bankName: bankName.trim(),
