@@ -27,8 +27,9 @@ a{color:var(--primary);text-decoration:none}
 .logo{display:flex;align-items:center;gap:.75rem;padding:.75rem;border-radius:10px;background:rgba(255,255,255,.1);margin-bottom:1rem}
 .logo span{font-weight:600;font-size:16px;color:#EAF2FF}
 .nav{margin-top:1rem;display:flex;flex-direction:column;gap:.25rem}
-.nav a{color:#EAF2FF;padding:.625rem .75rem;border-radius:10px;display:flex;gap:.5rem}
+.nav a{color:#EAF2FF;padding:.625rem .75rem;border-radius:10px;display:flex;gap:.5rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .nav a.active,.nav a:hover{background:rgba(255,255,255,.1)}
+.nav a span{flex:1;min-width:0}
 .content{padding:1rem}
 .grid{display:grid;gap:1rem}
 .grid.cols-2{grid-template-columns:repeat(2,minmax(0,1fr))}

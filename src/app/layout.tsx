@@ -24,22 +24,26 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <span>ECWA Settings</span>
             </div>
             <nav className="nav" id="nav">
-              <a href="/" >🏠 Home</a>
-              <a href="/dashboard" >📊 Dashboard</a>
-              <a href="/expenditures" >🧾 Expenditures</a>
-              <a href="/expenditures/new" >➕ Raise Expenditure</a>
-              <a href="/income" >💰 Income</a>
-              <a href="/reports" >📈 Reports</a>
-              <a href="/audit" >🔍 Audit Logs</a>
-              <a href="/hr" >🧑‍💼 HR Dashboard</a>
-              <a href="/hr/staff" >👥 Staff</a>
-              <a href="/hr/payroll" >🧾 Payroll</a>
-              <a href="/hr/leave" >🏖️ Leave</a>
-              <a href="/hr/queries" >📨 Queries</a>
-              <a href="/org/create" >🏢 Create LC</a>
-              <a href="/org/lcc" >🏛️ Create LCC</a>
+              <a href="/" >🏠 <span>Home</span></a>
+              <a href="/dashboard" >📊 <span>Dashboard</span></a>
+              <a href="/expenditures" >🧾 <span>Expenditures</span></a>
+              <a href="/expenditures/new" >➕ <span>Raise Expenditure</span></a>
+              <a href="/income" >💰 <span>Income</span></a>
+              <a href="/reports" >📈 <span>Reports</span></a>
+              <a href="/audit" >🔍 <span>Audit Logs</span></a>
+              <a href="/hr" >🧑‍💼 <span>HR Dashboard</span></a>
+              <a href="/hr/staff" >👥 <span>Staff</span></a>
+              <a href="/hr/payroll" >🧾 <span>Payroll</span></a>
+              <a href="/hr/leave" >🏖️ <span>Leave</span></a>
+              <a href="/hr/queries" >📨 <span>Queries</span></a>
+              <a href="/hr/organization" >🏢 <span>Organization Settings</span></a>
+              <a href="/hr/user-roles" >👤 <span>User Role Management</span></a>
+              <a href="/hr/system-config" >⚙️ <span>System Configuration</span></a>
+              <a href="/hr/security" >🔒 <span>Security Settings</span></a>
+              <a href="/org/create" >🏢 <span>Create LC</span></a>
+              <a href="/org/lcc" >🏛️ <span>Create LCC</span></a>
               {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
-              <a href="/agencies">🏛️ Agencies & Groups</a>
+              <a href="/agencies">🏛️ <span>Agencies & Groups</span></a>
               <div style={{marginTop:'.5rem'}} className="badge">Organizations</div>
               <div id="org-links" style={{display:'none'}}>
                 {/* Role-based org links will be populated by client-side JS */}
@@ -47,12 +51,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               {/* Account menu */}
               <div style={{marginTop:'.5rem'}} className="badge">Account</div>
               {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
-              <a href="/account/statements">Generate Statements</a>
-              <a href="/bank" >🏦 Bank</a>
-              <a href="/executive" >⭐ Executive</a>
-              <a href="/settings" >⚙️ Settings</a>
-              <a href="/login" >🔐 Login</a>
-              <a href="/signup" >📝 Sign Up</a>
+              <a href="/account/statements">📄 <span>Generate Statements</span></a>
+              <a href="/bank" >🏦 <span>Bank</span></a>
+              <a href="/executive" >⭐ <span>Executive</span></a>
             </nav>
           </aside>
           <main className="content">
