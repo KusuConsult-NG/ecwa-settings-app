@@ -4,133 +4,161 @@ import { useState, useEffect } from "react"
 interface GroupRecord {
   id: string;
   name: string;
-  type: 'agency' | 'group' | 'ministry' | 'department';
+  type: 'ministry' | 'department' | 'committee' | 'fellowship' | 'group';
   description: string;
-  leader: string;
-  leaderEmail: string;
-  leaderPhone: string;
+  leader: {
+    name: string;
+    email: string;
+    phone: string;
+  };
   memberCount: number;
   establishedDate: string;
-  status: 'active' | 'inactive' | 'suspended';
   meetingDay: string;
   meetingTime: string;
-  meetingVenue: string;
+  venue: string;
+  status: 'active' | 'inactive' | 'suspended';
+  parentOrganization?: string;
+  parentOrganizationName?: string;
+  objectives: string[];
+  activities: string[];
+  contactInfo: {
+    email: string;
+    phone: string;
+    address: string;
+  };
   createdAt: string;
   updatedAt: string;
 }
 
-export default function AgenciesPage(){
+export default function AgenciesPage() {
   const [groups, setGroups] = useState<GroupRecord[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [showForm, setShowForm] = useState(false)
   const [formData, setFormData] = useState({
     name: '',
-    type: 'group' as 'agency' | 'group' | 'ministry' | 'department',
+    type: 'ministry' as 'ministry' | 'department' | 'committee' | 'fellowship' | 'group',
     description: '',
-    leader: '',
-    leaderEmail: '',
-    leaderPhone: '',
+    leader: {
+      name: '',
+      email: '',
+      phone: ''
+    },
     memberCount: 0,
     establishedDate: '',
     meetingDay: '',
     meetingTime: '',
-    meetingVenue: ''
+    venue: '',
+    parentOrganization: '',
+    objectives: [] as string[],
+    activities: [] as string[],
+    contactInfo: {
+      email: '',
+      phone: '',
+      address: ''
+    }
   })
   const [submitting, setSubmitting] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
+  const [filters, setFilters] = useState({
+    status: '',
+    type: '',
+    search: ''
+  })
 
   const groupTypes = [
-    { value: 'agency', label: 'Agency' },
-    { value: 'group', label: 'Group' },
-    { value: 'ministry', label: 'Ministry' },
-    { value: 'department', label: 'Department' }
+    { value: 'ministry', label: 'Ministry', color: 'var(--primary)' },
+    { value: 'department', label: 'Department', color: 'var(--info)' },
+    { value: 'committee', label: 'Committee', color: 'var(--warning)' },
+    { value: 'fellowship', label: 'Fellowship', color: 'var(--success)' },
+    { value: 'group', label: 'Group', color: 'var(--muted)' }
+  ]
+
+  const statuses = [
+    { value: '', label: 'All Status' },
+    { value: 'active', label: 'Active' },
+    { value: 'inactive', label: 'Inactive' },
+    { value: 'suspended', label: 'Suspended' }
   ]
 
   const daysOfWeek = [
     'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'
   ]
 
-  // Mock data
+  // Fetch data from API
   useEffect(() => {
-    setGroups([
-      {
-        id: 'group1',
-        name: 'Women Fellowship',
-        type: 'group',
-        description: 'Fellowship for women of all ages',
-        leader: 'Mrs. Sarah Johnson',
-        leaderEmail: 'sarah.johnson@ecwa.org',
-        leaderPhone: '+234-801-234-5678',
-        memberCount: 45,
-        establishedDate: '2020-01-15',
-        status: 'active',
-        meetingDay: 'Saturday',
-        meetingTime: '10:00 AM',
-        meetingVenue: 'Church Hall',
-        createdAt: '2024-01-01T00:00:00Z',
-        updatedAt: '2024-01-01T00:00:00Z'
-      },
-      {
-        id: 'group2',
-        name: 'Youth Fellowship',
-        type: 'group',
-        description: 'Fellowship for young people aged 18-35',
-        leader: 'Rev. David Wilson',
-        leaderEmail: 'david.wilson@ecwa.org',
-        leaderPhone: '+234-802-345-6789',
-        memberCount: 32,
-        establishedDate: '2019-03-20',
-        status: 'active',
-        meetingDay: 'Friday',
-        meetingTime: '6:00 PM',
-        meetingVenue: 'Youth Center',
-        createdAt: '2024-01-01T00:00:00Z',
-        updatedAt: '2024-01-01T00:00:00Z'
+    fetchGroups()
+  }, [filters])
+
+  const fetchGroups = async () => {
+    try {
+      setLoading(true)
+      
+      const params = new URLSearchParams()
+      if (filters.status) params.append('status', filters.status)
+      if (filters.type) params.append('type', filters.type)
+      if (filters.search) params.append('search', filters.search)
+
+      const response = await fetch(`/api/agencies?${params.toString()}`)
+      const data = await response.json()
+      
+      if (response.ok) {
+        setGroups(data.agencies || [])
+      } else {
+        setError(data.error || 'Failed to fetch groups')
       }
-    ])
-    setLoading(false)
-  }, [])
+    } catch (err) {
+      setError('Failed to fetch groups')
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setSubmitting(true)
     
     try {
-      if (editingId) {
-        // Update existing group
-        setGroups(prev => prev.map(g => 
-          g.id === editingId 
-            ? { ...g, ...formData, updatedAt: new Date().toISOString() }
-            : g
-        ))
-      } else {
-        // Create new group
-        const newGroup: GroupRecord = {
-          id: `group_${Date.now()}`,
-          ...formData,
-          status: 'active',
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        }
-        setGroups(prev => [...prev, newGroup])
-      }
-      
-      setFormData({
-        name: '',
-        type: 'group',
-        description: '',
-        leader: '',
-        leaderEmail: '',
-        leaderPhone: '',
-        memberCount: 0,
-        establishedDate: '',
-        meetingDay: '',
-        meetingTime: '',
-        meetingVenue: ''
+      const response = await fetch('/api/agencies', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
       })
-      setShowForm(false)
-      setEditingId(null)
+
+      const data = await response.json()
+
+      if (response.ok) {
+        await fetchGroups()
+        
+        // Reset form
+        setFormData({
+          name: '',
+          type: 'ministry',
+          description: '',
+          leader: {
+            name: '',
+            email: '',
+            phone: ''
+          },
+          memberCount: 0,
+          establishedDate: '',
+          meetingDay: '',
+          meetingTime: '',
+          venue: '',
+          parentOrganization: '',
+          objectives: [],
+          activities: [],
+          contactInfo: {
+            email: '',
+            phone: '',
+            address: ''
+          }
+        })
+        setShowForm(false)
+        setEditingId(null)
+      } else {
+        setError(data.error || 'Failed to save group')
+      }
     } catch (error) {
       setError('Failed to save group')
     } finally {
@@ -138,187 +166,250 @@ export default function AgenciesPage(){
     }
   }
 
-  const handleEdit = (group: GroupRecord) => {
-    setFormData({
-      name: group.name,
-      type: group.type,
-      description: group.description,
-      leader: group.leader,
-      leaderEmail: group.leaderEmail,
-      leaderPhone: group.leaderPhone,
-      memberCount: group.memberCount,
-      establishedDate: group.establishedDate,
-      meetingDay: group.meetingDay,
-      meetingTime: group.meetingTime,
-      meetingVenue: group.meetingVenue
-    })
-    setEditingId(group.id)
-    setShowForm(true)
-  }
+  const handleStatusChange = async (id: string, status: 'active' | 'inactive' | 'suspended') => {
+    try {
+      const response = await fetch(`/api/agencies/${id}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status })
+      })
 
-  const handleDelete = (id: string) => {
-    if (confirm('Are you sure you want to delete this group?')) {
-      setGroups(prev => prev.filter(g => g.id !== id))
+      const data = await response.json()
+
+      if (response.ok) {
+        await fetchGroups()
+      } else {
+        setError(data.error || 'Failed to update group status')
+      }
+    } catch (error) {
+      setError('Failed to update group status')
     }
   }
 
-  const handleStatusChange = (id: string, status: 'active' | 'inactive' | 'suspended') => {
-    setGroups(prev => prev.map(g => 
-      g.id === id 
-        ? { ...g, status, updatedAt: new Date().toISOString() }
-        : g
-    ))
+  const handleMembersUpdate = async (id: string, memberCount: number) => {
+    try {
+      const response = await fetch(`/api/agencies/${id}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ memberCount })
+      })
+
+      const data = await response.json()
+
+      if (response.ok) {
+        await fetchGroups()
+      } else {
+        setError(data.error || 'Failed to update member count')
+      }
+    } catch (error) {
+      setError('Failed to update member count')
+    }
   }
 
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'active': return 'var(--success)'
       case 'inactive': return 'var(--muted)'
-      case 'suspended': return 'var(--danger)'
+      case 'suspended': return 'var(--warning)'
       default: return 'var(--muted)'
     }
   }
 
   const getTypeColor = (type: string) => {
     switch (type) {
-      case 'agency': return '#3B82F6'
-      case 'group': return '#10B981'
-      case 'ministry': return '#F59E0B'
-      case 'department': return '#8B5CF6'
+      case 'ministry': return 'var(--primary)'
+      case 'department': return 'var(--info)'
+      case 'committee': return 'var(--warning)'
+      case 'fellowship': return 'var(--success)'
+      case 'group': return 'var(--muted)'
       default: return 'var(--muted)'
     }
   }
 
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-NG', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    })
+  }
+
   if (loading) {
     return (
-      <section className="container">
-        <div className="section-title"><h2>Groups & Agencies</h2></div>
-        <div className="card" style={{padding:'1rem'}}>
-          <p>Loading groups...</p>
-        </div>
-      </section>
+      <div className="container">
+        <div className="loading">Loading groups data...</div>
+      </div>
     )
   }
 
   return (
-    <section className="container">
-      <div className="section-title">
-        <h2>Groups & Agencies</h2>
+    <div className="container">
+      <div className="header">
+        <h1>Agencies & Groups Management</h1>
         <button 
           className="btn btn-primary"
           onClick={() => setShowForm(!showForm)}
         >
-          {showForm ? 'Cancel' : 'Add New Group/Agency'}
+          {showForm ? 'Cancel' : 'Add Group'}
         </button>
       </div>
 
       {error && (
-        <div className="alert alert-error" style={{marginBottom: '1rem'}}>
+        <div className="alert alert-error">
           {error}
+          <button onClick={() => setError(null)}>×</button>
         </div>
       )}
 
+      {/* Filters */}
+      <div className="card">
+        <h3>Filters</h3>
+        <div className="form-row">
+          <div className="form-group">
+            <label>Status</label>
+            <select
+              value={filters.status}
+              onChange={(e) => setFilters({ ...filters, status: e.target.value })}
+            >
+              {statuses.map(s => (
+                <option key={s.value} value={s.value}>{s.label}</option>
+              ))}
+            </select>
+          </div>
+          <div className="form-group">
+            <label>Type</label>
+            <select
+              value={filters.type}
+              onChange={(e) => setFilters({ ...filters, type: e.target.value })}
+            >
+              <option value="">All Types</option>
+              {groupTypes.map(t => (
+                <option key={t.value} value={t.value}>{t.label}</option>
+              ))}
+            </select>
+          </div>
+          <div className="form-group">
+            <label>Search</label>
+            <input
+              type="text"
+              value={filters.search}
+              onChange={(e) => setFilters({ ...filters, search: e.target.value })}
+              placeholder="Search by name, description, or leader..."
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Group Form */}
       {showForm && (
-        <div className="card" style={{marginBottom: '2rem'}}>
-          <h3 style={{marginBottom: '1rem'}}>
-            {editingId ? 'Edit Group/Agency' : 'Add New Group/Agency'}
-          </h3>
+        <div className="card">
+          <h2>{editingId ? 'Edit Group' : 'Add New Group'}</h2>
           <form onSubmit={handleSubmit} className="form">
             <div className="form-row">
               <div className="form-group">
-                <label htmlFor="name">Name *</label>
+                <label>Group Name *</label>
                 <input
                   type="text"
-                  id="name"
                   value={formData.name}
-                  onChange={(e) => setFormData(prev => ({...prev, name: e.target.value}))}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  placeholder="e.g., Youth Fellowship"
                   required
-                  placeholder="Enter group/agency name"
                 />
               </div>
               <div className="form-group">
-                <label htmlFor="type">Type *</label>
+                <label>Type *</label>
                 <select
-                  id="type"
                   value={formData.type}
-                  onChange={(e) => setFormData(prev => ({...prev, type: e.target.value as 'agency' | 'group' | 'ministry' | 'department'}))}
+                  onChange={(e) => setFormData({ ...formData, type: e.target.value as any })}
                   required
                 >
-                  {groupTypes.map(type => (
-                    <option key={type.value} value={type.value}>{type.label}</option>
+                  {groupTypes.map(t => (
+                    <option key={t.value} value={t.value}>{t.label}</option>
                   ))}
                 </select>
+              </div>
+              <div className="form-group">
+                <label>Established Date *</label>
+                <input
+                  type="date"
+                  value={formData.establishedDate}
+                  onChange={(e) => setFormData({ ...formData, establishedDate: e.target.value })}
+                  required
+                />
               </div>
             </div>
 
             <div className="form-group">
-              <label htmlFor="description">Description</label>
+              <label>Description *</label>
               <textarea
-                id="description"
                 value={formData.description}
-                onChange={(e) => setFormData(prev => ({...prev, description: e.target.value}))}
-                placeholder="Enter group description"
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 rows={3}
+                placeholder="Describe the group's purpose and activities..."
+                required
               />
             </div>
 
-            <h4 style={{marginTop: '1.5rem', marginBottom: '1rem'}}>Leader Information</h4>
-            <div className="form-row">
-              <div className="form-group">
-                <label htmlFor="leader">Leader Name *</label>
-                <input
-                  type="text"
-                  id="leader"
-                  value={formData.leader}
-                  onChange={(e) => setFormData(prev => ({...prev, leader: e.target.value}))}
-                  required
-                  placeholder="Enter leader name"
-                />
-              </div>
-              <div className="form-group">
-                <label htmlFor="leaderEmail">Leader Email</label>
-                <input
-                  type="email"
-                  id="leaderEmail"
-                  value={formData.leaderEmail}
-                  onChange={(e) => setFormData(prev => ({...prev, leaderEmail: e.target.value}))}
-                  placeholder="Enter leader email"
-                />
+            <div className="form-section">
+              <h4>Leader Information</h4>
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Leader Name *</label>
+                  <input
+                    type="text"
+                    value={formData.leader.name}
+                    onChange={(e) => setFormData({ 
+                      ...formData, 
+                      leader: { ...formData.leader, name: e.target.value }
+                    })}
+                    placeholder="Leader's full name"
+                    required
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Leader Email *</label>
+                  <input
+                    type="email"
+                    value={formData.leader.email}
+                    onChange={(e) => setFormData({ 
+                      ...formData, 
+                      leader: { ...formData.leader, email: e.target.value }
+                    })}
+                    placeholder="leader@example.com"
+                    required
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Leader Phone *</label>
+                  <input
+                    type="tel"
+                    value={formData.leader.phone}
+                    onChange={(e) => setFormData({ 
+                      ...formData, 
+                      leader: { ...formData.leader, phone: e.target.value }
+                    })}
+                    placeholder="+234-xxx-xxx-xxxx"
+                    required
+                  />
+                </div>
               </div>
             </div>
 
             <div className="form-row">
               <div className="form-group">
-                <label htmlFor="leaderPhone">Leader Phone</label>
-                <input
-                  type="tel"
-                  id="leaderPhone"
-                  value={formData.leaderPhone}
-                  onChange={(e) => setFormData(prev => ({...prev, leaderPhone: e.target.value}))}
-                  placeholder="Enter leader phone"
-                />
-              </div>
-              <div className="form-group">
-                <label htmlFor="memberCount">Member Count</label>
+                <label>Member Count</label>
                 <input
                   type="number"
-                  id="memberCount"
                   value={formData.memberCount}
-                  onChange={(e) => setFormData(prev => ({...prev, memberCount: parseInt(e.target.value) || 0}))}
+                  onChange={(e) => setFormData({ ...formData, memberCount: Number(e.target.value) })}
                   min="0"
-                  placeholder="Enter member count"
                 />
               </div>
-            </div>
-
-            <h4 style={{marginTop: '1.5rem', marginBottom: '1rem'}}>Meeting Information</h4>
-            <div className="form-row">
               <div className="form-group">
-                <label htmlFor="meetingDay">Meeting Day</label>
+                <label>Meeting Day</label>
                 <select
-                  id="meetingDay"
                   value={formData.meetingDay}
-                  onChange={(e) => setFormData(prev => ({...prev, meetingDay: e.target.value}))}
+                  onChange={(e) => setFormData({ ...formData, meetingDay: e.target.value })}
                 >
                   <option value="">Select Day</option>
                   {daysOfWeek.map(day => (
@@ -327,86 +418,57 @@ export default function AgenciesPage(){
                 </select>
               </div>
               <div className="form-group">
-                <label htmlFor="meetingTime">Meeting Time</label>
+                <label>Meeting Time</label>
                 <input
                   type="time"
-                  id="meetingTime"
                   value={formData.meetingTime}
-                  onChange={(e) => setFormData(prev => ({...prev, meetingTime: e.target.value}))}
+                  onChange={(e) => setFormData({ ...formData, meetingTime: e.target.value })}
                 />
               </div>
             </div>
 
-            <div className="form-row">
-              <div className="form-group">
-                <label htmlFor="meetingVenue">Meeting Venue</label>
-                <input
-                  type="text"
-                  id="meetingVenue"
-                  value={formData.meetingVenue}
-                  onChange={(e) => setFormData(prev => ({...prev, meetingVenue: e.target.value}))}
-                  placeholder="Enter meeting venue"
-                />
-              </div>
-              <div className="form-group">
-                <label htmlFor="establishedDate">Established Date</label>
-                <input
-                  type="date"
-                  id="establishedDate"
-                  value={formData.establishedDate}
-                  onChange={(e) => setFormData(prev => ({...prev, establishedDate: e.target.value}))}
-                />
-              </div>
+            <div className="form-group">
+              <label>Meeting Venue</label>
+              <input
+                type="text"
+                value={formData.venue}
+                onChange={(e) => setFormData({ ...formData, venue: e.target.value })}
+                placeholder="e.g., Main Hall, Conference Room"
+              />
             </div>
 
             <div className="form-actions">
-              <button
-                type="button"
+              <button type="submit" className="btn btn-primary" disabled={submitting}>
+                {submitting ? 'Saving...' : (editingId ? 'Update' : 'Create')}
+              </button>
+              <button 
+                type="button" 
                 className="btn btn-secondary"
                 onClick={() => {
                   setShowForm(false)
                   setEditingId(null)
-                  setFormData({
-                    name: '',
-                    type: 'group',
-                    description: '',
-                    leader: '',
-                    leaderEmail: '',
-                    leaderPhone: '',
-                    memberCount: 0,
-                    establishedDate: '',
-                    meetingDay: '',
-                    meetingTime: '',
-                    meetingVenue: ''
-                  })
                 }}
-                disabled={submitting}
               >
                 Cancel
-              </button>
-              <button
-                type="submit"
-                className="btn btn-primary"
-                disabled={submitting}
-              >
-                {submitting ? 'Saving...' : (editingId ? 'Update Group' : 'Add Group')}
               </button>
             </div>
           </form>
         </div>
       )}
 
+      {/* Groups List */}
       <div className="card">
-        <h3 style={{marginBottom: '1rem'}}>Groups & Agencies ({groups.length})</h3>
-        
+        <h2>Groups & Agencies ({groups.length})</h2>
         {groups.length === 0 ? (
-          <p>No groups found. Add one using the form above.</p>
+          <div className="empty-state">
+            <p>No groups found. Add a new group to get started.</p>
+          </div>
         ) : (
           <div className="table-responsive">
             <table className="table">
               <thead>
                 <tr>
-                  <th>Name</th>
+                  <th>Group Name</th>
                   <th>Type</th>
                   <th>Leader</th>
                   <th>Members</th>
@@ -416,75 +478,75 @@ export default function AgenciesPage(){
                 </tr>
               </thead>
               <tbody>
-                {groups.map((group) => (
+                {groups.map(group => (
                   <tr key={group.id}>
                     <td>
-                      <strong>{group.name}</strong>
-                      {group.description && (
-                        <div style={{fontSize: '12px', color: 'var(--muted)', marginTop: '4px'}}>
-                          {group.description}
-                        </div>
-                      )}
+                      <div>
+                        <strong>{group.name}</strong>
+                        <br />
+                        <small>{group.description}</small>
+                      </div>
                     </td>
                     <td>
                       <span 
                         className="badge"
-                        style={{
-                          backgroundColor: getTypeColor(group.type),
-                          color: 'white'
-                        }}
+                        style={{ backgroundColor: getTypeColor(group.type) }}
                       >
-                        {group.type}
+                        {groupTypes.find(t => t.value === group.type)?.label}
                       </span>
                     </td>
                     <td>
-                      <div>{group.leader}</div>
-                      {group.leaderEmail && (
-                        <div style={{fontSize: '12px', color: 'var(--muted)'}}>
-                          {group.leaderEmail}
-                        </div>
-                      )}
+                      <div>
+                        <strong>{group.leader.name}</strong>
+                        <br />
+                        <small>{group.leader.phone}</small>
+                      </div>
                     </td>
-                    <td>{group.memberCount}</td>
                     <td>
-                      {group.meetingDay && group.meetingTime ? (
-                        <div>
-                          <div>{group.meetingDay}</div>
-                          <div style={{fontSize: '12px', color: 'var(--muted)'}}>
-                            {group.meetingTime}
-                          </div>
-                        </div>
-                      ) : (
-                        <span style={{color: 'var(--muted)'}}>-</span>
-                      )}
+                      <strong>{group.memberCount}</strong>
+                    </td>
+                    <td>
+                      <div>
+                        {group.meetingDay && group.meetingTime ? (
+                          <>
+                            <strong>{group.meetingDay}</strong>
+                            <br />
+                            <small>{group.meetingTime}</small>
+                            {group.venue && (
+                              <>
+                                <br />
+                                <small>{group.venue}</small>
+                              </>
+                            )}
+                          </>
+                        ) : (
+                          <span className="text-muted">Not scheduled</span>
+                        )}
+                      </div>
                     </td>
                     <td>
                       <span 
                         className="badge"
-                        style={{
-                          backgroundColor: getStatusColor(group.status),
-                          color: 'white'
-                        }}
+                        style={{ backgroundColor: getStatusColor(group.status) }}
                       >
-                        {group.status}
+                        {group.status.toUpperCase()}
                       </span>
                     </td>
                     <td>
                       <div className="btn-group">
-                        <button
-                          className="btn btn-sm btn-secondary"
-                          onClick={() => handleEdit(group)}
+                        <button 
+                          className="btn btn-sm btn-primary"
+                          onClick={() => {
+                            const newCount = prompt(`Update member count for ${group.name}:`, group.memberCount.toString())
+                            if (newCount && !isNaN(Number(newCount))) {
+                              handleMembersUpdate(group.id, Number(newCount))
+                            }
+                          }}
                         >
-                          Edit
-                        </button>
-                        <button
-                          className="btn btn-sm btn-danger"
-                          onClick={() => handleDelete(group.id)}
-                        >
-                          Delete
+                          Update Members
                         </button>
                         {group.status === 'active' && (
-                          <button
+                          <button 
                             className="btn btn-sm btn-warning"
                             onClick={() => handleStatusChange(group.id, 'inactive')}
                           >
@@ -492,16 +554,20 @@ export default function AgenciesPage(){
                           </button>
                         )}
                         {group.status === 'inactive' && (
-                          <button
+                          <button 
                             className="btn btn-sm btn-success"
                             onClick={() => handleStatusChange(group.id, 'active')}
                           >
                             Activate
                           </button>
                         )}
-                        <button
+                        <button 
                           className="btn btn-sm btn-danger"
-                          onClick={() => handleStatusChange(group.id, 'suspended')}
+                          onClick={() => {
+                            if (confirm(`Are you sure you want to suspend ${group.name}?`)) {
+                              handleStatusChange(group.id, 'suspended')
+                            }
+                          }}
                         >
                           Suspend
                         </button>
@@ -514,8 +580,33 @@ export default function AgenciesPage(){
           </div>
         )}
       </div>
-    </section>
+
+      <style jsx>{`
+        .form-section {
+          margin: 2rem 0;
+          padding: 1.5rem;
+          background: var(--background-secondary);
+          border-radius: 0.5rem;
+          border: 1px solid var(--border);
+        }
+        
+        .form-section h4 {
+          margin: 0 0 1rem 0;
+          color: var(--primary);
+          font-size: 1.1rem;
+        }
+        
+        .empty-state {
+          text-align: center;
+          padding: 2rem;
+          color: var(--muted);
+        }
+        
+        .text-muted {
+          color: var(--muted);
+          font-style: italic;
+        }
+      `}</style>
+    </div>
   )
 }
-
-
