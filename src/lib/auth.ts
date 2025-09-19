@@ -1,6 +1,6 @@
 import { SignJWT, jwtVerify } from 'jose';
 
-const secret = new TextEncoder().encode(process.env.JWT_SECRET || process.env.AUTH_SECRET || '');
+const secret = new TextEncoder().encode(process.env.JWT_SECRET || process.env.AUTH_SECRET || 'fallback-secret-key-change-in-production');
 
 export async function signJwt(payload: Record<string, unknown>, exp: string = '7d') {
   return await new SignJWT(payload)

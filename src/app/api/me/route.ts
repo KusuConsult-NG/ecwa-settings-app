@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { signToken, verifyToken, AuthenticationError } from "@/lib/auth"
+import { signJwt, verifyJwt, AuthenticationError } from "@/lib/auth"
 import { kv, type UserRecord } from "@/lib/kv"
 
 function getTokenFromRequest(req: Request): string | null {
@@ -20,7 +20,7 @@ export async function GET(req: Request) {
       return NextResponse.json({ user: null }, { status: 200 })
     }
 
-    const payload = await verifyToken(token)
+    const payload = await verifyJwt(token)
     return NextResponse.json({ user: payload })
   } catch (error) {
     console.error("GET /api/me error:", error)
@@ -38,7 +38,7 @@ export async function POST(req: Request) {
       )
     }
 
-    const userToken = await verifyToken(token)
+    const userToken = await verifyJwt(token)
     const body = await req.json().catch(() => ({}))
     const { orgId, orgName, role } = body || {}
     
@@ -81,7 +81,7 @@ export async function POST(req: Request) {
     }
 
     // Reissue token with org info
-    const newToken = await signToken({
+    const newToken = await signJwt({
       sub: userToken?.sub || '',
       email: userToken?.email || '',
       name: userToken?.name || '',
@@ -95,9 +95,13 @@ export async function POST(req: Request) {
       message: "Organization updated successfully" 
     })
     
-    res.headers.set("Set-Cookie", 
-      `auth=${newToken}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${60*60*24*7}; Secure`
-    )
+    res.cookies.set('auth', newToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path: '/',
+      maxAge: 60 * 60 * 24 * 7, // 7 days
+    })
     
     return res
   } catch (error) {
