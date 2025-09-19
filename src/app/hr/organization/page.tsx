@@ -12,13 +12,7 @@ const organizationHierarchy = [
 ]
 
 const getOrgTypeBadge = (type: string) => {
-  const colors: Record<string, string> = {
-    GCC: "bg-purple-100 text-purple-800",
-    DCC: "bg-blue-100 text-blue-800",
-    LCC: "bg-green-100 text-green-800",
-    LC: "bg-orange-100 text-orange-800",
-  }
-  return <span className={`badge ${colors[type] || "bg-gray-100 text-gray-800"}`}>{type}</span>
+  return <span className="badge" style={{backgroundColor: 'var(--muted)', color: 'white'}}>{type}</span>
 }
 
 export default function OrganizationSettingsPage() {
@@ -211,15 +205,23 @@ export default function OrganizationSettingsPage() {
             <tbody>
               {organizationHierarchy.map((org) => (
                 <tr key={org.id}>
-                  <td style={{ paddingLeft: `${org.level * 20 + 16}px` }}>
+                  <td style={{ 
+                    paddingLeft: `${org.level * 20 + 16}px`,
+                    verticalAlign: 'middle',
+                    textAlign: 'left'
+                  }}>
                     <strong>{org.name}</strong>
                   </td>
-                  <td>{getOrgTypeBadge(org.type)}</td>
-                  <td>
+                  <td style={{ verticalAlign: 'middle', textAlign: 'center' }}>
+                    {getOrgTypeBadge(org.type)}
+                  </td>
+                  <td style={{ verticalAlign: 'middle', textAlign: 'left' }}>
                     {org.parent ? organizationHierarchy.find((p) => p.id === org.parent)?.name : "-"}
                   </td>
-                  <td>{org.level}</td>
-                  <td>
+                  <td style={{ verticalAlign: 'middle', textAlign: 'center' }}>
+                    {org.level}
+                  </td>
+                  <td style={{ verticalAlign: 'middle', textAlign: 'center' }}>
                     <div className="btn-group">
                       <button className="btn btn-sm btn-secondary">Edit</button>
                       <button className="btn btn-sm btn-danger">Delete</button>
