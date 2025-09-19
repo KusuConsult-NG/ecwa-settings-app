@@ -92,14 +92,14 @@ export default function LCPage() {
   const handleEdit = (lc: LCRecord) => {
     setFormData({
       name: lc.name,
-      location: lc.location,
+      location: lc.city,
       address: lc.address,
-      phone: lc.phone,
-      email: lc.email,
+      phone: lc.contactPhone,
+      email: lc.contactEmail,
       leaderName: lc.leaderName,
       leaderEmail: lc.leaderEmail,
       leaderPhone: lc.leaderPhone,
-      maxCapacity: lc.memberCount,
+      maxCapacity: lc.maxCapacity,
       establishedDate: lc.establishedDate
     })
     setEditingId(lc.id)
@@ -365,7 +365,7 @@ export default function LCPage() {
                         <small style={{color: 'var(--muted)'}}>{lc.address}</small>
                       </div>
                     </td>
-                    <td>{lc.location}</td>
+                    <td>{lc.city}</td>
                     <td>
                       <div>
                         <strong>{lc.leaderName}</strong>

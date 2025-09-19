@@ -101,8 +101,9 @@ export async function POST(req: NextRequest) {
       establishedDate: body.establishedDate,
       status: 'active',
       memberCount: body.memberCount,
+      maxCapacity: body.memberCount, // Use memberCount as maxCapacity for now
       leaderId: body.leaderId,
-      leaderName: leader.name,
+      leaderName: `${leader.firstName} ${leader.surname}`,
       contactEmail: body.contactEmail,
       contactPhone: body.contactPhone,
       notes: body.notes || '',

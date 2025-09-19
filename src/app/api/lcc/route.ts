@@ -101,8 +101,9 @@ export async function POST(req: NextRequest) {
       establishedDate: body.establishedDate,
       status: 'active',
       capacity: body.capacity,
+      memberCount: 0, // Initialize with 0, can be updated later
       leaderId: body.leaderId,
-      leaderName: leader.name,
+      leaderName: `${leader.firstName} ${leader.surname}`,
       contactEmail: body.contactEmail,
       contactPhone: body.contactPhone,
       notes: body.notes || '',

@@ -9,15 +9,17 @@ export default function LCCPage() {
   const [showForm, setShowForm] = useState(false)
   const [formData, setFormData] = useState({
     name: '',
-    location: '',
+    code: '',
     address: '',
-    phone: '',
-    email: '',
-    leaderName: '',
-    leaderEmail: '',
-    leaderPhone: '',
-    maxCapacity: 0,
-    establishedDate: ''
+    city: '',
+    state: '',
+    country: '',
+    establishedDate: '',
+    capacity: 0,
+    leaderId: '',
+    contactEmail: '',
+    contactPhone: '',
+    notes: ''
   })
   const [submitting, setSubmitting] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
@@ -76,15 +78,17 @@ export default function LCCPage() {
   const resetForm = () => {
     setFormData({
       name: '',
-      location: '',
+      code: '',
       address: '',
-      phone: '',
-      email: '',
-      leaderName: '',
-      leaderEmail: '',
-      leaderPhone: '',
-      maxCapacity: 0,
-      establishedDate: ''
+      city: '',
+      state: '',
+      country: '',
+      establishedDate: '',
+      capacity: 0,
+      leaderId: '',
+      contactEmail: '',
+      contactPhone: '',
+      notes: ''
     })
     setEditingId(null)
   }
@@ -92,15 +96,17 @@ export default function LCCPage() {
   const handleEdit = (lcc: LCCRecord) => {
     setFormData({
       name: lcc.name,
-      location: lcc.location,
+      code: lcc.code,
       address: lcc.address,
-      phone: lcc.phone,
-      email: lcc.email,
-      leaderName: lcc.leaderName,
-      leaderEmail: lcc.leaderEmail,
-      leaderPhone: lcc.leaderPhone,
-      maxCapacity: lcc.capacity,
-      establishedDate: lcc.establishedDate
+      city: lcc.city,
+      state: lcc.state,
+      country: lcc.country,
+      establishedDate: lcc.establishedDate,
+      capacity: lcc.capacity,
+      leaderId: lcc.leaderId,
+      contactEmail: lcc.contactEmail,
+      contactPhone: lcc.contactPhone,
+      notes: lcc.notes || ''
     })
     setEditingId(lcc.id)
     setShowForm(true)
@@ -365,7 +371,7 @@ export default function LCCPage() {
                         <small style={{color: 'var(--muted)'}}>{lcc.address}</small>
                       </div>
                     </td>
-                    <td>{lcc.location}</td>
+                    <td>{lcc.city}</td>
                     <td>
                       <div>
                         <strong>{lcc.leaderName}</strong>
