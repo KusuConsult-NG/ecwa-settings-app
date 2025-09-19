@@ -3,12 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Organization, OrganizationLevel, Leader, getAvailablePositions, ORGANIZATION_NAMES } from '@/lib/organization';
 
-interface OrganizationManagementProps {
-  userRole?: string;
-  userOrgLevel?: OrganizationLevel;
-}
-
-export default function OrganizationManagement({ userRole, userOrgLevel }: OrganizationManagementProps) {
+export default function OrganizationManagement() {
   const [organizations, setOrganizations] = useState<Organization[]>([]);
   const [leaders, setLeaders] = useState<Leader[]>([]);
   const [loading, setLoading] = useState(true);
