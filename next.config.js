@@ -7,9 +7,7 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
-  // Cloudflare Pages configuration
-  output: 'export',
-  trailingSlash: true,
+  // Render.com configuration
   // NOTE: Do NOT use trailingSlash on Vercel — it can cause /login <-> /login/ loops
   // trailingSlash: true, // ← leave this line OUT
 };
