@@ -44,7 +44,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <a href="/hr/security" >🔒 <span>Security Settings</span></a>
               {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
               <a href="/agencies">🏛️ <span>Agencies & Groups</span></a>
-              <a href="/bank" >🏦 <span>Bank</span></a>
+              <a href="/bank" >🏦 <span>Bank Management</span></a>
+              <a href="/bank/statements" >📄 <span>Generate Statements</span></a>
               <a href="/executive" >⭐ <span>Executive</span></a>
             </nav>
           </aside>
