@@ -32,16 +32,16 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <a href="/reports" >📈 <span>Reports</span></a>
               <a href="/audit" >🔍 <span>Audit Logs</span></a>
               <a href="/hr" >🧑‍💼 <span>HR Dashboard</span></a>
-              <a href="/hr/staff" >👥 <span>Staff</span></a>
-              <a href="/hr/payroll" >🧾 <span>Payroll</span></a>
-              <a href="/hr/leave" >🏖️ <span>Leave</span></a>
-              <a href="/hr/queries" >📨 <span>Queries</span></a>
+              <a href="/hr/staff" >👥 <span>Staff Management</span></a>
+              <a href="/hr/payroll" >🧾 <span>Payroll Management</span></a>
+              <a href="/hr/leave" >🏖️ <span>Leave Management</span></a>
+              <a href="/hr/queries" >📨 <span>Queries Management</span></a>
+              <a href="/hr/lcc" >🏛️ <span>LCC Management</span></a>
+              <a href="/hr/lc" >🏢 <span>LC Management</span></a>
               <a href="/hr/organization" >🏢 <span>Organization Settings</span></a>
               <a href="/hr/user-roles" >👤 <span>User Role Management</span></a>
               <a href="/hr/system-config" >⚙️ <span>System Configuration</span></a>
               <a href="/hr/security" >🔒 <span>Security Settings</span></a>
-              <a href="/org/create" >🏢 <span>Create LC</span></a>
-              <a href="/org/lcc" >🏛️ <span>Create LCC</span></a>
               {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
               <a href="/agencies">🏛️ <span>Agencies & Groups</span></a>
               <div style={{marginTop:'.5rem'}} className="badge">Organizations</div>
