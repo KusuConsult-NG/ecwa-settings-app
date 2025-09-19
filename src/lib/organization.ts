@@ -28,6 +28,7 @@ export interface Leader {
   verificationCode?: string;
   verificationStatus: VerificationStatus;
   verificationExpiry?: string;
+  passwordHash?: string;
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
