@@ -42,10 +42,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <a href="/hr/user-roles" >👤 <span>User Role Management</span></a>
               <a href="/hr/system-config" >⚙️ <span>System Configuration</span></a>
               <a href="/hr/security" >🔒 <span>Security Settings</span></a>
-              {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
-              <a href="/agencies">🏛️ <span>Agencies & Groups</span></a>
               <a href="/bank" >🏦 <span>Bank Management</span></a>
               <a href="/executive" >⭐ <span>Executive</span></a>
+              <a href="/agencies">🏛️ <span>Agencies & Groups</span></a>
             </nav>
           </aside>
           <main className="content">
