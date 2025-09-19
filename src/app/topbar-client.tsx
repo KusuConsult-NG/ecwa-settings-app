@@ -34,11 +34,27 @@ export default function ClientTopbar() {
       fetchUser()
     }
     
+    // Mobile menu toggle
+    const handleMenuToggle = () => {
+      const sidebar = document.querySelector('.sidebar')
+      if (sidebar) {
+        sidebar.classList.toggle('open')
+      }
+    }
+    
+    const menuBtn = document.getElementById('menuBtn')
+    if (menuBtn) {
+      menuBtn.addEventListener('click', handleMenuToggle)
+    }
+    
     window.addEventListener('storage', handleStorageChange)
     window.addEventListener('userLoggedIn', handleUserLoggedIn as EventListener)
     window.addEventListener('focus', handleFocus)
     
     return () => {
+      if (menuBtn) {
+        menuBtn.removeEventListener('click', handleMenuToggle)
+      }
       window.removeEventListener('storage', handleStorageChange)
       window.removeEventListener('userLoggedIn', handleUserLoggedIn as EventListener)
       window.removeEventListener('focus', handleFocus)
