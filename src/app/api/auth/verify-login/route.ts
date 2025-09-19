@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { signJwt } from '@/lib/auth';
+import { signJwt, verifyJwt } from '@/lib/auth';
 import { kv } from '@/lib/kv';
 import { Leader, Organization } from '@/lib/organization';
 import { validateVerificationCode } from '@/lib/email-verification';
