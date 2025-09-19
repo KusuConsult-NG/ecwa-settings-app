@@ -167,12 +167,6 @@ export default function LCPage() {
     <section className="container">
       <div className="section-title">
         <h2>LC Management</h2>
-        <button 
-          className="btn btn-primary"
-          onClick={() => setShowForm(true)}
-        >
-          + Add LC
-        </button>
       </div>
 
       {error && (

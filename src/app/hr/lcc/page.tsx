@@ -54,7 +54,7 @@ export default function LCCPage() {
           updatedAt: '2024-01-01T00:00:00Z'
         }
       ]
-      setLCCs(mockLCCs)
+      setLccs(mockLCCs)
     } catch (err) {
       setError('Failed to fetch LCCs')
     } finally {
@@ -67,7 +67,7 @@ export default function LCCPage() {
     try {
       if (editingId) {
         // Update existing LCC
-        setLCCs(prev => prev.map(lcc => 
+        setLccs(prev => prev.map(lcc => 
           lcc.id === editingId 
             ? { ...lcc, ...formData, updatedAt: new Date().toISOString() }
             : lcc
@@ -81,7 +81,7 @@ export default function LCCPage() {
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString()
         }
-        setLCCs(prev => [...prev, newLCC])
+        setLccs(prev => [...prev, newLCC])
       }
       
       setShowForm(false)
@@ -116,12 +116,12 @@ export default function LCCPage() {
 
   const handleDelete = (id: string) => {
     if (confirm('Are you sure you want to delete this LCC?')) {
-      setLCCs(prev => prev.filter(lcc => lcc.id !== id))
+      setLccs(prev => prev.filter(lcc => lcc.id !== id))
     }
   }
 
   const handleStatusChange = (id: string, status: 'active' | 'inactive' | 'suspended') => {
-    setLCCs(prev => prev.map(lcc => 
+    setLccs(prev => prev.map(lcc => 
       lcc.id === id 
         ? { ...lcc, status, updatedAt: new Date().toISOString() }
         : lcc
@@ -143,12 +143,6 @@ export default function LCCPage() {
     <section className="container">
       <div className="section-title">
         <h2>LCC Management</h2>
-        <button 
-          className="btn btn-primary"
-          onClick={() => setShowForm(true)}
-        >
-          + Add LCC
-        </button>
       </div>
 
       {error && (
