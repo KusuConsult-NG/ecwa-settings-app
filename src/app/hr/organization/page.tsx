@@ -223,8 +223,22 @@ export default function OrganizationSettingsPage() {
                   </td>
                   <td style={{ verticalAlign: 'middle', textAlign: 'center' }}>
                     <div className="btn-group">
-                      <button className="btn btn-sm btn-secondary">Edit</button>
-                      <button className="btn btn-sm btn-danger">Delete</button>
+                      <button 
+                        className="btn btn-sm btn-secondary"
+                        onClick={() => alert(`Edit ${org.name} - Feature coming soon`)}
+                      >
+                        Edit
+                      </button>
+                      <button 
+                        className="btn btn-sm btn-danger"
+                        onClick={() => {
+                          if (confirm(`Are you sure you want to delete ${org.name}?`)) {
+                            alert(`Delete ${org.name} - Feature coming soon`)
+                          }
+                        }}
+                      >
+                        Delete
+                      </button>
                     </div>
                   </td>
                 </tr>

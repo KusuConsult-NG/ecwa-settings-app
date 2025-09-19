@@ -130,8 +130,22 @@ export default function UserRolesPage() {
                   <td>{user.lastLogin}</td>
                   <td>
                     <div className="btn-group">
-                      <button className="btn btn-sm btn-secondary">Edit</button>
-                      <button className="btn btn-sm btn-danger">Delete</button>
+                      <button 
+                        className="btn btn-sm btn-secondary"
+                        onClick={() => alert(`Edit ${user.name} - Feature coming soon`)}
+                      >
+                        Edit
+                      </button>
+                      <button 
+                        className="btn btn-sm btn-danger"
+                        onClick={() => {
+                          if (confirm(`Are you sure you want to delete ${user.name}?`)) {
+                            alert(`Delete ${user.name} - Feature coming soon`)
+                          }
+                        }}
+                      >
+                        Delete
+                      </button>
                     </div>
                   </td>
                 </tr>
