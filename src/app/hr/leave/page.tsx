@@ -5,97 +5,128 @@ interface LeaveRecord {
   id: string;
   staffId: string;
   staffName: string;
-  position: string;
-  leaveType: string;
+  staffEmail: string;
+  leaveType: 'annual' | 'sick' | 'maternity' | 'paternity' | 'emergency' | 'unpaid' | 'study';
   startDate: string;
   endDate: string;
   daysRequested: number;
   reason: string;
-  status: 'pending' | 'approved' | 'rejected';
+  status: 'pending' | 'approved' | 'rejected' | 'cancelled';
   approvedBy?: string;
   approvedByName?: string;
+  rejectedBy?: string;
+  rejectedByName?: string;
   rejectionReason?: string;
-  appliedAt: string;
-  processedAt?: string;
+  approvedAt?: string;
+  rejectedAt?: string;
   createdAt: string;
   updatedAt: string;
 }
 
+interface StaffMember {
+  id: string;
+  name: string;
+  email: string;
+  position: string;
+  department: string;
+}
+
+interface LeaveBalance {
+  staffId: string;
+  staffName: string;
+  staffEmail: string;
+  entitlements: { [key: string]: number };
+  used: { [key: string]: number };
+  balance: { [key: string]: number };
+}
+
 export default function LeavePage() {
-  const [leaves, setLeaves] = useState<LeaveRecord[]>([])
+  const [leaveRecords, setLeaveRecords] = useState<LeaveRecord[]>([])
+  const [staff, setStaff] = useState<StaffMember[]>([])
+  const [leaveBalances, setLeaveBalances] = useState<LeaveBalance[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [showForm, setShowForm] = useState(false)
+  const [showBalance, setShowBalance] = useState(false)
   const [formData, setFormData] = useState({
     staffId: '',
-    leaveType: '',
+    leaveType: 'annual' as 'annual' | 'sick' | 'maternity' | 'paternity' | 'emergency' | 'unpaid' | 'study',
     startDate: '',
     endDate: '',
     reason: ''
   })
   const [submitting, setSubmitting] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
-  const [rejectionReason, setRejectionReason] = useState('')
-  const [rejectingId, setRejectingId] = useState<string | null>(null)
-
-  const staff = [
-    { id: 'staff1', name: 'Rev. John Doe', position: 'Pastor' },
-    { id: 'staff2', name: 'Mary Johnson', position: 'Secretary' },
-    { id: 'staff3', name: 'David Wilson', position: 'Treasurer' }
-  ]
+  const [filters, setFilters] = useState({
+    status: '',
+    leaveType: '',
+    year: new Date().getFullYear().toString()
+  })
 
   const leaveTypes = [
-    'Annual Leave', 'Sick Leave', 'Maternity Leave', 'Paternity Leave',
-    'Study Leave', 'Emergency Leave', 'Bereavement Leave', 'Other'
+    { value: 'annual', label: 'Annual Leave' },
+    { value: 'sick', label: 'Sick Leave' },
+    { value: 'maternity', label: 'Maternity Leave' },
+    { value: 'paternity', label: 'Paternity Leave' },
+    { value: 'emergency', label: 'Emergency Leave' },
+    { value: 'study', label: 'Study Leave' },
+    { value: 'unpaid', label: 'Unpaid Leave' }
   ]
 
-  // Mock data
-  useEffect(() => {
-    setLeaves([
-      {
-        id: 'leave1',
-        staffId: 'staff1',
-        staffName: 'Rev. John Doe',
-        position: 'Pastor',
-        leaveType: 'Annual Leave',
-        startDate: '2024-02-01',
-        endDate: '2024-02-15',
-        daysRequested: 15,
-        reason: 'Family vacation and rest',
-        status: 'pending',
-        appliedAt: '2024-01-15T10:30:00Z',
-        createdAt: '2024-01-15T10:30:00Z',
-        updatedAt: '2024-01-15T10:30:00Z'
-      },
-      {
-        id: 'leave2',
-        staffId: 'staff2',
-        staffName: 'Mary Johnson',
-        position: 'Secretary',
-        leaveType: 'Sick Leave',
-        startDate: '2024-01-20',
-        endDate: '2024-01-25',
-        daysRequested: 5,
-        reason: 'Medical treatment and recovery',
-        status: 'approved',
-        approvedBy: 'admin1',
-        approvedByName: 'Admin User',
-        appliedAt: '2024-01-18T14:20:00Z',
-        processedAt: '2024-01-19T09:15:00Z',
-        createdAt: '2024-01-18T14:20:00Z',
-        updatedAt: '2024-01-19T09:15:00Z'
-      }
-    ])
-    setLoading(false)
-  }, [])
+  const statuses = [
+    { value: '', label: 'All Status' },
+    { value: 'pending', label: 'Pending' },
+    { value: 'approved', label: 'Approved' },
+    { value: 'rejected', label: 'Rejected' },
+    { value: 'cancelled', label: 'Cancelled' }
+  ]
 
-  const calculateDays = (startDate: string, endDate: string) => {
-    if (!startDate || !endDate) return 0
-    const start = new Date(startDate)
-    const end = new Date(endDate)
-    const diffTime = Math.abs(end.getTime() - start.getTime())
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1
-    return diffDays
+  // Fetch data from APIs
+  useEffect(() => {
+    fetchData()
+  }, [filters])
+
+  const fetchData = async () => {
+    try {
+      setLoading(true)
+      
+      // Build query parameters
+      const params = new URLSearchParams()
+      if (filters.status) params.append('status', filters.status)
+      if (filters.leaveType) params.append('leaveType', filters.leaveType)
+      if (filters.year) params.append('year', filters.year)
+
+      // Fetch data in parallel
+      const [staffResponse, leaveResponse, balanceResponse] = await Promise.all([
+        fetch('/api/staff/list'),
+        fetch(`/api/leave?${params.toString()}`),
+        fetch(`/api/leave/balance?year=${filters.year}`)
+      ])
+
+      const [staffData, leaveData, balanceData] = await Promise.all([
+        staffResponse.json(),
+        leaveResponse.json(),
+        balanceResponse.json()
+      ])
+
+      if (staffResponse.ok) {
+        setStaff(staffData.staff || [])
+      }
+
+      if (leaveResponse.ok) {
+        setLeaveRecords(leaveData.leaveRecords || [])
+      } else {
+        setError(leaveData.error || 'Failed to fetch leave data')
+      }
+
+      if (balanceResponse.ok) {
+        setLeaveBalances(balanceData.staffBalances || [])
+      }
+    } catch (err) {
+      setError('Failed to fetch data')
+    } finally {
+      setLoading(false)
+    }
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -103,180 +134,282 @@ export default function LeavePage() {
     setSubmitting(true)
     
     try {
-      const selectedStaff = staff.find(s => s.id === formData.staffId)
-      const daysRequested = calculateDays(formData.startDate, formData.endDate)
-
-      if (editingId) {
-        // Update existing leave
-        setLeaves(prev => prev.map(l => 
-          l.id === editingId 
-            ? { 
-                ...l, 
-                ...formData, 
-                staffName: selectedStaff?.name || '',
-                position: selectedStaff?.position || '',
-                daysRequested,
-                updatedAt: new Date().toISOString() 
-              }
-            : l
-        ))
-      } else {
-        // Create new leave
-        const newLeave: LeaveRecord = {
-          id: `leave_${Date.now()}`,
-          staffId: formData.staffId,
-          staffName: selectedStaff?.name || '',
-          position: selectedStaff?.position || '',
-          leaveType: formData.leaveType,
-          startDate: formData.startDate,
-          endDate: formData.endDate,
-          daysRequested,
-          reason: formData.reason,
-          status: 'pending',
-          appliedAt: new Date().toISOString(),
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        }
-        setLeaves(prev => [...prev, newLeave])
-      }
-      
-      setFormData({
-        staffId: '',
-        leaveType: '',
-        startDate: '',
-        endDate: '',
-        reason: ''
+      const response = await fetch('/api/leave', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
       })
-      setShowForm(false)
-      setEditingId(null)
+
+      const data = await response.json()
+
+      if (response.ok) {
+        // Refresh leave records
+        await fetchData()
+        
+        // Reset form
+        setFormData({
+          staffId: '',
+          leaveType: 'annual',
+          startDate: '',
+          endDate: '',
+          reason: ''
+        })
+        setShowForm(false)
+        setEditingId(null)
+      } else {
+        setError(data.error || 'Failed to submit leave request')
+      }
     } catch (error) {
-      setError('Failed to save leave application')
+      setError('Failed to submit leave request')
     } finally {
       setSubmitting(false)
     }
   }
 
-  const handleEdit = (leave: LeaveRecord) => {
-    setFormData({
-      staffId: leave.staffId,
-      leaveType: leave.leaveType,
-      startDate: leave.startDate,
-      endDate: leave.endDate,
-      reason: leave.reason
-    })
-    setEditingId(leave.id)
-    setShowForm(true)
-  }
+  const handleStatusChange = async (id: string, status: 'approved' | 'rejected', rejectionReason?: string) => {
+    try {
+      const response = await fetch(`/api/leave/${id}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status, rejectionReason })
+      })
 
-  const handleDelete = (id: string) => {
-    if (confirm('Are you sure you want to delete this leave application?')) {
-      setLeaves(prev => prev.filter(l => l.id !== id))
-    }
-  }
+      const data = await response.json()
 
-  const handleApprove = (id: string) => {
-    setLeaves(prev => prev.map(l => 
-      l.id === id 
-        ? { 
-            ...l, 
-            status: 'approved' as const,
-            approvedBy: 'current_admin',
-            approvedByName: 'Current Admin',
-            processedAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString() 
-          }
-        : l
-    ))
-  }
-
-  const handleReject = (id: string) => {
-    if (rejectionReason.trim()) {
-      setLeaves(prev => prev.map(l => 
-        l.id === id 
-          ? { 
-              ...l, 
-              status: 'rejected' as const,
-              rejectionReason: rejectionReason,
-              processedAt: new Date().toISOString(),
-              updatedAt: new Date().toISOString() 
-            }
-          : l
-      ))
-      setRejectionReason('')
-      setRejectingId(null)
+      if (response.ok) {
+        // Refresh leave records
+        await fetchData()
+      } else {
+        setError(data.error || 'Failed to update leave status')
+      }
+    } catch (error) {
+      setError('Failed to update leave status')
     }
   }
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'approved': return 'var(--success)'
       case 'pending': return 'var(--warning)'
+      case 'approved': return 'var(--success)'
       case 'rejected': return 'var(--danger)'
+      case 'cancelled': return 'var(--muted)'
       default: return 'var(--muted)'
     }
   }
 
+  const getLeaveTypeColor = (leaveType: string) => {
+    switch (leaveType) {
+      case 'annual': return 'var(--primary)'
+      case 'sick': return 'var(--danger)'
+      case 'maternity': return 'var(--info)'
+      case 'paternity': return 'var(--info)'
+      case 'emergency': return 'var(--warning)'
+      case 'study': return 'var(--success)'
+      case 'unpaid': return 'var(--muted)'
+      default: return 'var(--muted)'
+    }
+  }
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-NG', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    })
+  }
+
+  const calculateDays = (startDate: string, endDate: string) => {
+    const start = new Date(startDate)
+    const end = new Date(endDate)
+    const timeDiff = end.getTime() - start.getTime()
+    return Math.ceil(timeDiff / (1000 * 3600 * 24)) + 1
+  }
+
   if (loading) {
     return (
-      <section className="container">
-        <div className="section-title"><h2>Leave Management</h2></div>
-        <div className="card" style={{padding:'1rem'}}>
-          <p>Loading leave applications...</p>
-        </div>
-      </section>
+      <div className="container">
+        <div className="loading">Loading leave data...</div>
+      </div>
     )
   }
 
   return (
-    <section className="container">
-      <div className="section-title">
-        <h2>Leave Management</h2>
-        <button 
-          className="btn btn-primary"
-          onClick={() => setShowForm(!showForm)}
-        >
-          {showForm ? 'Cancel' : 'Apply for Leave'}
-        </button>
+    <div className="container">
+      <div className="header">
+        <h1>Leave Management</h1>
+        <div className="btn-group">
+          <button 
+            className="btn btn-primary"
+            onClick={() => setShowForm(!showForm)}
+          >
+            {showForm ? 'Cancel' : 'Request Leave'}
+          </button>
+          <button 
+            className="btn btn-secondary"
+            onClick={() => setShowBalance(!showBalance)}
+          >
+            {showBalance ? 'Hide Balance' : 'View Leave Balance'}
+          </button>
+        </div>
       </div>
 
       {error && (
-        <div className="alert alert-error" style={{marginBottom: '1rem'}}>
+        <div className="alert alert-error">
           {error}
+          <button onClick={() => setError(null)}>×</button>
         </div>
       )}
 
+      {/* Filters */}
+      <div className="card">
+        <h3>Filters</h3>
+        <div className="form-row">
+          <div className="form-group">
+            <label>Status</label>
+            <select
+              value={filters.status}
+              onChange={(e) => setFilters({ ...filters, status: e.target.value })}
+            >
+              {statuses.map(s => (
+                <option key={s.value} value={s.value}>{s.label}</option>
+              ))}
+            </select>
+          </div>
+          <div className="form-group">
+            <label>Leave Type</label>
+            <select
+              value={filters.leaveType}
+              onChange={(e) => setFilters({ ...filters, leaveType: e.target.value })}
+            >
+              <option value="">All Types</option>
+              {leaveTypes.map(lt => (
+                <option key={lt.value} value={lt.value}>{lt.label}</option>
+              ))}
+            </select>
+          </div>
+          <div className="form-group">
+            <label>Year</label>
+            <select
+              value={filters.year}
+              onChange={(e) => setFilters({ ...filters, year: e.target.value })}
+            >
+              {[2022, 2023, 2024, 2025].map(year => (
+                <option key={year} value={year.toString()}>{year}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+      </div>
+
+      {/* Leave Balance */}
+      {showBalance && (
+        <div className="card">
+          <h2>Leave Balance - {filters.year}</h2>
+          {leaveBalances.length === 0 ? (
+            <div className="empty-state">
+              <p>No leave balance data available.</p>
+            </div>
+          ) : (
+            <div className="table-responsive">
+              <table className="table">
+                <thead>
+                  <tr>
+                    <th>Staff Member</th>
+                    <th>Annual</th>
+                    <th>Sick</th>
+                    <th>Maternity</th>
+                    <th>Paternity</th>
+                    <th>Emergency</th>
+                    <th>Study</th>
+                    <th>Unpaid</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {leaveBalances.map(balance => (
+                    <tr key={balance.staffId}>
+                      <td>
+                        <div>
+                          <strong>{balance.staffName}</strong>
+                          <br />
+                          <small>{balance.staffEmail}</small>
+                        </div>
+                      </td>
+                      <td>
+                        <span className="balance-display">
+                          {balance.balance.annual}/{balance.entitlements.annual}
+                        </span>
+                      </td>
+                      <td>
+                        <span className="balance-display">
+                          {balance.balance.sick}/{balance.entitlements.sick}
+                        </span>
+                      </td>
+                      <td>
+                        <span className="balance-display">
+                          {balance.balance.maternity}/{balance.entitlements.maternity}
+                        </span>
+                      </td>
+                      <td>
+                        <span className="balance-display">
+                          {balance.balance.paternity}/{balance.entitlements.paternity}
+                        </span>
+                      </td>
+                      <td>
+                        <span className="balance-display">
+                          {balance.balance.emergency}/{balance.entitlements.emergency}
+                        </span>
+                      </td>
+                      <td>
+                        <span className="balance-display">
+                          {balance.balance.study}/{balance.entitlements.study}
+                        </span>
+                      </td>
+                      <td>
+                        <span className="balance-display">
+                          {balance.used.unpaid} days used
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Leave Request Form */}
       {showForm && (
-        <div className="card" style={{marginBottom: '2rem'}}>
-          <h3 style={{marginBottom: '1rem'}}>
-            {editingId ? 'Edit Leave Application' : 'Apply for Leave'}
-          </h3>
+        <div className="card">
+          <h2>Request Leave</h2>
           <form onSubmit={handleSubmit} className="form">
             <div className="form-row">
               <div className="form-group">
-                <label htmlFor="staffId">Staff Member *</label>
+                <label>Staff Member *</label>
                 <select
-                  id="staffId"
                   value={formData.staffId}
-                  onChange={(e) => setFormData(prev => ({...prev, staffId: e.target.value}))}
+                  onChange={(e) => setFormData({ ...formData, staffId: e.target.value })}
                   required
                 >
-                  <option value="">Select Staff Member</option>
+                  <option value="">Select staff member</option>
                   {staff.map(s => (
-                    <option key={s.id} value={s.id}>{s.name} - {s.position}</option>
+                    <option key={s.id} value={s.id}>
+                      {s.name} - {s.position}
+                    </option>
                   ))}
                 </select>
               </div>
               <div className="form-group">
-                <label htmlFor="leaveType">Leave Type *</label>
+                <label>Leave Type *</label>
                 <select
-                  id="leaveType"
                   value={formData.leaveType}
-                  onChange={(e) => setFormData(prev => ({...prev, leaveType: e.target.value}))}
+                  onChange={(e) => setFormData({ ...formData, leaveType: e.target.value as any })}
                   required
                 >
-                  <option value="">Select Leave Type</option>
-                  {leaveTypes.map(type => (
-                    <option key={type} value={type}>{type}</option>
+                  {leaveTypes.map(lt => (
+                    <option key={lt.value} value={lt.value}>
+                      {lt.label}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -284,86 +417,72 @@ export default function LeavePage() {
 
             <div className="form-row">
               <div className="form-group">
-                <label htmlFor="startDate">Start Date *</label>
+                <label>Start Date *</label>
                 <input
                   type="date"
-                  id="startDate"
                   value={formData.startDate}
-                  onChange={(e) => setFormData(prev => ({...prev, startDate: e.target.value}))}
+                  onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
+                  min={new Date().toISOString().split('T')[0]}
                   required
                 />
               </div>
               <div className="form-group">
-                <label htmlFor="endDate">End Date *</label>
+                <label>End Date *</label>
                 <input
                   type="date"
-                  id="endDate"
                   value={formData.endDate}
-                  onChange={(e) => setFormData(prev => ({...prev, endDate: e.target.value}))}
+                  onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
+                  min={formData.startDate || new Date().toISOString().split('T')[0]}
                   required
                 />
               </div>
             </div>
 
-            <div className="form-group" style={{
-              padding: '1rem',
-              backgroundColor: '#f8f9fa',
-              borderRadius: 'var(--radius-input)',
-              border: '1px solid var(--line)'
-            }}>
-              <label style={{fontWeight: 'bold', marginBottom: '0.5rem', display: 'block'}}>
-                Days Requested: {calculateDays(formData.startDate, formData.endDate)} days
-              </label>
-            </div>
-
             <div className="form-group">
-              <label htmlFor="reason">Reason for Leave *</label>
+              <label>Reason *</label>
               <textarea
-                id="reason"
                 value={formData.reason}
-                onChange={(e) => setFormData(prev => ({...prev, reason: e.target.value}))}
+                onChange={(e) => setFormData({ ...formData, reason: e.target.value })}
+                rows={4}
+                placeholder="Please provide a detailed reason for your leave request..."
                 required
-                placeholder="Explain the reason for your leave"
-                rows={3}
               />
             </div>
 
+            {formData.startDate && formData.endDate && (
+              <div className="form-group">
+                <div className="days-display">
+                  <strong>Days Requested: {calculateDays(formData.startDate, formData.endDate)} days</strong>
+                </div>
+              </div>
+            )}
+
             <div className="form-actions">
-              <button
-                type="button"
+              <button type="submit" className="btn btn-primary" disabled={submitting}>
+                {submitting ? 'Submitting...' : 'Submit Request'}
+              </button>
+              <button 
+                type="button" 
                 className="btn btn-secondary"
                 onClick={() => {
                   setShowForm(false)
                   setEditingId(null)
-                  setFormData({
-                    staffId: '',
-                    leaveType: '',
-                    startDate: '',
-                    endDate: '',
-                    reason: ''
-                  })
                 }}
-                disabled={submitting}
               >
                 Cancel
-              </button>
-              <button
-                type="submit"
-                className="btn btn-primary"
-                disabled={submitting}
-              >
-                {submitting ? 'Submitting...' : (editingId ? 'Update Application' : 'Submit Application')}
               </button>
             </div>
           </form>
         </div>
       )}
 
+      {/* Leave Records */}
       <div className="card">
-        <h3 style={{marginBottom: '1rem'}}>Leave Applications ({leaves.length})</h3>
-        
-        {leaves.length === 0 ? (
-          <p>No leave applications found. Apply for one using the form above.</p>
+        <h2>Leave Records</h2>
+        {leaveRecords.length === 0 ? (
+          <div className="empty-state">
+            <p>No leave records found. Submit a leave request to get started.</p>
+          </div>
         ) : (
           <div className="table-responsive">
             <table className="table">
@@ -375,60 +494,67 @@ export default function LeavePage() {
                   <th>End Date</th>
                   <th>Days</th>
                   <th>Status</th>
-                  <th>Applied At</th>
+                  <th>Reason</th>
                   <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {leaves.map((leave) => (
-                  <tr key={leave.id}>
+                {leaveRecords.map(record => (
+                  <tr key={record.id}>
                     <td>
-                      <strong>{leave.staffName}</strong>
-                      <div style={{fontSize: '12px', color: 'var(--muted)'}}>
-                        {leave.position}
+                      <div>
+                        <strong>{record.staffName}</strong>
+                        <br />
+                        <small>{record.staffEmail}</small>
                       </div>
                     </td>
-                    <td>{leave.leaveType}</td>
-                    <td>{new Date(leave.startDate).toLocaleDateString()}</td>
-                    <td>{new Date(leave.endDate).toLocaleDateString()}</td>
-                    <td><strong>{leave.daysRequested}</strong></td>
                     <td>
                       <span 
                         className="badge"
-                        style={{
-                          backgroundColor: getStatusColor(leave.status),
-                          color: 'white'
-                        }}
+                        style={{ backgroundColor: getLeaveTypeColor(record.leaveType) }}
                       >
-                        {leave.status}
+                        {leaveTypes.find(lt => lt.value === record.leaveType)?.label}
                       </span>
                     </td>
-                    <td>{new Date(leave.appliedAt).toLocaleDateString()}</td>
+                    <td>{formatDate(record.startDate)}</td>
+                    <td>{formatDate(record.endDate)}</td>
+                    <td><strong>{record.daysRequested}</strong></td>
+                    <td>
+                      <span 
+                        className="badge"
+                        style={{ backgroundColor: getStatusColor(record.status) }}
+                      >
+                        {record.status.toUpperCase()}
+                      </span>
+                    </td>
+                    <td>
+                      <div className="reason-cell">
+                        {record.reason}
+                        {record.rejectionReason && (
+                          <div className="rejection-reason">
+                            <strong>Rejection Reason:</strong> {record.rejectionReason}
+                          </div>
+                        )}
+                      </div>
+                    </td>
                     <td>
                       <div className="btn-group">
-                        <button
-                          className="btn btn-sm btn-secondary"
-                          onClick={() => handleEdit(leave)}
-                        >
-                          Edit
-                        </button>
-                        <button
-                          className="btn btn-sm btn-danger"
-                          onClick={() => handleDelete(leave.id)}
-                        >
-                          Delete
-                        </button>
-                        {leave.status === 'pending' && (
+                        {record.status === 'pending' && (
                           <>
-                            <button
+                            <button 
                               className="btn btn-sm btn-success"
-                              onClick={() => handleApprove(leave.id)}
+                              onClick={() => handleStatusChange(record.id, 'approved')}
                             >
                               Approve
                             </button>
-                            <button
+                            <button 
                               className="btn btn-sm btn-danger"
-                              onClick={() => setRejectingId(leave.id)}
+                              onClick={() => {
+                                const reason = prompt('Enter rejection reason:')
+                                if (reason) {
+                                  handleStatusChange(record.id, 'rejected', reason)
+                                }
+                              }}
                             >
                               Reject
                             </button>
@@ -444,64 +570,41 @@ export default function LeavePage() {
         )}
       </div>
 
-      {/* Rejection Modal */}
-      {rejectingId && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          background: 'rgba(0, 0, 0, 0.5)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 1000
-        }}>
-          <div style={{
-            background: 'var(--surface)',
-            border: '1px solid var(--line)',
-            borderRadius: 'var(--radius-card)',
-            padding: '2rem',
-            maxWidth: '500px',
-            width: '90%',
-            maxHeight: '90vh',
-            overflow: 'auto'
-          }}>
-            <h3 style={{marginBottom: '1rem'}}>Reject Leave Application</h3>
-            <div className="form-group">
-              <label htmlFor="rejectionReason">Reason for Rejection</label>
-              <textarea
-                id="rejectionReason"
-                value={rejectionReason}
-                onChange={(e) => setRejectionReason(e.target.value)}
-                placeholder="Enter reason for rejection"
-                rows={4}
-                style={{width: '100%'}}
-                required
-              />
-            </div>
-            <div className="form-actions">
-              <button
-                className="btn btn-secondary"
-                onClick={() => {
-                  setRejectingId(null)
-                  setRejectionReason('')
-                }}
-              >
-                Cancel
-              </button>
-              <button
-                className="btn btn-danger"
-                onClick={() => handleReject(rejectingId)}
-                disabled={!rejectionReason.trim()}
-              >
-                Reject Application
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-    </section>
+      <style jsx>{`
+        .balance-display {
+          font-weight: bold;
+          color: var(--text);
+        }
+        
+        .days-display {
+          background: var(--background-secondary);
+          padding: 1rem;
+          border-radius: 0.5rem;
+          text-align: center;
+          font-size: 1.1rem;
+          color: var(--primary);
+          border: 2px solid var(--primary);
+        }
+        
+        .reason-cell {
+          max-width: 200px;
+          word-wrap: break-word;
+        }
+        
+        .rejection-reason {
+          margin-top: 0.5rem;
+          padding: 0.5rem;
+          background: var(--danger-light);
+          border-radius: 0.25rem;
+          font-size: 0.9rem;
+        }
+        
+        .empty-state {
+          text-align: center;
+          padding: 2rem;
+          color: var(--muted);
+        }
+      `}</style>
+    </div>
   )
 }
