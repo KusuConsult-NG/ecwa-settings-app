@@ -20,6 +20,7 @@ export async function GET() {
         address: 'Test Address',
         passwordHash,
         createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
         orgId: crypto.randomUUID(),
         orgName: 'ECWA Organization',
         role: 'Admin',
