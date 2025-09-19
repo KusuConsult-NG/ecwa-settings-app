@@ -7,7 +7,7 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
-  // Render.com configuration
+  // Vercel configuration
   // NOTE: Do NOT use trailingSlash on Vercel — it can cause /login <-> /login/ loops
   // trailingSlash: true, // ← leave this line OUT
 };
