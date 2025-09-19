@@ -1,25 +1,6 @@
 "use client"
 import { useState, useEffect } from "react"
-
-interface BankAccount {
-  id: string;
-  accountName: string;
-  accountNumber: string;
-  bankName: string;
-  bankCode: string;
-  accountType: 'savings' | 'current' | 'fixed_deposit' | 'investment';
-  currency: string;
-  openingDate: string;
-  branch: string;
-  swiftCode?: string;
-  iban?: string;
-  currentBalance: number;
-  status: 'active' | 'inactive' | 'suspended' | 'closed';
-  authorizedSignatories: string[];
-  notes?: string;
-  createdAt: string;
-  updatedAt: string;
-}
+import { BankAccount, formatCurrency, getStatusColor, getStatusIcon } from '@/lib/bank'
 
 export default function BankPage() {
   const [accounts, setAccounts] = useState<BankAccount[]>([])
@@ -50,60 +31,22 @@ export default function BankPage() {
     search: ''
   })
 
-  const accountTypes = [
-    { value: 'savings', label: 'Savings Account' },
-    { value: 'current', label: 'Current Account' },
-    { value: 'fixed_deposit', label: 'Fixed Deposit' },
-    { value: 'investment', label: 'Investment Account' }
-  ]
-
-  const statuses = [
-    { value: '', label: 'All Status' },
-    { value: 'active', label: 'Active' },
-    { value: 'inactive', label: 'Inactive' },
-    { value: 'suspended', label: 'Suspended' },
-    { value: 'closed', label: 'Closed' }
-  ]
-
-  const currencies = ['NGN', 'USD', 'EUR', 'GBP', 'CAD', 'AUD']
-
-  const nigerianBanks = [
-    'Access Bank', 'Citibank Nigeria', 'Ecobank Nigeria', 'Fidelity Bank',
-    'First Bank of Nigeria', 'First City Monument Bank', 'Globus Bank',
-    'Guaranty Trust Bank', 'Heritage Bank', 'Keystone Bank', 'Kuda Bank',
-    'Opay', 'PalmPay', 'Parallex Bank', 'Paycom', 'Polaris Bank',
-    'Premium Trust Bank', 'Providus Bank', 'Stanbic IBTC Bank',
-    'Standard Chartered Bank', 'Sterling Bank', 'Suntrust Bank',
-    'TajBank', 'Tangerine Money', 'Titan Trust Bank', 'Union Bank',
-    'United Bank for Africa', 'Unity Bank', 'VFD Microfinance Bank',
-    'Visa', 'Wema Bank', 'Zenith Bank'
-  ]
-
-  // Fetch data from API
   useEffect(() => {
-    fetchAccounts()
-  }, [filters])
+    loadAccounts()
+  }, [])
 
-  const fetchAccounts = async () => {
+  const loadAccounts = async () => {
     try {
       setLoading(true)
-      
-      const params = new URLSearchParams()
-      if (filters.status) params.append('status', filters.status)
-      if (filters.accountType) params.append('accountType', filters.accountType)
-      if (filters.bankName) params.append('bankName', filters.bankName)
-      if (filters.search) params.append('search', filters.search)
-
-      const response = await fetch(`/api/bank?${params.toString()}`)
-      const data = await response.json()
-      
+      const response = await fetch('/api/bank')
       if (response.ok) {
+        const data = await response.json()
         setAccounts(data.accounts || [])
       } else {
-        setError(data.error || 'Failed to fetch bank accounts')
+        setError('Failed to load bank accounts')
       }
     } catch (err) {
-      setError('Failed to fetch bank accounts')
+      setError('Failed to load bank accounts')
     } finally {
       setLoading(false)
     }
@@ -112,20 +55,20 @@ export default function BankPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setSubmitting(true)
-    
+
     try {
-      const response = await fetch('/api/bank', {
-        method: 'POST',
+      const url = editingId ? `/api/bank/${editingId}` : '/api/bank'
+      const method = editingId ? 'PUT' : 'POST'
+      
+      const response = await fetch(url, {
+        method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)
       })
 
-      const data = await response.json()
-
       if (response.ok) {
-        await fetchAccounts()
-        
-        // Reset form
+        await loadAccounts()
+        setShowForm(false)
         setFormData({
           accountName: '',
           accountNumber: '',
@@ -141,19 +84,57 @@ export default function BankPage() {
           authorizedSignatories: [],
           notes: ''
         })
-        setShowForm(false)
         setEditingId(null)
       } else {
+        const data = await response.json()
         setError(data.error || 'Failed to save bank account')
       }
-    } catch (error) {
+    } catch (err) {
       setError('Failed to save bank account')
     } finally {
       setSubmitting(false)
     }
   }
 
-  const handleStatusChange = async (id: string, status: 'active' | 'inactive' | 'suspended' | 'closed') => {
+  const handleEdit = (account: BankAccount) => {
+    setFormData({
+      accountName: account.accountName,
+      accountNumber: account.accountNumber,
+      bankName: account.bankName,
+      bankCode: account.bankCode,
+      accountType: account.accountType,
+      currency: account.currency,
+      openingDate: account.openingDate,
+      branch: account.branch,
+      swiftCode: account.swiftCode || '',
+      iban: account.iban || '',
+      currentBalance: account.currentBalance,
+      authorizedSignatories: account.authorizedSignatories,
+      notes: account.notes || ''
+    })
+    setEditingId(account.id)
+    setShowForm(true)
+  }
+
+  const handleDelete = async (id: string) => {
+    if (confirm('Are you sure you want to delete this bank account?')) {
+      try {
+        const response = await fetch(`/api/bank/${id}`, {
+          method: 'DELETE'
+        })
+
+        if (response.ok) {
+          await loadAccounts()
+        } else {
+          setError('Failed to delete bank account')
+        }
+      } catch (err) {
+        setError('Failed to delete bank account')
+      }
+    }
+  }
+
+  const handleStatusChange = async (id: string, status: string) => {
     try {
       const response = await fetch(`/api/bank/${id}/status`, {
         method: 'PATCH',
@@ -161,145 +142,109 @@ export default function BankPage() {
         body: JSON.stringify({ status })
       })
 
-      const data = await response.json()
-
       if (response.ok) {
-        await fetchAccounts()
+        await loadAccounts()
       } else {
-        setError(data.error || 'Failed to update account status')
+        setError('Failed to update status')
       }
-    } catch (error) {
-      setError('Failed to update account status')
+    } catch (err) {
+      setError('Failed to update status')
     }
   }
 
-  const handleBalanceUpdate = async (id: string, currentBalance: number) => {
-    try {
-      const response = await fetch(`/api/bank/${id}/status`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ currentBalance })
-      })
-
-      const data = await response.json()
-
-      if (response.ok) {
-        await fetchAccounts()
-      } else {
-        setError(data.error || 'Failed to update account balance')
-      }
-    } catch (error) {
-      setError('Failed to update account balance')
-    }
-  }
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'active': return 'var(--success)'
-      case 'inactive': return 'var(--muted)'
-      case 'suspended': return 'var(--warning)'
-      case 'closed': return 'var(--danger)'
-      default: return 'var(--muted)'
-    }
-  }
-
-  const formatCurrency = (amount: number, currency: string) => {
-    return new Intl.NumberFormat('en-NG', {
-      style: 'currency',
-      currency: currency
-    }).format(amount)
-  }
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-NG', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    })
-  }
+  const filteredAccounts = accounts.filter(account => {
+    if (filters.status && account.status !== filters.status) return false
+    if (filters.accountType && account.accountType !== filters.accountType) return false
+    if (filters.bankName && !account.bankName.toLowerCase().includes(filters.bankName.toLowerCase())) return false
+    if (filters.search && !account.accountName.toLowerCase().includes(filters.search.toLowerCase())) return false
+    return true
+  })
 
   if (loading) {
     return (
       <div className="container">
-        <div className="loading">Loading bank accounts...</div>
+        <div className="card">
+          <p>Loading bank accounts...</p>
+        </div>
       </div>
     )
   }
 
   return (
     <div className="container">
-      <div className="header">
-        <h1>Bank Management</h1>
+      <div className="section-title">
+        <h2>Bank Account Management</h2>
         <button 
           className="btn btn-primary"
-          onClick={() => setShowForm(!showForm)}
+          onClick={() => setShowForm(true)}
         >
-          {showForm ? 'Cancel' : 'Add Account'}
+          Add Bank Account
         </button>
       </div>
 
       {error && (
-        <div className="alert alert-error">
+        <div className="alert alert-error" style={{marginBottom: '1rem'}}>
           {error}
-          <button onClick={() => setError(null)}>×</button>
         </div>
       )}
 
       {/* Filters */}
-      <div className="card">
-        <h3>Filters</h3>
+      <div className="card" style={{marginBottom: '2rem'}}>
+        <h3 style={{marginBottom: '1rem'}}>Filters</h3>
         <div className="form-row">
           <div className="form-group">
             <label>Status</label>
             <select
               value={filters.status}
-              onChange={(e) => setFilters({ ...filters, status: e.target.value })}
+              onChange={(e) => setFilters({...filters, status: e.target.value})}
             >
-              {statuses.map(s => (
-                <option key={s.value} value={s.value}>{s.label}</option>
-              ))}
+              <option value="">All Statuses</option>
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
+              <option value="suspended">Suspended</option>
+              <option value="closed">Closed</option>
             </select>
           </div>
           <div className="form-group">
             <label>Account Type</label>
             <select
               value={filters.accountType}
-              onChange={(e) => setFilters({ ...filters, accountType: e.target.value })}
+              onChange={(e) => setFilters({...filters, accountType: e.target.value})}
             >
               <option value="">All Types</option>
-              {accountTypes.map(t => (
-                <option key={t.value} value={t.value}>{t.label}</option>
-              ))}
+              <option value="savings">Savings</option>
+              <option value="current">Current</option>
+              <option value="fixed_deposit">Fixed Deposit</option>
+              <option value="investment">Investment</option>
             </select>
           </div>
           <div className="form-group">
             <label>Bank Name</label>
-            <select
+            <input
+              type="text"
               value={filters.bankName}
-              onChange={(e) => setFilters({ ...filters, bankName: e.target.value })}
-            >
-              <option value="">All Banks</option>
-              {nigerianBanks.map(bank => (
-                <option key={bank} value={bank}>{bank}</option>
-              ))}
-            </select>
+              onChange={(e) => setFilters({...filters, bankName: e.target.value})}
+              placeholder="Filter by bank name"
+            />
           </div>
           <div className="form-group">
             <label>Search</label>
             <input
               type="text"
               value={filters.search}
-              onChange={(e) => setFilters({ ...filters, search: e.target.value })}
-              placeholder="Search by account name, number, or bank..."
+              onChange={(e) => setFilters({...filters, search: e.target.value})}
+              placeholder="Search by account name"
             />
           </div>
         </div>
       </div>
 
-      {/* Bank Account Form */}
+      {/* Form */}
       {showForm && (
-        <div className="card">
-          <h2>{editingId ? 'Edit Bank Account' : 'Add New Bank Account'}</h2>
+        <div className="card" style={{marginBottom: '2rem'}}>
+          <h3 style={{marginBottom: '1rem'}}>
+            {editingId ? 'Edit Bank Account' : 'Add New Bank Account'}
+          </h3>
           <form onSubmit={handleSubmit} className="form">
             <div className="form-row">
               <div className="form-group">
@@ -307,8 +252,7 @@ export default function BankPage() {
                 <input
                   type="text"
                   value={formData.accountName}
-                  onChange={(e) => setFormData({ ...formData, accountName: e.target.value })}
-                  placeholder="e.g., ECWA Main Account"
+                  onChange={(e) => setFormData({...formData, accountName: e.target.value})}
                   required
                 />
               </div>
@@ -317,23 +261,29 @@ export default function BankPage() {
                 <input
                   type="text"
                   value={formData.accountNumber}
-                  onChange={(e) => setFormData({ ...formData, accountNumber: e.target.value })}
-                  placeholder="10-digit account number"
+                  onChange={(e) => setFormData({...formData, accountNumber: e.target.value})}
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="form-row">
+              <div className="form-group">
+                <label>Bank Name *</label>
+                <input
+                  type="text"
+                  value={formData.bankName}
+                  onChange={(e) => setFormData({...formData, bankName: e.target.value})}
                   required
                 />
               </div>
               <div className="form-group">
-                <label>Bank Name *</label>
-                <select
-                  value={formData.bankName}
-                  onChange={(e) => setFormData({ ...formData, bankName: e.target.value })}
-                  required
-                >
-                  <option value="">Select Bank</option>
-                  {nigerianBanks.map(bank => (
-                    <option key={bank} value={bank}>{bank}</option>
-                  ))}
-                </select>
+                <label>Bank Code</label>
+                <input
+                  type="text"
+                  value={formData.bankCode}
+                  onChange={(e) => setFormData({...formData, bankCode: e.target.value})}
+                />
               </div>
             </div>
 
@@ -342,64 +292,46 @@ export default function BankPage() {
                 <label>Account Type *</label>
                 <select
                   value={formData.accountType}
-                  onChange={(e) => setFormData({ ...formData, accountType: e.target.value as any })}
+                  onChange={(e) => setFormData({...formData, accountType: e.target.value as any})}
                   required
                 >
-                  {accountTypes.map(t => (
-                    <option key={t.value} value={t.value}>{t.label}</option>
-                  ))}
+                  <option value="savings">Savings</option>
+                  <option value="current">Current</option>
+                  <option value="fixed_deposit">Fixed Deposit</option>
+                  <option value="investment">Investment</option>
                 </select>
               </div>
               <div className="form-group">
                 <label>Currency *</label>
                 <select
                   value={formData.currency}
-                  onChange={(e) => setFormData({ ...formData, currency: e.target.value })}
+                  onChange={(e) => setFormData({...formData, currency: e.target.value})}
                   required
                 >
-                  {currencies.map(currency => (
-                    <option key={currency} value={currency}>{currency}</option>
-                  ))}
+                  <option value="NGN">NGN</option>
+                  <option value="USD">USD</option>
+                  <option value="EUR">EUR</option>
+                  <option value="GBP">GBP</option>
                 </select>
-              </div>
-              <div className="form-group">
-                <label>Opening Date *</label>
-                <input
-                  type="date"
-                  value={formData.openingDate}
-                  onChange={(e) => setFormData({ ...formData, openingDate: e.target.value })}
-                  required
-                />
               </div>
             </div>
 
             <div className="form-row">
               <div className="form-group">
+                <label>Opening Date *</label>
+                <input
+                  type="date"
+                  value={formData.openingDate}
+                  onChange={(e) => setFormData({...formData, openingDate: e.target.value})}
+                  required
+                />
+              </div>
+              <div className="form-group">
                 <label>Branch</label>
                 <input
                   type="text"
                   value={formData.branch}
-                  onChange={(e) => setFormData({ ...formData, branch: e.target.value })}
-                  placeholder="e.g., Jos Central Branch"
-                />
-              </div>
-              <div className="form-group">
-                <label>Bank Code</label>
-                <input
-                  type="text"
-                  value={formData.bankCode}
-                  onChange={(e) => setFormData({ ...formData, bankCode: e.target.value })}
-                  placeholder="Bank code"
-                />
-              </div>
-              <div className="form-group">
-                <label>Current Balance</label>
-                <input
-                  type="number"
-                  value={formData.currentBalance}
-                  onChange={(e) => setFormData({ ...formData, currentBalance: Number(e.target.value) })}
-                  min="0"
-                  step="0.01"
+                  onChange={(e) => setFormData({...formData, branch: e.target.value})}
                 />
               </div>
             </div>
@@ -410,8 +342,7 @@ export default function BankPage() {
                 <input
                   type="text"
                   value={formData.swiftCode}
-                  onChange={(e) => setFormData({ ...formData, swiftCode: e.target.value.toUpperCase() })}
-                  placeholder="e.g., FBNINGLA"
+                  onChange={(e) => setFormData({...formData, swiftCode: e.target.value})}
                 />
               </div>
               <div className="form-group">
@@ -419,8 +350,19 @@ export default function BankPage() {
                 <input
                   type="text"
                   value={formData.iban}
-                  onChange={(e) => setFormData({ ...formData, iban: e.target.value.toUpperCase() })}
-                  placeholder="International Bank Account Number"
+                  onChange={(e) => setFormData({...formData, iban: e.target.value})}
+                />
+              </div>
+            </div>
+
+            <div className="form-row">
+              <div className="form-group">
+                <label>Current Balance *</label>
+                <input
+                  type="number"
+                  value={formData.currentBalance}
+                  onChange={(e) => setFormData({...formData, currentBalance: Number(e.target.value)})}
+                  required
                 />
               </div>
             </div>
@@ -429,9 +371,8 @@ export default function BankPage() {
               <label>Notes</label>
               <textarea
                 value={formData.notes}
-                onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                onChange={(e) => setFormData({...formData, notes: e.target.value})}
                 rows={3}
-                placeholder="Additional notes about this account..."
               />
             </div>
 
@@ -445,6 +386,21 @@ export default function BankPage() {
                 onClick={() => {
                   setShowForm(false)
                   setEditingId(null)
+                  setFormData({
+                    accountName: '',
+                    accountNumber: '',
+                    bankName: '',
+                    bankCode: '',
+                    accountType: 'current',
+                    currency: 'NGN',
+                    openingDate: '',
+                    branch: '',
+                    swiftCode: '',
+                    iban: '',
+                    currentBalance: 0,
+                    authorizedSignatories: [],
+                    notes: ''
+                  })
                 }}
               >
                 Cancel
@@ -454,13 +410,14 @@ export default function BankPage() {
         </div>
       )}
 
-      {/* Bank Accounts List */}
+      {/* Accounts List */}
       <div className="card">
-        <h2>Bank Accounts ({accounts.length})</h2>
-        {accounts.length === 0 ? (
-          <div className="empty-state">
-            <p>No bank accounts found. Add a new account to get started.</p>
-          </div>
+        <h3 style={{marginBottom: '1rem'}}>
+          Bank Accounts ({filteredAccounts.length})
+        </h3>
+        
+        {filteredAccounts.length === 0 ? (
+          <p>No bank accounts found.</p>
         ) : (
           <div className="table-responsive">
             <table className="table">
@@ -477,91 +434,49 @@ export default function BankPage() {
                 </tr>
               </thead>
               <tbody>
-                {accounts.map(account => (
+                {filteredAccounts.map((account) => (
                   <tr key={account.id}>
-                    <td>
-                      <div>
-                        <strong>{account.accountName}</strong>
-                        {account.notes && (
-                          <>
-                            <br />
-                            <small>{account.notes}</small>
-                          </>
-                        )}
-                      </div>
-                    </td>
-                    <td>
-                      <code>{account.accountNumber}</code>
-                    </td>
-                    <td>
-                      <div>
-                        <strong>{account.bankName}</strong>
-                        {account.branch && (
-                          <>
-                            <br />
-                            <small>{account.branch}</small>
-                          </>
-                        )}
-                      </div>
-                    </td>
-                    <td>
-                      <span className="badge">
-                        {accountTypes.find(t => t.value === account.accountType)?.label}
-                      </span>
-                    </td>
-                    <td>
-                      <strong>{account.currency}</strong>
-                    </td>
-                    <td>
-                      <strong>{formatCurrency(account.currentBalance, account.currency)}</strong>
-                    </td>
+                    <td>{account.accountName}</td>
+                    <td>{account.accountNumber}</td>
+                    <td>{account.bankName}</td>
+                    <td>{account.accountType}</td>
+                    <td>{account.currency}</td>
+                    <td>{formatCurrency(account.currentBalance, account.currency)}</td>
                     <td>
                       <span 
                         className="badge"
-                        style={{ backgroundColor: getStatusColor(account.status) }}
+                        style={{
+                          backgroundColor: getStatusColor(account.status),
+                          color: 'white'
+                        }}
                       >
-                        {account.status.toUpperCase()}
+                        {getStatusIcon(account.status)} {account.status}
                       </span>
                     </td>
                     <td>
-                      <div className="btn-group">
-                        <button 
-                          className="btn btn-sm btn-primary"
-                          onClick={() => {
-                            const newBalance = prompt(`Update balance for ${account.accountName}:`, account.currentBalance.toString())
-                            if (newBalance && !isNaN(Number(newBalance))) {
-                              handleBalanceUpdate(account.id, Number(newBalance))
-                            }
-                          }}
+                      <div style={{display: 'flex', gap: '0.5rem'}}>
+                        <button
+                          className="btn btn-sm btn-secondary"
+                          onClick={() => handleEdit(account)}
                         >
-                          Update Balance
+                          Edit
                         </button>
-                        {account.status === 'active' && (
-                          <button 
-                            className="btn btn-sm btn-warning"
-                            onClick={() => handleStatusChange(account.id, 'inactive')}
-                          >
-                            Deactivate
-                          </button>
-                        )}
-                        {account.status === 'inactive' && (
-                          <button 
-                            className="btn btn-sm btn-success"
-                            onClick={() => handleStatusChange(account.id, 'active')}
-                          >
-                            Activate
-                          </button>
-                        )}
-                        <button 
+                        <button
                           className="btn btn-sm btn-danger"
-                          onClick={() => {
-                            if (confirm(`Are you sure you want to close ${account.accountName}?`)) {
-                              handleStatusChange(account.id, 'closed')
-                            }
-                          }}
+                          onClick={() => handleDelete(account.id)}
                         >
-                          Close
+                          Delete
                         </button>
+                        <select
+                          value={account.status}
+                          onChange={(e) => handleStatusChange(account.id, e.target.value)}
+                          style={{fontSize: '12px', padding: '2px 4px'}}
+                        >
+                          <option value="active">Active</option>
+                          <option value="inactive">Inactive</option>
+                          <option value="suspended">Suspended</option>
+                          <option value="closed">Closed</option>
+                        </select>
                       </div>
                     </td>
                   </tr>
@@ -571,14 +486,6 @@ export default function BankPage() {
           </div>
         )}
       </div>
-
-      <style jsx>{`
-        .empty-state {
-          text-align: center;
-          padding: 2rem;
-          color: var(--muted);
-        }
-      `}</style>
     </div>
   )
 }
