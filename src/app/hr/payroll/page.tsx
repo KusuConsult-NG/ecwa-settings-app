@@ -1,123 +1,53 @@
 "use client"
 import { useState, useEffect } from "react"
-
-interface PayrollRecord {
-  id: string;
-  staffId: string;
-  staffName: string;
-  staffEmail: string;
-  month: string;
-  year: number;
-  basicSalary: number;
-  allowances: {
-    housing: number;
-    transport: number;
-    medical: number;
-    other: number;
-  };
-  deductions: {
-    tax: number;
-    pension: number;
-    loan: number;
-    other: number;
-  };
-  overtime: number;
-  bonus: number;
-  netSalary: number;
-  status: 'pending' | 'approved' | 'paid' | 'rejected';
-  paymentMethod: 'bank_transfer' | 'cash' | 'cheque';
-  paymentDate?: string;
-  notes?: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-interface StaffMember {
-  id: string;
-  name: string;
-  email: string;
-  position: string;
-  department: string;
-  salary: number;
-}
+import { PayrollRecord, formatCurrency, getStatusColor, getStatusIcon, calculateNetSalary, PAYROLL_STATUSES } from '@/lib/payroll'
+import { StaffRecord } from '@/lib/staff'
 
 export default function PayrollPage() {
-  const [payrolls, setPayrolls] = useState<PayrollRecord[]>([])
-  const [staff, setStaff] = useState<StaffMember[]>([])
+  const [payroll, setPayroll] = useState<PayrollRecord[]>([])
+  const [staff, setStaff] = useState<StaffRecord[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [showForm, setShowForm] = useState(false)
   const [formData, setFormData] = useState({
     staffId: '',
-    month: '',
-    year: new Date().getFullYear(),
     basicSalary: 0,
-    allowances: {
-      housing: 0,
-      transport: 0,
-      medical: 0,
-      other: 0
-    },
-    deductions: {
-      tax: 0,
-      pension: 0,
-      loan: 0,
-      other: 0
-    },
-    overtime: 0,
-    bonus: 0,
-    paymentMethod: 'bank_transfer' as 'bank_transfer' | 'cash' | 'cheque',
-    notes: ''
+    allowances: 0,
+    deductions: 0,
+    payPeriod: '',
+    payDate: ''
   })
   const [submitting, setSubmitting] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
+  const [filters, setFilters] = useState({
+    status: '',
+    month: '',
+    search: ''
+  })
 
-  const months = [
-    { value: '01', label: 'January' },
-    { value: '02', label: 'February' },
-    { value: '03', label: 'March' },
-    { value: '04', label: 'April' },
-    { value: '05', label: 'May' },
-    { value: '06', label: 'June' },
-    { value: '07', label: 'July' },
-    { value: '08', label: 'August' },
-    { value: '09', label: 'September' },
-    { value: '10', label: 'October' },
-    { value: '11', label: 'November' },
-    { value: '12', label: 'December' }
-  ]
-
-  // Fetch data from APIs
   useEffect(() => {
-    fetchData()
+    loadData()
   }, [])
 
-  const fetchData = async () => {
+  const loadData = async () => {
     try {
       setLoading(true)
-      
-      // Fetch staff and payroll in parallel
-      const [staffResponse, payrollResponse] = await Promise.all([
-        fetch('/api/staff/list'),
-        fetch('/api/payroll')
+      const [payrollRes, staffRes] = await Promise.all([
+        fetch('/api/payroll'),
+        fetch('/api/staff/list')
       ])
 
-      const [staffData, payrollData] = await Promise.all([
-        staffResponse.json(),
-        payrollResponse.json()
-      ])
+      if (payrollRes.ok) {
+        const payrollData = await payrollRes.json()
+        setPayroll(payrollData.payroll || [])
+      }
 
-      if (staffResponse.ok) {
+      if (staffRes.ok) {
+        const staffData = await staffRes.json()
         setStaff(staffData.staff || [])
       }
-
-      if (payrollResponse.ok) {
-        setPayrolls(payrollData.payroll || [])
-      } else {
-        setError(payrollData.error || 'Failed to fetch payroll data')
-      }
     } catch (err) {
-      setError('Failed to fetch data')
+      setError('Failed to load data')
     } finally {
       setLoading(false)
     }
@@ -126,7 +56,7 @@ export default function PayrollPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setSubmitting(true)
-    
+
     try {
       const response = await fetch('/api/payroll', {
         method: 'POST',
@@ -134,48 +64,65 @@ export default function PayrollPage() {
         body: JSON.stringify(formData)
       })
 
-      const data = await response.json()
-
       if (response.ok) {
-        // Refresh payroll list
-        await fetchData()
-        
-        // Reset form
-        setFormData({
-          staffId: '',
-          month: '',
-          year: new Date().getFullYear(),
-          basicSalary: 0,
-          allowances: {
-            housing: 0,
-            transport: 0,
-            medical: 0,
-            other: 0
-          },
-          deductions: {
-            tax: 0,
-            pension: 0,
-            loan: 0,
-            other: 0
-          },
-          overtime: 0,
-          bonus: 0,
-          paymentMethod: 'bank_transfer',
-          notes: ''
-        })
+        await loadData()
         setShowForm(false)
-        setEditingId(null)
+        resetForm()
       } else {
+        const data = await response.json()
         setError(data.error || 'Failed to save payroll record')
       }
-    } catch (error) {
+    } catch (err) {
       setError('Failed to save payroll record')
     } finally {
       setSubmitting(false)
     }
   }
 
-  const handleStatusChange = async (id: string, status: 'pending' | 'approved' | 'paid' | 'rejected') => {
+  const resetForm = () => {
+    setFormData({
+      staffId: '',
+      basicSalary: 0,
+      allowances: 0,
+      deductions: 0,
+      payPeriod: '',
+      payDate: ''
+    })
+    setEditingId(null)
+  }
+
+  const handleEdit = (record: PayrollRecord) => {
+    setFormData({
+      staffId: record.staffId,
+      basicSalary: record.basicSalary,
+      allowances: record.allowances,
+      deductions: record.deductions,
+      payPeriod: record.payPeriod,
+      payDate: record.payDate
+    })
+    setEditingId(record.id)
+    setShowForm(true)
+  }
+
+  const handleDelete = async (id: string) => {
+    if (confirm('Are you sure you want to delete this payroll record?')) {
+      try {
+        const response = await fetch(`/api/payroll/${id}`, {
+          method: 'DELETE'
+        })
+
+        if (response.ok) {
+          await loadData()
+        } else {
+          setError('Failed to delete payroll record')
+        }
+      } catch (err) {
+        setError('Failed to delete payroll record')
+      }
+    }
+  }
+
+  const handleStatusChange = async (id: string, status: string) => {
     try {
       const response = await fetch(`/api/payroll/${id}/status`, {
         method: 'PATCH',
@@ -183,114 +130,135 @@ export default function PayrollPage() {
         body: JSON.stringify({ status })
       })
 
-      const data = await response.json()
-
       if (response.ok) {
-        // Refresh payroll list
-        await fetchData()
+        await loadData()
       } else {
-        setError(data.error || 'Failed to update payroll status')
+        setError('Failed to update status')
       }
-    } catch (error) {
-      setError('Failed to update payroll status')
+    } catch (err) {
+      setError('Failed to update status')
     }
   }
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'pending': return 'var(--warning)'
-      case 'approved': return 'var(--info)'
-      case 'paid': return 'var(--success)'
-      case 'rejected': return 'var(--danger)'
-      default: return 'var(--muted)'
-    }
+  const getStaffName = (staffId: string) => {
+    const staffMember = staff.find(s => s.id === staffId)
+    return staffMember ? staffMember.name : 'Unknown'
   }
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-NG', {
-      style: 'currency',
-      currency: 'NGN'
-    }).format(amount)
-  }
-
-  const calculateNetSalary = () => {
-    const totalAllowances = formData.allowances.housing + formData.allowances.transport + 
-                           formData.allowances.medical + formData.allowances.other
-    const totalDeductions = formData.deductions.tax + formData.deductions.pension + 
-                           formData.deductions.loan + formData.deductions.other
-    return formData.basicSalary + totalAllowances + formData.overtime + formData.bonus - totalDeductions
-  }
+  const filteredPayroll = payroll.filter(record => {
+    if (filters.status && record.status !== filters.status) return false
+    if (filters.month && !record.payPeriod.includes(filters.month)) return false
+    if (filters.search && !getStaffName(record.staffId).toLowerCase().includes(filters.search.toLowerCase())) return false
+    return true
+  })
 
   if (loading) {
     return (
       <div className="container">
-        <div className="loading">Loading payroll data...</div>
+        <div className="card">
+          <p>Loading payroll data...</p>
+        </div>
       </div>
     )
   }
 
   return (
     <div className="container">
-      <div className="header">
-        <h1>Payroll Management</h1>
+      <div className="section-title">
+        <h2>Payroll Management</h2>
         <button 
           className="btn btn-primary"
-          onClick={() => setShowForm(!showForm)}
+          onClick={() => setShowForm(true)}
         >
-          {showForm ? 'Cancel' : 'Add Payroll Record'}
+          Add Payroll Record
         </button>
       </div>
 
       {error && (
-        <div className="alert alert-error">
+        <div className="alert alert-error" style={{marginBottom: '1rem'}}>
           {error}
-          <button onClick={() => setError(null)}>×</button>
         </div>
       )}
 
+      {/* Filters */}
+      <div className="card" style={{marginBottom: '2rem'}}>
+        <h3 style={{marginBottom: '1rem'}}>Filters</h3>
+        <div className="form-row">
+          <div className="form-group">
+            <label>Status</label>
+            <select
+              value={filters.status}
+              onChange={(e) => setFilters({...filters, status: e.target.value})}
+            >
+              <option value="">All Statuses</option>
+              {PAYROLL_STATUSES.map(status => (
+                <option key={status} value={status}>{status}</option>
+              ))}
+            </select>
+          </div>
+          <div className="form-group">
+            <label>Month</label>
+            <input
+              type="month"
+              value={filters.month}
+              onChange={(e) => setFilters({...filters, month: e.target.value})}
+            />
+          </div>
+          <div className="form-group">
+            <label>Search</label>
+            <input
+              type="text"
+              value={filters.search}
+              onChange={(e) => setFilters({...filters, search: e.target.value})}
+              placeholder="Search by staff name"
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Form */}
       {showForm && (
-        <div className="card">
-          <h2>{editingId ? 'Edit Payroll Record' : 'Add New Payroll Record'}</h2>
+        <div className="card" style={{marginBottom: '2rem'}}>
+          <h3 style={{marginBottom: '1rem'}}>
+            {editingId ? 'Edit Payroll Record' : 'Add New Payroll Record'}
+          </h3>
           <form onSubmit={handleSubmit} className="form">
             <div className="form-row">
               <div className="form-group">
                 <label>Staff Member *</label>
                 <select
                   value={formData.staffId}
-                  onChange={(e) => setFormData({ ...formData, staffId: e.target.value })}
+                  onChange={(e) => {
+                    const selectedStaff = staff.find(s => s.id === e.target.value)
+                    setFormData({
+                      ...formData, 
+                      staffId: e.target.value,
+                      basicSalary: selectedStaff?.salary || 0
+                    })
+                  }}
                   required
                 >
-                  <option value="">Select staff member</option>
-                  {staff.map(s => (
-                    <option key={s.id} value={s.id}>
-                      {s.name} - {s.position}
-                    </option>
+                  <option value="">Select Staff Member</option>
+                  {staff.map(member => (
+                    <option key={member.id} value={member.id}>{member.name} - {member.position}</option>
                   ))}
                 </select>
               </div>
               <div className="form-group">
-                <label>Month *</label>
-                <select
-                  value={formData.month}
-                  onChange={(e) => setFormData({ ...formData, month: e.target.value })}
-                  required
-                >
-                  <option value="">Select month</option>
-                  {months.map(m => (
-                    <option key={m.value} value={m.value}>
-                      {m.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className="form-group">
-                <label>Year *</label>
+                <label>Pay Period *</label>
                 <input
-                  type="number"
-                  value={formData.year}
-                  onChange={(e) => setFormData({ ...formData, year: parseInt(e.target.value) })}
-                  min="2020"
-                  max="2030"
+                  type="month"
+                  value={formData.payPeriod}
+                  onChange={(e) => setFormData({...formData, payPeriod: e.target.value})}
+                  required
+                />
+              </div>
+              <div className="form-group">
+                <label>Pay Date *</label>
+                <input
+                  type="date"
+                  value={formData.payDate}
+                  onChange={(e) => setFormData({...formData, payDate: e.target.value})}
                   required
                 />
               </div>
@@ -302,170 +270,36 @@ export default function PayrollPage() {
                 <input
                   type="number"
                   value={formData.basicSalary}
-                  onChange={(e) => setFormData({ ...formData, basicSalary: Number(e.target.value) })}
-                  min="0"
-                  step="0.01"
+                  onChange={(e) => setFormData({...formData, basicSalary: Number(e.target.value)})}
                   required
                 />
               </div>
               <div className="form-group">
-                <label>Overtime</label>
+                <label>Allowances</label>
                 <input
                   type="number"
-                  value={formData.overtime}
-                  onChange={(e) => setFormData({ ...formData, overtime: Number(e.target.value) })}
-                  min="0"
-                  step="0.01"
+                  value={formData.allowances}
+                  onChange={(e) => setFormData({...formData, allowances: Number(e.target.value)})}
                 />
               </div>
               <div className="form-group">
-                <label>Bonus</label>
+                <label>Deductions</label>
                 <input
                   type="number"
-                  value={formData.bonus}
-                  onChange={(e) => setFormData({ ...formData, bonus: Number(e.target.value) })}
-                  min="0"
-                  step="0.01"
-                />
-              </div>
-            </div>
-
-            <div className="form-row">
-              <div className="form-group">
-                <label>Housing Allowance</label>
-                <input
-                  type="number"
-                  value={formData.allowances.housing}
-                  onChange={(e) => setFormData({ 
-                    ...formData, 
-                    allowances: { ...formData.allowances, housing: Number(e.target.value) }
-                  })}
-                  min="0"
-                  step="0.01"
-                />
-              </div>
-              <div className="form-group">
-                <label>Transport Allowance</label>
-                <input
-                  type="number"
-                  value={formData.allowances.transport}
-                  onChange={(e) => setFormData({ 
-                    ...formData, 
-                    allowances: { ...formData.allowances, transport: Number(e.target.value) }
-                  })}
-                  min="0"
-                  step="0.01"
-                />
-              </div>
-              <div className="form-group">
-                <label>Medical Allowance</label>
-                <input
-                  type="number"
-                  value={formData.allowances.medical}
-                  onChange={(e) => setFormData({ 
-                    ...formData, 
-                    allowances: { ...formData.allowances, medical: Number(e.target.value) }
-                  })}
-                  min="0"
-                  step="0.01"
-                />
-              </div>
-              <div className="form-group">
-                <label>Other Allowance</label>
-                <input
-                  type="number"
-                  value={formData.allowances.other}
-                  onChange={(e) => setFormData({ 
-                    ...formData, 
-                    allowances: { ...formData.allowances, other: Number(e.target.value) }
-                  })}
-                  min="0"
-                  step="0.01"
-                />
-              </div>
-            </div>
-
-            <div className="form-row">
-              <div className="form-group">
-                <label>Tax Deduction</label>
-                <input
-                  type="number"
-                  value={formData.deductions.tax}
-                  onChange={(e) => setFormData({ 
-                    ...formData, 
-                    deductions: { ...formData.deductions, tax: Number(e.target.value) }
-                  })}
-                  min="0"
-                  step="0.01"
-                />
-              </div>
-              <div className="form-group">
-                <label>Pension Deduction</label>
-                <input
-                  type="number"
-                  value={formData.deductions.pension}
-                  onChange={(e) => setFormData({ 
-                    ...formData, 
-                    deductions: { ...formData.deductions, pension: Number(e.target.value) }
-                  })}
-                  min="0"
-                  step="0.01"
-                />
-              </div>
-              <div className="form-group">
-                <label>Loan Deduction</label>
-                <input
-                  type="number"
-                  value={formData.deductions.loan}
-                  onChange={(e) => setFormData({ 
-                    ...formData, 
-                    deductions: { ...formData.deductions, loan: Number(e.target.value) }
-                  })}
-                  min="0"
-                  step="0.01"
-                />
-              </div>
-              <div className="form-group">
-                <label>Other Deduction</label>
-                <input
-                  type="number"
-                  value={formData.deductions.other}
-                  onChange={(e) => setFormData({ 
-                    ...formData, 
-                    deductions: { ...formData.deductions, other: Number(e.target.value) }
-                  })}
-                  min="0"
-                  step="0.01"
-                />
-              </div>
-            </div>
-
-            <div className="form-row">
-              <div className="form-group">
-                <label>Payment Method</label>
-                <select
-                  value={formData.paymentMethod}
-                  onChange={(e) => setFormData({ ...formData, paymentMethod: e.target.value as any })}
-                >
-                  <option value="bank_transfer">Bank Transfer</option>
-                  <option value="cash">Cash</option>
-                  <option value="cheque">Cheque</option>
-                </select>
-              </div>
-              <div className="form-group">
-                <label>Notes</label>
-                <textarea
-                  value={formData.notes}
-                  onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                  rows={3}
+                  value={formData.deductions}
+                  onChange={(e) => setFormData({...formData, deductions: Number(e.target.value)})}
                 />
               </div>
             </div>
 
             <div className="form-group">
-              <div className="net-salary-display">
-                <strong>Net Salary: {formatCurrency(calculateNetSalary())}</strong>
-              </div>
+              <label>Net Salary (Calculated)</label>
+              <input
+                type="text"
+                value={formatCurrency(calculateNetSalary(formData.basicSalary, formData.allowances, formData.deductions))}
+                readOnly
+                style={{backgroundColor: 'var(--surface)'}}
+              />
             </div>
 
             <div className="form-actions">
@@ -477,7 +311,7 @@ export default function PayrollPage() {
                 className="btn btn-secondary"
                 onClick={() => {
                   setShowForm(false)
-                  setEditingId(null)
+                  resetForm()
                 }}
               >
                 Cancel
@@ -487,114 +321,89 @@ export default function PayrollPage() {
         </div>
       )}
 
+      {/* Payroll List */}
       <div className="card">
-        <h2>Payroll Records</h2>
-        {payrolls.length === 0 ? (
-          <div className="empty-state">
-            <p>No payroll records found. Add a new record to get started.</p>
-          </div>
+        <h3 style={{marginBottom: '1rem'}}>
+          Payroll Records ({filteredPayroll.length})
+        </h3>
+        
+        {filteredPayroll.length === 0 ? (
+          <p>No payroll records found.</p>
         ) : (
           <div className="table-responsive">
             <table className="table">
               <thead>
                 <tr>
                   <th>Staff Member</th>
-                  <th>Month/Year</th>
+                  <th>Pay Period</th>
+                  <th>Pay Date</th>
                   <th>Basic Salary</th>
                   <th>Allowances</th>
                   <th>Deductions</th>
                   <th>Net Salary</th>
                   <th>Status</th>
-                  <th>Payment Method</th>
                   <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {payrolls.map(payroll => {
-                  const totalAllowances = payroll.allowances.housing + payroll.allowances.transport + 
-                                        payroll.allowances.medical + payroll.allowances.other
-                  const totalDeductions = payroll.deductions.tax + payroll.deductions.pension + 
-                                        payroll.deductions.loan + payroll.deductions.other
-                  
-                  return (
-                    <tr key={payroll.id}>
-                      <td>
-                        <div>
-                          <strong>{payroll.staffName}</strong>
-                          <br />
-                          <small>{payroll.staffEmail}</small>
-                        </div>
-                      </td>
-                      <td>
-                        {months.find(m => m.value === payroll.month)?.label} {payroll.year}
-                      </td>
-                      <td>{formatCurrency(payroll.basicSalary)}</td>
-                      <td>{formatCurrency(totalAllowances)}</td>
-                      <td>{formatCurrency(totalDeductions)}</td>
-                      <td><strong>{formatCurrency(payroll.netSalary)}</strong></td>
-                      <td>
-                        <span 
-                          className="badge"
-                          style={{ backgroundColor: getStatusColor(payroll.status) }}
+                {filteredPayroll.map((record) => (
+                  <tr key={record.id}>
+                    <td>
+                      <div>
+                        <strong>{getStaffName(record.staffId)}</strong>
+                        <br />
+                        <small style={{color: 'var(--muted)'}}>{record.staffPosition}</small>
+                      </div>
+                    </td>
+                    <td>{record.payPeriod}</td>
+                    <td>{new Date(record.payDate).toLocaleDateString()}</td>
+                    <td>{formatCurrency(record.basicSalary)}</td>
+                    <td>{formatCurrency(record.allowances)}</td>
+                    <td>{formatCurrency(record.deductions)}</td>
+                    <td><strong>{formatCurrency(record.netSalary)}</strong></td>
+                    <td>
+                      <span 
+                        className="badge"
+                        style={{
+                          backgroundColor: getStatusColor(record.status),
+                          color: 'white'
+                        }}
+                      >
+                        {getStatusIcon(record.status)} {record.status}
+                      </span>
+                    </td>
+                    <td>
+                      <div style={{display: 'flex', gap: '0.5rem'}}>
+                        <button
+                          className="btn btn-sm btn-secondary"
+                          onClick={() => handleEdit(record)}
                         >
-                          {payroll.status.toUpperCase()}
-                        </span>
-                      </td>
-                      <td>{payroll.paymentMethod.replace('_', ' ').toUpperCase()}</td>
-                      <td>
-                        <div className="btn-group">
-                          {payroll.status === 'pending' && (
-                            <>
-                              <button 
-                                className="btn btn-sm btn-success"
-                                onClick={() => handleStatusChange(payroll.id, 'approved')}
-                              >
-                                Approve
-                              </button>
-                              <button 
-                                className="btn btn-sm btn-danger"
-                                onClick={() => handleStatusChange(payroll.id, 'rejected')}
-                              >
-                                Reject
-                              </button>
-                            </>
-                          )}
-                          {payroll.status === 'approved' && (
-                            <button 
-                              className="btn btn-sm btn-primary"
-                              onClick={() => handleStatusChange(payroll.id, 'paid')}
-                            >
-                              Mark Paid
-                            </button>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  )
-                })}
+                          Edit
+                        </button>
+                        <button
+                          className="btn btn-sm btn-danger"
+                          onClick={() => handleDelete(record.id)}
+                        >
+                          Delete
+                        </button>
+                        <select
+                          value={record.status}
+                          onChange={(e) => handleStatusChange(record.id, e.target.value)}
+                          style={{fontSize: '12px', padding: '2px 4px'}}
+                        >
+                          {PAYROLL_STATUSES.map(status => (
+                            <option key={status} value={status}>{status}</option>
+                          ))}
+                        </select>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>
         )}
       </div>
-
-      <style jsx>{`
-        .net-salary-display {
-          background: var(--background-secondary);
-          padding: 1rem;
-          border-radius: 0.5rem;
-          text-align: center;
-          font-size: 1.2rem;
-          color: var(--primary);
-          border: 2px solid var(--primary);
-        }
-        
-        .empty-state {
-          text-align: center;
-          padding: 2rem;
-          color: var(--muted);
-        }
-      `}</style>
     </div>
   )
 }
