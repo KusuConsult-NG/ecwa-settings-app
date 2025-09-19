@@ -53,8 +53,6 @@ export default function ClientTopbar() {
   
   // Role-based access helpers
   const canCreateDCC = me?.role && ["President", "General Secretary", "Treasurer"].includes(me.role)
-  const canCreateLCC = me?.role && ["President", "General Secretary", "Treasurer", "Chairman", "Secretary"].includes(me.role)
-  const canCreateLC = me?.role && ["President", "General Secretary", "Treasurer", "Chairman", "Secretary", "LO"].includes(me.role)
   
   return (
     <div className="topbar">
@@ -80,14 +78,6 @@ export default function ClientTopbar() {
             {canCreateDCC && (
               /* eslint-disable-next-line @next/next/no-html-link-for-pages */
               <a className="btn secondary" href="/org/dcc">Create DCC</a>
-            )}
-            {canCreateLCC && (
-              /* eslint-disable-next-line @next/next/no-html-link-for-pages */
-              <a className="btn secondary" href="/org/lcc">Create LCC</a>
-            )}
-            {canCreateLC && (
-              /* eslint-disable-next-line @next/next/no-html-link-for-pages */
-              <a className="btn secondary" href="/org/create">Create LC</a>
             )}
             <button className="btn ghost" onClick={logout}>Logout</button>
           </>
