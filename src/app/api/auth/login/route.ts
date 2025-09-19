@@ -46,6 +46,7 @@ export async function POST(req: Request) {
 
     // Update last login
     user.lastLogin = new Date().toISOString();
+    user.updatedAt = new Date().toISOString();
     await kv.set(`user:${normalizedEmail}`, JSON.stringify(user));
 
     // Generate JWT token

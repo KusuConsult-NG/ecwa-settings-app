@@ -67,6 +67,7 @@ export async function POST(req: Request) {
           user.orgId = orgId
           user.orgName = orgName
           if (role) user.role = role
+          user.updatedAt = new Date().toISOString()
           
           await kv.set(`user:${userToken.email}`, JSON.stringify(user))
         } catch (parseError) {

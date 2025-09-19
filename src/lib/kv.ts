@@ -6,6 +6,7 @@ export type UserRecord = {
   address?: string
   passwordHash: string
   createdAt: string
+  updatedAt: string
   orgId?: string
   orgName?: string
   role?: string

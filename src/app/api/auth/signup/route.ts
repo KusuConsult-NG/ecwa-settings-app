@@ -75,6 +75,7 @@ export async function POST(req: Request) {
       address: normalizedAddress,
       passwordHash,
       createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
       orgId: crypto.randomUUID(), // Generate a unique org ID for the user
       orgName: "ECWA Organization", // Default org name
       role: "Secretary", // Default role for new users
