@@ -105,3 +105,10 @@ export function getTypeColor(type: string): string {
     default: return 'var(--muted)';
   }
 }
+
+export function formatCurrency(amount: number, currency: string = 'NGN'): string {
+  return new Intl.NumberFormat('en-NG', {
+    style: 'currency',
+    currency: currency
+  }).format(amount);
+}
