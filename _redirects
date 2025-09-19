@@ -1,2 +1,12 @@
-# Netlify redirects for Next.js
+# Cloudflare Pages redirects for Next.js static export
+
+# Handle client-side routing
 /*    /index.html   200
+
+# API routes redirect (since we're using static export)
+/api/*    /404.html   404
+
+# Specific redirects for better UX
+/login    /login/    301
+/signup   /signup/   301
+/dashboard    /dashboard/    301
