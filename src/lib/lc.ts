@@ -1,18 +1,19 @@
 export interface LCRecord {
   id: string;
   name: string;
-  location: string;
+  code: string;
   address: string;
-  phone: string;
-  email: string;
+  city: string;
+  state: string;
+  country: string;
+  establishedDate: string;
+  status: 'active' | 'inactive' | 'suspended';
+  memberCount: number;
   leaderId: string;
   leaderName: string;
-  leaderEmail: string;
-  leaderPhone: string;
-  memberCount: number;
-  maxCapacity: number;
-  status: 'active' | 'inactive' | 'suspended';
-  establishedDate: string;
+  contactEmail: string;
+  contactPhone: string;
+  notes?: string;
   createdAt: string;
   updatedAt: string;
   createdBy: string;
@@ -22,15 +23,17 @@ export interface LCRecord {
 
 export interface CreateLCRequest {
   name: string;
-  location: string;
+  code: string;
   address: string;
-  phone: string;
-  email: string;
-  leaderName: string;
-  leaderEmail: string;
-  leaderPhone: string;
-  maxCapacity: number;
+  city: string;
+  state: string;
+  country: string;
   establishedDate: string;
+  memberCount: number;
+  leaderId: string;
+  contactEmail: string;
+  contactPhone: string;
+  notes?: string;
 }
 
 export interface UpdateLCStatusRequest {
