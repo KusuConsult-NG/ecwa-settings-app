@@ -1,6 +1,7 @@
 // Email Verification System
 
 import { generateVerificationCode, getVerificationExpiry } from './organization';
+import { sendEmail } from './email-service';
 
 export interface EmailVerification {
   id: string;
@@ -183,27 +184,26 @@ This is an automated message from the ECWA Organization Management System.
   }
 }
 
-// Mock email sending function (replace with actual email service)
+// Real email sending function using email service
 export async function sendVerificationEmail(
   email: string,
   template: EmailTemplate
 ): Promise<boolean> {
   try {
-    // In a real implementation, this would integrate with an email service like:
-    // - SendGrid
-    // - AWS SES
-    // - Nodemailer with SMTP
-    // - Resend
-    // - Mailgun
-    
     console.log('📧 Sending verification email to:', email);
     console.log('📧 Subject:', template.subject);
     console.log('📧 Code:', template.text.match(/VERIFICATION CODE: (\d+)/)?.[1] || 'N/A');
     
-    // For development, we'll just log the email
-    // In production, implement actual email sending here
+    // Use real email service
+    const success = await sendEmail(email, template.subject, template.html, template.text);
     
-    return true;
+    if (success) {
+      console.log('✅ Verification email sent successfully');
+    } else {
+      console.log('❌ Failed to send verification email');
+    }
+    
+    return success;
   } catch (error) {
     console.error('Failed to send verification email:', error);
     return false;

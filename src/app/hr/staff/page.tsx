@@ -55,73 +55,67 @@ export default function StaffPage() {
     'Women', 'Men', 'Security', 'Maintenance', 'Transportation'
   ]
 
-  // Mock data
+  // Fetch staff data from API
   useEffect(() => {
-    setStaff([
-      {
-        id: 'staff1',
-        name: 'Rev. John Doe',
-        email: 'john.doe@ecwa.org',
-        phone: '+234-801-234-5678',
-        address: '123 Pastor Street, Jos, Plateau State',
-        position: 'Pastor',
-        department: 'Ministry',
-        salary: 150000,
-        startDate: '2020-01-15',
-        status: 'active',
-        emergencyContact: {
-          name: 'Jane Doe',
-          phone: '+234-802-345-6789',
-          relationship: 'Spouse'
-        },
-        createdAt: '2024-01-01T00:00:00Z',
-        updatedAt: '2024-01-01T00:00:00Z'
-      }
-    ])
-    setLoading(false)
+    fetchStaff()
   }, [])
+
+  const fetchStaff = async () => {
+    try {
+      setLoading(true)
+      const response = await fetch('/api/staff')
+      const data = await response.json()
+      
+      if (response.ok) {
+        setStaff(data.staff || [])
+      } else {
+        setError(data.error || 'Failed to fetch staff')
+      }
+    } catch (err) {
+      setError('Failed to fetch staff')
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setSubmitting(true)
     
     try {
-      if (editingId) {
-        // Update existing staff
-        setStaff(prev => prev.map(s => 
-          s.id === editingId 
-            ? { ...s, ...formData, updatedAt: new Date().toISOString() }
-            : s
-        ))
-      } else {
-        // Create new staff
-        const newStaff: StaffRecord = {
-          id: `staff_${Date.now()}`,
-          ...formData,
-          status: 'active',
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        }
-        setStaff(prev => [...prev, newStaff])
-      }
-      
-      setFormData({
-        name: '',
-        email: '',
-        phone: '',
-        address: '',
-        position: '',
-        department: '',
-        salary: 0,
-        startDate: '',
-        emergencyContact: {
-          name: '',
-          phone: '',
-          relationship: ''
-        }
+      const response = await fetch('/api/staff', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
       })
-      setShowForm(false)
-      setEditingId(null)
+
+      const data = await response.json()
+
+      if (response.ok) {
+        // Refresh staff list
+        await fetchStaff()
+        
+        // Reset form
+        setFormData({
+          name: '',
+          email: '',
+          phone: '',
+          address: '',
+          position: '',
+          department: '',
+          salary: 0,
+          startDate: '',
+          emergencyContact: {
+            name: '',
+            phone: '',
+            relationship: ''
+          }
+        })
+        setShowForm(false)
+        setEditingId(null)
+      } else {
+        setError(data.error || 'Failed to save staff member')
+      }
     } catch (error) {
       setError('Failed to save staff member')
     } finally {
@@ -151,19 +145,32 @@ export default function StaffPage() {
     }
   }
 
-  const handleStatusChange = (id: string, status: 'active' | 'inactive' | 'terminated') => {
-    setStaff(prev => prev.map(s => 
-      s.id === id 
-        ? { ...s, status, updatedAt: new Date().toISOString() }
-        : s
-    ))
+  const handleStatusChange = async (id: string, status: 'active' | 'inactive' | 'suspended') => {
+    try {
+      const response = await fetch(`/api/staff/${id}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status })
+      })
+
+      const data = await response.json()
+
+      if (response.ok) {
+        // Refresh staff list
+        await fetchStaff()
+      } else {
+        setError(data.error || 'Failed to update staff status')
+      }
+    } catch (error) {
+      setError('Failed to update staff status')
+    }
   }
 
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'active': return 'var(--success)'
       case 'inactive': return 'var(--muted)'
-      case 'terminated': return 'var(--danger)'
+      case 'suspended': return 'var(--danger)'
       default: return 'var(--muted)'
     }
   }

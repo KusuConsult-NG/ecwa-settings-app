@@ -1,34 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { ExecutiveRecord, generateExecutiveId } from '@/lib/executive';
-
-// Mock storage - replace with real database
-let executives: ExecutiveRecord[] = [
-  {
-    id: 'EXE-1703123456789-abc123def',
-    name: 'John Doe',
-    position: 'President',
-    email: 'john.doe@ecwa.org',
-    phone: '+234-801-234-5678',
-    address: '123 Church Street, Lagos, Nigeria',
-    dateOfBirth: '1980-05-15',
-    dateOfAppointment: '2024-01-01',
-    termLength: 24,
-    status: 'active',
-    qualifications: 'B.Sc. Business Administration, M.Sc. Leadership',
-    previousExperience: 'Former Youth Coordinator (2020-2023), Church Elder (2018-2023)',
-    emergencyContact: {
-      name: 'Jane Doe',
-      phone: '+234-802-345-6789',
-      relationship: 'Spouse'
-    },
-    createdAt: '2024-01-01T00:00:00Z',
-    updatedAt: '2024-01-01T00:00:00Z',
-    createdBy: 'system'
-  }
-];
+import { kv } from '@/lib/kv';
+import { verifyJwt } from '@/lib/auth';
 
 export async function POST(req: NextRequest) {
   try {
+    // Authentication check
+    const token = req.cookies.get('auth')?.value;
+    if (!token) {
+      return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
+    }
+
+    const payload = await verifyJwt(token);
+    if (!payload) {
+      return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
+    }
+
     const body = await req.json();
     const {
       name,
@@ -53,7 +40,9 @@ export async function POST(req: NextRequest) {
     }
 
     // Check if email already exists
-    const existingExecutive = executives.find(exec => exec.email === email);
+    const executivesData = await kv.get('executives:index');
+    const executives: ExecutiveRecord[] = executivesData ? JSON.parse(executivesData) : [];
+    const existingExecutive = executives.find(exec => exec.email === email.toLowerCase());
     if (existingExecutive) {
       return NextResponse.json(
         { error: 'Executive with this email already exists' },
@@ -81,10 +70,15 @@ export async function POST(req: NextRequest) {
       },
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
-      createdBy: 'current-user' // TODO: Get from auth context
+      createdBy: payload.sub as string
     };
 
+    // Save to database
+    await kv.set(`executive:${executive.id}`, JSON.stringify(executive));
+    
+    // Update executives index
     executives.push(executive);
+    await kv.set('executives:index', JSON.stringify(executives));
 
     return NextResponse.json({
       success: true,
