@@ -3,7 +3,8 @@ import { verifyJwt } from '@/lib/auth';
 import { kv } from '@/lib/kv';
 import crypto from 'crypto';
 
-export interface LeaveRecord {
+// Interface moved to @/lib/leave
+interface LeaveRecord {
   id: string;
   staffId: string;
   staffName: string;

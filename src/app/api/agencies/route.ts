@@ -1,39 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyJwt } from '@/lib/auth';
 import { kv } from '@/lib/kv';
-import crypto from 'crypto';
-
-export interface AgencyRecord {
-  id: string;
-  name: string;
-  type: 'ministry' | 'department' | 'committee' | 'fellowship' | 'group';
-  description: string;
-  leader: {
-    name: string;
-    email: string;
-    phone: string;
-  };
-  memberCount: number;
-  establishedDate: string;
-  meetingDay: string;
-  meetingTime: string;
-  venue: string;
-  status: 'active' | 'inactive' | 'suspended';
-  parentOrganization?: string;
-  parentOrganizationName?: string;
-  objectives: string[];
-  activities: string[];
-  contactInfo: {
-    email: string;
-    phone: string;
-    address: string;
-  };
-  createdAt: string;
-  updatedAt: string;
-  createdBy: string;
-  orgId: string;
-  orgName: string;
-}
+import { AgencyRecord, CreateAgencyRequest, generateAgencyId } from '@/lib/agencies';
 
 export async function GET(req: NextRequest) {
   try {
@@ -57,25 +25,34 @@ export async function GET(req: NextRequest) {
 
     agencies = agencies.filter(a => a.orgId === payload.orgId);
 
-    if (status) agencies = agencies.filter(a => a.status === status);
-    if (type) agencies = agencies.filter(a => a.type === type);
+    if (status) {
+      agencies = agencies.filter(a => a.status === status);
+    }
+
+    if (type) {
+      agencies = agencies.filter(a => a.type === type);
+    }
+
     if (search) {
       const searchLower = search.toLowerCase();
-      agencies = agencies.filter(a =>
+      agencies = agencies.filter(a => 
         a.name.toLowerCase().includes(searchLower) ||
         a.description.toLowerCase().includes(searchLower) ||
         a.leader.name.toLowerCase().includes(searchLower)
       );
     }
 
-    agencies.sort((a, b) => a.name.localeCompare(b.name));
+    agencies.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
     const summary = {
       total: agencies.length,
       active: agencies.filter(a => a.status === 'active').length,
       inactive: agencies.filter(a => a.status === 'inactive').length,
       suspended: agencies.filter(a => a.status === 'suspended').length,
-      totalMembers: agencies.reduce((sum, a) => sum + a.memberCount, 0)
+      byType: agencies.reduce((acc, a) => {
+        acc[a.type] = (acc[a.type] || 0) + 1;
+        return acc;
+      }, {} as Record<string, number>)
     };
 
     return NextResponse.json({ agencies, summary });
@@ -98,41 +75,41 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
     }
 
-    const body = await req.json();
     const {
       name, type, description, leader, memberCount, establishedDate,
-      meetingDay, meetingTime, venue, parentOrganization, objectives, activities, contactInfo
-    } = body;
+      meetingDay, meetingTime, venue, parentOrganization, objectives,
+      activities, contactInfo
+    }: CreateAgencyRequest = await req.json();
 
-    if (!name || !type || !description || !leader || !establishedDate) {
+    if (!name || !type || !description || !leader?.name || !leader?.email) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
     const validTypes = ['ministry', 'department', 'committee', 'fellowship', 'group'];
     if (!validTypes.includes(type)) {
-      return NextResponse.json({ error: 'Invalid type' }, { status: 400 });
+      return NextResponse.json({ error: 'Invalid agency type' }, { status: 400 });
     }
 
     const agenciesData = await kv.get('agencies:index');
     const existingAgencies: AgencyRecord[] = agenciesData ? JSON.parse(agenciesData) : [];
     
-    const nameExists = existingAgencies.some(a => 
+    const agencyExists = existingAgencies.some(a => 
       a.name.toLowerCase() === name.toLowerCase() && a.orgId === payload.orgId
     );
 
-    if (nameExists) {
+    if (agencyExists) {
       return NextResponse.json({ error: 'Agency with this name already exists' }, { status: 409 });
     }
 
     const agency: AgencyRecord = {
-      id: crypto.randomUUID(),
+      id: generateAgencyId(),
       name: name.trim(),
       type,
       description: description.trim(),
       leader: {
         name: leader.name.trim(),
         email: leader.email.trim().toLowerCase(),
-        phone: leader.phone.trim()
+        phone: leader.phone?.trim() || ''
       },
       memberCount: Number(memberCount) || 0,
       establishedDate,
@@ -140,13 +117,13 @@ export async function POST(req: NextRequest) {
       meetingTime: meetingTime?.trim() || '',
       venue: venue?.trim() || '',
       status: 'active',
-      parentOrganization: parentOrganization || '',
-      parentOrganizationName: parentOrganization || '',
-      objectives: Array.isArray(objectives) ? objectives.map(o => o.trim()).filter(o => o) : [],
-      activities: Array.isArray(activities) ? activities.map(a => a.trim()).filter(a => a) : [],
+      parentOrganization: parentOrganization?.trim() || '',
+      parentOrganizationName: parentOrganization?.trim() || '',
+      objectives: Array.isArray(objectives) ? objectives : [],
+      activities: Array.isArray(activities) ? activities : [],
       contactInfo: {
-        email: contactInfo?.email?.trim().toLowerCase() || '',
-        phone: contactInfo?.phone?.trim() || '',
+        email: contactInfo?.email?.trim() || leader.email.trim().toLowerCase(),
+        phone: contactInfo?.phone?.trim() || leader.phone?.trim() || '',
         address: contactInfo?.address?.trim() || ''
       },
       createdAt: new Date().toISOString(),
@@ -156,7 +133,7 @@ export async function POST(req: NextRequest) {
       orgName: payload.orgName as string
     };
 
-    await kv.set(`agencies:${agency.id}`, JSON.stringify(agency));
+    await kv.set(`agency:${agency.id}`, JSON.stringify(agency));
     existingAgencies.push(agency);
     await kv.set('agencies:index', JSON.stringify(existingAgencies));
 

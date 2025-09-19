@@ -3,7 +3,8 @@ import { verifyJwt } from '@/lib/auth';
 import { kv } from '@/lib/kv';
 import crypto from 'crypto';
 
-export interface PayrollRecord {
+// Interface moved to @/lib/payroll
+interface PayrollRecord {
   id: string;
   staffId: string;
   staffName: string;

@@ -3,7 +3,8 @@ import { verifyJwt } from '@/lib/auth';
 import { kv } from '@/lib/kv';
 import crypto from 'crypto';
 
-export interface QueryRecord {
+// Interface moved to @/lib/queries
+interface QueryRecord {
   id: string;
   title: string;
   description: string;

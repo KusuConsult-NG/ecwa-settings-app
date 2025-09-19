@@ -3,7 +3,8 @@ import { verifyJwt } from '@/lib/auth';
 import { kv } from '@/lib/kv';
 import crypto from 'crypto';
 
-export interface LCRecord {
+// Interface moved to @/lib/lc
+interface LCRecord {
   id: string;
   name: string;
   code: string;

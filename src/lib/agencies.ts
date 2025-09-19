@@ -1,13 +1,28 @@
 export interface AgencyRecord {
   id: string;
   name: string;
-  type: 'ministry' | 'department' | 'committee' | 'fellowship' | 'other';
+  type: 'ministry' | 'department' | 'committee' | 'fellowship' | 'group';
   description: string;
-  leaderId: string;
-  leaderName: string;
-  leaderEmail: string;
-  leaderPhone: string;
+  leader: {
+    name: string;
+    email: string;
+    phone: string;
+  };
+  memberCount: number;
+  establishedDate: string;
+  meetingDay: string;
+  meetingTime: string;
+  venue: string;
   status: 'active' | 'inactive' | 'suspended';
+  parentOrganization?: string;
+  parentOrganizationName?: string;
+  objectives: string[];
+  activities: string[];
+  contactInfo: {
+    email: string;
+    phone: string;
+    address: string;
+  };
   createdAt: string;
   updatedAt: string;
   createdBy: string;
@@ -17,11 +32,26 @@ export interface AgencyRecord {
 
 export interface CreateAgencyRequest {
   name: string;
-  type: 'ministry' | 'department' | 'committee' | 'fellowship' | 'other';
+  type: 'ministry' | 'department' | 'committee' | 'fellowship' | 'group';
   description: string;
-  leaderName: string;
-  leaderEmail: string;
-  leaderPhone: string;
+  leader: {
+    name: string;
+    email: string;
+    phone: string;
+  };
+  memberCount: number;
+  establishedDate: string;
+  meetingDay: string;
+  meetingTime: string;
+  venue: string;
+  parentOrganization?: string;
+  objectives: string[];
+  activities: string[];
+  contactInfo: {
+    email: string;
+    phone: string;
+    address: string;
+  };
 }
 
 export interface UpdateAgencyStatusRequest {
@@ -34,7 +64,7 @@ export const AGENCY_TYPES = [
   'department',
   'committee',
   'fellowship',
-  'other'
+  'group'
 ] as const;
 
 export const AGENCY_STATUSES = [
@@ -71,7 +101,7 @@ export function getTypeColor(type: string): string {
     case 'department': return 'var(--secondary)';
     case 'committee': return 'var(--success)';
     case 'fellowship': return 'var(--warning)';
-    case 'other': return 'var(--muted)';
+    case 'group': return 'var(--info)';
     default: return 'var(--muted)';
   }
 }
