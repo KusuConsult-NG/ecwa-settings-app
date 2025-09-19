@@ -20,7 +20,6 @@ export default function LCCPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [showForm, setShowForm] = useState(false)
-  const [editingId, setEditingId] = useState<string | null>(null)
   const [formData, setFormData] = useState({
     name: '',
     address: '',
@@ -30,40 +29,33 @@ export default function LCCPage() {
     establishedDate: '',
     memberCount: 0
   })
+  const [submitting, setSubmitting] = useState(false)
+  const [editingId, setEditingId] = useState<string | null>(null)
 
+  // Mock data
   useEffect(() => {
-    fetchLCCs()
+    setLccs([
+      {
+        id: 'lcc1',
+        name: 'ECWA Jos Central LCC',
+        address: '123 Church Street, Jos, Plateau State',
+        phone: '+234-801-234-5678',
+        email: 'joscentral@ecwa.org',
+        pastor: 'Rev. John Doe',
+        establishedDate: '2020-01-15',
+        status: 'active',
+        memberCount: 150,
+        createdAt: '2024-01-01T00:00:00Z',
+        updatedAt: '2024-01-01T00:00:00Z'
+      }
+    ])
+    setLoading(false)
   }, [])
-
-  const fetchLCCs = async () => {
-    try {
-      setLoading(true)
-      // Mock data - replace with API call
-      const mockLCCs: LCCRecord[] = [
-        {
-          id: 'lcc1',
-          name: 'ECWA Jos Central LCC',
-          address: '123 Church Street, Jos',
-          phone: '+234-801-234-5678',
-          email: 'joscentral@ecwa.org',
-          pastor: 'Rev. John Doe',
-          establishedDate: '2020-01-15',
-          status: 'active',
-          memberCount: 150,
-          createdAt: '2024-01-01T00:00:00Z',
-          updatedAt: '2024-01-01T00:00:00Z'
-        }
-      ]
-      setLccs(mockLCCs)
-    } catch (err) {
-      setError('Failed to fetch LCCs')
-    } finally {
-      setLoading(false)
-    }
-  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    setSubmitting(true)
+    
     try {
       if (editingId) {
         // Update existing LCC
@@ -84,8 +76,6 @@ export default function LCCPage() {
         setLccs(prev => [...prev, newLCC])
       }
       
-      setShowForm(false)
-      setEditingId(null)
       setFormData({
         name: '',
         address: '',
@@ -95,8 +85,12 @@ export default function LCCPage() {
         establishedDate: '',
         memberCount: 0
       })
-    } catch (err) {
+      setShowForm(false)
+      setEditingId(null)
+    } catch (error) {
       setError('Failed to save LCC')
+    } finally {
+      setSubmitting(false)
     }
   }
 
@@ -128,6 +122,15 @@ export default function LCCPage() {
     ))
   }
 
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'active': return 'var(--success)'
+      case 'inactive': return 'var(--muted)'
+      case 'suspended': return 'var(--danger)'
+      default: return 'var(--muted)'
+    }
+  }
+
   if (loading) {
     return (
       <section className="container">
@@ -143,6 +146,12 @@ export default function LCCPage() {
     <section className="container">
       <div className="section-title">
         <h2>LCC Management</h2>
+        <button 
+          className="btn btn-primary"
+          onClick={() => setShowForm(!showForm)}
+        >
+          {showForm ? 'Cancel' : 'Add New LCC'}
+        </button>
       </div>
 
       {error && (
@@ -182,13 +191,35 @@ export default function LCCPage() {
               </div>
             </div>
 
+            <div className="form-row">
+              <div className="form-group">
+                <label htmlFor="phone">Phone Number</label>
+                <input
+                  type="tel"
+                  id="phone"
+                  value={formData.phone}
+                  onChange={(e) => setFormData(prev => ({...prev, phone: e.target.value}))}
+                  placeholder="Enter phone number"
+                />
+              </div>
+              <div className="form-group">
+                <label htmlFor="email">Email Address</label>
+                <input
+                  type="email"
+                  id="email"
+                  value={formData.email}
+                  onChange={(e) => setFormData(prev => ({...prev, email: e.target.value}))}
+                  placeholder="Enter email address"
+                />
+              </div>
+            </div>
+
             <div className="form-group">
-              <label htmlFor="address">Address *</label>
+              <label htmlFor="address">Address</label>
               <textarea
                 id="address"
                 value={formData.address}
                 onChange={(e) => setFormData(prev => ({...prev, address: e.target.value}))}
-                required
                 placeholder="Enter LCC address"
                 rows={3}
               />
@@ -196,38 +227,12 @@ export default function LCCPage() {
 
             <div className="form-row">
               <div className="form-group">
-                <label htmlFor="phone">Phone Number *</label>
-                <input
-                  type="tel"
-                  id="phone"
-                  value={formData.phone}
-                  onChange={(e) => setFormData(prev => ({...prev, phone: e.target.value}))}
-                  required
-                  placeholder="Enter phone number"
-                />
-              </div>
-              <div className="form-group">
-                <label htmlFor="email">Email Address *</label>
-                <input
-                  type="email"
-                  id="email"
-                  value={formData.email}
-                  onChange={(e) => setFormData(prev => ({...prev, email: e.target.value}))}
-                  required
-                  placeholder="Enter email address"
-                />
-              </div>
-            </div>
-
-            <div className="form-row">
-              <div className="form-group">
-                <label htmlFor="establishedDate">Established Date *</label>
+                <label htmlFor="establishedDate">Established Date</label>
                 <input
                   type="date"
                   id="establishedDate"
                   value={formData.establishedDate}
                   onChange={(e) => setFormData(prev => ({...prev, establishedDate: e.target.value}))}
-                  required
                 />
               </div>
               <div className="form-group">
@@ -238,7 +243,6 @@ export default function LCCPage() {
                   value={formData.memberCount}
                   onChange={(e) => setFormData(prev => ({...prev, memberCount: parseInt(e.target.value) || 0}))}
                   min="0"
-                  placeholder="Enter member count"
                 />
               </div>
             </div>
@@ -260,11 +264,16 @@ export default function LCCPage() {
                     memberCount: 0
                   })
                 }}
+                disabled={submitting}
               >
                 Cancel
               </button>
-              <button type="submit" className="btn btn-primary">
-                {editingId ? 'Update LCC' : 'Add LCC'}
+              <button
+                type="submit"
+                className="btn btn-primary"
+                disabled={submitting}
+              >
+                {submitting ? 'Saving...' : (editingId ? 'Update LCC' : 'Add LCC')}
               </button>
             </div>
           </form>
@@ -287,7 +296,6 @@ export default function LCCPage() {
                   <th>Email</th>
                   <th>Members</th>
                   <th>Status</th>
-                  <th>Established</th>
                   <th>Actions</th>
                 </tr>
               </thead>
@@ -303,15 +311,13 @@ export default function LCCPage() {
                       <span 
                         className="badge"
                         style={{
-                          backgroundColor: lcc.status === 'active' ? 'var(--success)' : 
-                                          lcc.status === 'inactive' ? 'var(--warning)' : 'var(--danger)',
+                          backgroundColor: getStatusColor(lcc.status),
                           color: 'white'
                         }}
                       >
                         {lcc.status}
                       </span>
                     </td>
-                    <td>{new Date(lcc.establishedDate).toLocaleDateString()}</td>
                     <td>
                       <div className="btn-group">
                         <button

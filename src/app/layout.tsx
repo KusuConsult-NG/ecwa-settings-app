@@ -54,7 +54,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <a href="/account/statements">📄 <span>Generate Statements</span></a>
               <a href="/bank" >🏦 <span>Bank</span></a>
               <a href="/executive" >⭐ <span>Executive</span></a>
-              <a href="/settings" >⚙️ <span>Settings</span></a>
             </nav>
           </aside>
           <main className="content">

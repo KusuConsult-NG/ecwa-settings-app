@@ -24,73 +24,69 @@ export default function QueriesPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [showForm, setShowForm] = useState(false)
-  const [editingId, setEditingId] = useState<string | null>(null)
   const [formData, setFormData] = useState({
     title: '',
     description: '',
     category: '',
-    priority: 'medium' as 'low' | 'medium' | 'high' | 'urgent',
-    assignedTo: '',
-    response: ''
+    priority: 'medium' as 'low' | 'medium' | 'high' | 'urgent'
   })
+  const [submitting, setSubmitting] = useState(false)
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [responseText, setResponseText] = useState('')
+  const [respondingToId, setRespondingToId] = useState<string | null>(null)
 
   const categories = [
-    'General Inquiry', 'Technical Issue', 'HR Related', 'Finance Related',
-    'Ministry Related', 'Administrative', 'Complaint', 'Suggestion', 'Other'
+    'General Inquiry', 'Technical Issue', 'HR Related', 'Financial', 
+    'Administrative', 'Complaint', 'Suggestion', 'Other'
   ]
 
-  const staffOptions = [
-    { id: 'staff1', name: 'Rev. John Doe' },
-    { id: 'staff2', name: 'Mary Johnson' },
-    { id: 'staff3', name: 'David Wilson' }
-  ]
-
+  // Mock data
   useEffect(() => {
-    fetchQueries()
+    setQueries([
+      {
+        id: 'query1',
+        title: 'Password Reset Request',
+        description: 'I forgot my password and need help resetting it. Can someone assist me?',
+        category: 'Technical Issue',
+        priority: 'medium',
+        status: 'open',
+        submittedBy: 'user1',
+        submittedByName: 'John Doe',
+        submittedAt: '2024-01-15T10:30:00Z',
+        createdAt: '2024-01-15T10:30:00Z',
+        updatedAt: '2024-01-15T10:30:00Z'
+      },
+      {
+        id: 'query2',
+        title: 'Leave Application Question',
+        description: 'I want to apply for annual leave but I\'m not sure about the process. Can you guide me?',
+        category: 'HR Related',
+        priority: 'low',
+        status: 'resolved',
+        submittedBy: 'user2',
+        submittedByName: 'Mary Johnson',
+        assignedTo: 'admin1',
+        assignedToName: 'Admin User',
+        response: 'You can apply for leave through the HR section. Go to HR > Leave and fill out the application form.',
+        submittedAt: '2024-01-14T14:20:00Z',
+        resolvedAt: '2024-01-15T09:15:00Z',
+        createdAt: '2024-01-14T14:20:00Z',
+        updatedAt: '2024-01-15T09:15:00Z'
+      }
+    ])
+    setLoading(false)
   }, [])
-
-  const fetchQueries = async () => {
-    try {
-      setLoading(true)
-      // Mock data - replace with API call
-      const mockQueries: QueryRecord[] = [
-        {
-          id: 'query1',
-          title: 'Request for Leave',
-          description: 'I would like to request a 2-week leave for personal reasons.',
-          category: 'HR Related',
-          priority: 'medium',
-          status: 'open',
-          submittedBy: 'user1',
-          submittedByName: 'John Smith',
-          submittedAt: '2024-01-15T10:00:00Z',
-          createdAt: '2024-01-01T00:00:00Z',
-          updatedAt: '2024-01-01T00:00:00Z'
-        }
-      ]
-      setQueries(mockQueries)
-    } catch (err) {
-      setError('Failed to fetch queries')
-    } finally {
-      setLoading(false)
-    }
-  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    setSubmitting(true)
+    
     try {
-      const assignedStaff = staffOptions.find(s => s.id === formData.assignedTo)
-      
       if (editingId) {
         // Update existing query
         setQueries(prev => prev.map(q => 
           q.id === editingId 
-            ? { 
-                ...q, 
-                ...formData, 
-                assignedToName: assignedStaff?.name,
-                updatedAt: new Date().toISOString() 
-              }
+            ? { ...q, ...formData, updatedAt: new Date().toISOString() }
             : q
         ))
       } else {
@@ -101,7 +97,6 @@ export default function QueriesPage() {
           status: 'open',
           submittedBy: 'current_user',
           submittedByName: 'Current User',
-          assignedToName: assignedStaff?.name,
           submittedAt: new Date().toISOString(),
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString()
@@ -109,18 +104,18 @@ export default function QueriesPage() {
         setQueries(prev => [...prev, newQuery])
       }
       
-      setShowForm(false)
-      setEditingId(null)
       setFormData({
         title: '',
         description: '',
         category: '',
-        priority: 'medium',
-        assignedTo: '',
-        response: ''
+        priority: 'medium'
       })
-    } catch (err) {
+      setShowForm(false)
+      setEditingId(null)
+    } catch (error) {
       setError('Failed to save query')
+    } finally {
+      setSubmitting(false)
     }
   }
 
@@ -129,9 +124,7 @@ export default function QueriesPage() {
       title: query.title,
       description: query.description,
       category: query.category,
-      priority: query.priority,
-      assignedTo: query.assignedTo || '',
-      response: query.response || ''
+      priority: query.priority
     })
     setEditingId(query.id)
     setShowForm(true)
@@ -149,11 +142,29 @@ export default function QueriesPage() {
         ? { 
             ...q, 
             status, 
-            resolvedAt: status === 'resolved' || status === 'closed' ? new Date().toISOString() : undefined,
+            resolvedAt: status === 'resolved' ? new Date().toISOString() : undefined,
             updatedAt: new Date().toISOString() 
           }
         : q
     ))
+  }
+
+  const handleResponse = (id: string) => {
+    if (responseText.trim()) {
+      setQueries(prev => prev.map(q => 
+        q.id === id 
+          ? { 
+              ...q, 
+              response: responseText,
+              status: 'resolved' as const,
+              resolvedAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString() 
+            }
+          : q
+      ))
+      setResponseText('')
+      setRespondingToId(null)
+    }
   }
 
   const getPriorityColor = (priority: string) => {
@@ -168,8 +179,8 @@ export default function QueriesPage() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'open': return 'var(--warning)'
-      case 'in_progress': return 'var(--primary)'
+      case 'open': return 'var(--primary)'
+      case 'in_progress': return 'var(--warning)'
       case 'resolved': return 'var(--success)'
       case 'closed': return 'var(--muted)'
       default: return 'var(--muted)'
@@ -193,9 +204,9 @@ export default function QueriesPage() {
         <h2>Queries Management</h2>
         <button 
           className="btn btn-primary"
-          onClick={() => setShowForm(true)}
+          onClick={() => setShowForm(!showForm)}
         >
-          + Add Query
+          {showForm ? 'Cancel' : 'Submit New Query'}
         </button>
       </div>
 
@@ -208,21 +219,22 @@ export default function QueriesPage() {
       {showForm && (
         <div className="card" style={{marginBottom: '2rem'}}>
           <h3 style={{marginBottom: '1rem'}}>
-            {editingId ? 'Edit Query' : 'Add New Query'}
+            {editingId ? 'Edit Query' : 'Submit New Query'}
           </h3>
           <form onSubmit={handleSubmit} className="form">
+            <div className="form-group">
+              <label htmlFor="title">Query Title *</label>
+              <input
+                type="text"
+                id="title"
+                value={formData.title}
+                onChange={(e) => setFormData(prev => ({...prev, title: e.target.value}))}
+                required
+                placeholder="Enter query title"
+              />
+            </div>
+
             <div className="form-row">
-              <div className="form-group">
-                <label htmlFor="title">Title *</label>
-                <input
-                  type="text"
-                  id="title"
-                  value={formData.title}
-                  onChange={(e) => setFormData(prev => ({...prev, title: e.target.value}))}
-                  required
-                  placeholder="Enter query title"
-                />
-              </div>
               <div className="form-group">
                 <label htmlFor="category">Category *</label>
                 <select
@@ -237,34 +249,18 @@ export default function QueriesPage() {
                   ))}
                 </select>
               </div>
-            </div>
-
-            <div className="form-row">
               <div className="form-group">
                 <label htmlFor="priority">Priority *</label>
                 <select
                   id="priority"
                   value={formData.priority}
-                  onChange={(e) => setFormData(prev => ({...prev, priority: e.target.value as any}))}
+                  onChange={(e) => setFormData(prev => ({...prev, priority: e.target.value as 'low' | 'medium' | 'high' | 'urgent'}))}
                   required
                 >
                   <option value="low">Low</option>
                   <option value="medium">Medium</option>
                   <option value="high">High</option>
                   <option value="urgent">Urgent</option>
-                </select>
-              </div>
-              <div className="form-group">
-                <label htmlFor="assignedTo">Assign To</label>
-                <select
-                  id="assignedTo"
-                  value={formData.assignedTo}
-                  onChange={(e) => setFormData(prev => ({...prev, assignedTo: e.target.value}))}
-                >
-                  <option value="">Select Staff Member</option>
-                  {staffOptions.map(staff => (
-                    <option key={staff.id} value={staff.id}>{staff.name}</option>
-                  ))}
                 </select>
               </div>
             </div>
@@ -276,19 +272,8 @@ export default function QueriesPage() {
                 value={formData.description}
                 onChange={(e) => setFormData(prev => ({...prev, description: e.target.value}))}
                 required
-                placeholder="Enter query description"
+                placeholder="Describe your query in detail"
                 rows={4}
-              />
-            </div>
-
-            <div className="form-group">
-              <label htmlFor="response">Response</label>
-              <textarea
-                id="response"
-                value={formData.response}
-                onChange={(e) => setFormData(prev => ({...prev, response: e.target.value}))}
-                placeholder="Enter response (if any)"
-                rows={3}
               />
             </div>
 
@@ -303,16 +288,19 @@ export default function QueriesPage() {
                     title: '',
                     description: '',
                     category: '',
-                    priority: 'medium',
-                    assignedTo: '',
-                    response: ''
+                    priority: 'medium'
                   })
                 }}
+                disabled={submitting}
               >
                 Cancel
               </button>
-              <button type="submit" className="btn btn-primary">
-                {editingId ? 'Update Query' : 'Add Query'}
+              <button
+                type="submit"
+                className="btn btn-primary"
+                disabled={submitting}
+              >
+                {submitting ? 'Submitting...' : (editingId ? 'Update Query' : 'Submit Query')}
               </button>
             </div>
           </form>
@@ -320,10 +308,10 @@ export default function QueriesPage() {
       )}
 
       <div className="card">
-        <h3 style={{marginBottom: '1rem'}}>Queries List ({queries.length})</h3>
+        <h3 style={{marginBottom: '1rem'}}>Queries ({queries.length})</h3>
         
         {queries.length === 0 ? (
-          <p>No queries found. Add one using the form above.</p>
+          <p>No queries found. Submit one using the form above.</p>
         ) : (
           <div className="table-responsive">
             <table className="table">
@@ -334,15 +322,24 @@ export default function QueriesPage() {
                   <th>Priority</th>
                   <th>Status</th>
                   <th>Submitted By</th>
-                  <th>Assigned To</th>
-                  <th>Submitted Date</th>
+                  <th>Submitted At</th>
                   <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {queries.map((query) => (
                   <tr key={query.id}>
-                    <td><strong>{query.title}</strong></td>
+                    <td>
+                      <strong>{query.title}</strong>
+                      {query.description && (
+                        <div style={{fontSize: '12px', color: 'var(--muted)', marginTop: '4px'}}>
+                          {query.description.length > 50 
+                            ? `${query.description.substring(0, 50)}...` 
+                            : query.description
+                          }
+                        </div>
+                      )}
+                    </td>
                     <td>{query.category}</td>
                     <td>
                       <span 
@@ -367,7 +364,6 @@ export default function QueriesPage() {
                       </span>
                     </td>
                     <td>{query.submittedByName}</td>
-                    <td>{query.assignedToName || '-'}</td>
                     <td>{new Date(query.submittedAt).toLocaleDateString()}</td>
                     <td>
                       <div className="btn-group">
@@ -385,7 +381,7 @@ export default function QueriesPage() {
                         </button>
                         {query.status === 'open' && (
                           <button
-                            className="btn btn-sm btn-primary"
+                            className="btn btn-sm btn-success"
                             onClick={() => handleStatusChange(query.id, 'in_progress')}
                           >
                             Start
@@ -393,10 +389,10 @@ export default function QueriesPage() {
                         )}
                         {query.status === 'in_progress' && (
                           <button
-                            className="btn btn-sm btn-success"
-                            onClick={() => handleStatusChange(query.id, 'resolved')}
+                            className="btn btn-sm btn-primary"
+                            onClick={() => setRespondingToId(query.id)}
                           >
-                            Resolve
+                            Respond
                           </button>
                         )}
                         {query.status === 'resolved' && (
@@ -416,6 +412,64 @@ export default function QueriesPage() {
           </div>
         )}
       </div>
+
+      {/* Response Modal */}
+      {respondingToId && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(0, 0, 0, 0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000
+        }}>
+          <div style={{
+            background: 'var(--surface)',
+            border: '1px solid var(--line)',
+            borderRadius: 'var(--radius-card)',
+            padding: '2rem',
+            maxWidth: '500px',
+            width: '90%',
+            maxHeight: '90vh',
+            overflow: 'auto'
+          }}>
+            <h3 style={{marginBottom: '1rem'}}>Respond to Query</h3>
+            <div className="form-group">
+              <label htmlFor="response">Response</label>
+              <textarea
+                id="response"
+                value={responseText}
+                onChange={(e) => setResponseText(e.target.value)}
+                placeholder="Enter your response"
+                rows={4}
+                style={{width: '100%'}}
+              />
+            </div>
+            <div className="form-actions">
+              <button
+                className="btn btn-secondary"
+                onClick={() => {
+                  setRespondingToId(null)
+                  setResponseText('')
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                className="btn btn-primary"
+                onClick={() => handleResponse(respondingToId)}
+                disabled={!responseText.trim()}
+              >
+                Send Response
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   )
 }

@@ -12,7 +12,6 @@ interface LCRecord {
   status: 'active' | 'inactive' | 'suspended';
   memberCount: number;
   lccId: string;
-  lccName: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -22,7 +21,6 @@ export default function LCPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [showForm, setShowForm] = useState(false)
-  const [editingId, setEditingId] = useState<string | null>(null)
   const [formData, setFormData] = useState({
     name: '',
     address: '',
@@ -31,64 +29,49 @@ export default function LCPage() {
     pastor: '',
     establishedDate: '',
     memberCount: 0,
-    lccId: '',
-    lccName: ''
+    lccId: ''
   })
+  const [submitting, setSubmitting] = useState(false)
+  const [editingId, setEditingId] = useState<string | null>(null)
 
-  const lccOptions = [
+  // Mock LCC data for dropdown
+  const lccs = [
     { id: 'lcc1', name: 'ECWA Jos Central LCC' },
     { id: 'lcc2', name: 'ECWA Bukuru LCC' },
     { id: 'lcc3', name: 'ECWA Kaduna LCC' }
   ]
 
+  // Mock data
   useEffect(() => {
-    fetchLCs()
+    setLcs([
+      {
+        id: 'lc1',
+        name: 'ECWA GoodNews HighCost - LC',
+        address: '456 HighCost Road, Jos, Plateau State',
+        phone: '+234-802-345-6789',
+        email: 'goodnews@ecwa.org',
+        pastor: 'Rev. Mary Johnson',
+        establishedDate: '2021-03-20',
+        status: 'active',
+        memberCount: 75,
+        lccId: 'lcc1',
+        createdAt: '2024-01-01T00:00:00Z',
+        updatedAt: '2024-01-01T00:00:00Z'
+      }
+    ])
+    setLoading(false)
   }, [])
-
-  const fetchLCs = async () => {
-    try {
-      setLoading(true)
-      // Mock data - replace with API call
-      const mockLCs: LCRecord[] = [
-        {
-          id: 'lc1',
-          name: 'ECWA GoodNews HighCost - LC',
-          address: '456 HighCost Road, Jos',
-          phone: '+234-802-345-6789',
-          email: 'goodnews@ecwa.org',
-          pastor: 'Rev. Mary Johnson',
-          establishedDate: '2021-03-20',
-          status: 'active',
-          memberCount: 75,
-          lccId: 'lcc1',
-          lccName: 'ECWA Jos Central LCC',
-          createdAt: '2024-01-01T00:00:00Z',
-          updatedAt: '2024-01-01T00:00:00Z'
-        }
-      ]
-      setLcs(mockLCs)
-    } catch (err) {
-      setError('Failed to fetch LCs')
-    } finally {
-      setLoading(false)
-    }
-  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    setSubmitting(true)
+    
     try {
-      const selectedLCC = lccOptions.find(lcc => lcc.id === formData.lccId)
-      
       if (editingId) {
         // Update existing LC
         setLcs(prev => prev.map(lc => 
           lc.id === editingId 
-            ? { 
-                ...lc, 
-                ...formData, 
-                lccName: selectedLCC?.name || '',
-                updatedAt: new Date().toISOString() 
-              }
+            ? { ...lc, ...formData, updatedAt: new Date().toISOString() }
             : lc
         ))
       } else {
@@ -96,7 +79,6 @@ export default function LCPage() {
         const newLC: LCRecord = {
           id: `lc_${Date.now()}`,
           ...formData,
-          lccName: selectedLCC?.name || '',
           status: 'active',
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString()
@@ -104,8 +86,6 @@ export default function LCPage() {
         setLcs(prev => [...prev, newLC])
       }
       
-      setShowForm(false)
-      setEditingId(null)
       setFormData({
         name: '',
         address: '',
@@ -114,11 +94,14 @@ export default function LCPage() {
         pastor: '',
         establishedDate: '',
         memberCount: 0,
-        lccId: '',
-        lccName: ''
+        lccId: ''
       })
-    } catch (err) {
+      setShowForm(false)
+      setEditingId(null)
+    } catch (error) {
       setError('Failed to save LC')
+    } finally {
+      setSubmitting(false)
     }
   }
 
@@ -131,8 +114,7 @@ export default function LCPage() {
       pastor: lc.pastor,
       establishedDate: lc.establishedDate,
       memberCount: lc.memberCount,
-      lccId: lc.lccId,
-      lccName: lc.lccName
+      lccId: lc.lccId
     })
     setEditingId(lc.id)
     setShowForm(true)
@@ -152,6 +134,15 @@ export default function LCPage() {
     ))
   }
 
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'active': return 'var(--success)'
+      case 'inactive': return 'var(--muted)'
+      case 'suspended': return 'var(--danger)'
+      default: return 'var(--muted)'
+    }
+  }
+
   if (loading) {
     return (
       <section className="container">
@@ -167,6 +158,12 @@ export default function LCPage() {
     <section className="container">
       <div className="section-title">
         <h2>LC Management</h2>
+        <button 
+          className="btn btn-primary"
+          onClick={() => setShowForm(!showForm)}
+        >
+          {showForm ? 'Cancel' : 'Add New LC'}
+        </button>
       </div>
 
       {error && (
@@ -206,13 +203,35 @@ export default function LCPage() {
               </div>
             </div>
 
+            <div className="form-row">
+              <div className="form-group">
+                <label htmlFor="phone">Phone Number</label>
+                <input
+                  type="tel"
+                  id="phone"
+                  value={formData.phone}
+                  onChange={(e) => setFormData(prev => ({...prev, phone: e.target.value}))}
+                  placeholder="Enter phone number"
+                />
+              </div>
+              <div className="form-group">
+                <label htmlFor="email">Email Address</label>
+                <input
+                  type="email"
+                  id="email"
+                  value={formData.email}
+                  onChange={(e) => setFormData(prev => ({...prev, email: e.target.value}))}
+                  placeholder="Enter email address"
+                />
+              </div>
+            </div>
+
             <div className="form-group">
-              <label htmlFor="address">Address *</label>
+              <label htmlFor="address">Address</label>
               <textarea
                 id="address"
                 value={formData.address}
                 onChange={(e) => setFormData(prev => ({...prev, address: e.target.value}))}
-                required
                 placeholder="Enter LC address"
                 rows={3}
               />
@@ -220,32 +239,7 @@ export default function LCPage() {
 
             <div className="form-row">
               <div className="form-group">
-                <label htmlFor="phone">Phone Number *</label>
-                <input
-                  type="tel"
-                  id="phone"
-                  value={formData.phone}
-                  onChange={(e) => setFormData(prev => ({...prev, phone: e.target.value}))}
-                  required
-                  placeholder="Enter phone number"
-                />
-              </div>
-              <div className="form-group">
-                <label htmlFor="email">Email Address *</label>
-                <input
-                  type="email"
-                  id="email"
-                  value={formData.email}
-                  onChange={(e) => setFormData(prev => ({...prev, email: e.target.value}))}
-                  required
-                  placeholder="Enter email address"
-                />
-              </div>
-            </div>
-
-            <div className="form-row">
-              <div className="form-group">
-                <label htmlFor="lccId">LCC *</label>
+                <label htmlFor="lccId">Parent LCC *</label>
                 <select
                   id="lccId"
                   value={formData.lccId}
@@ -253,19 +247,18 @@ export default function LCPage() {
                   required
                 >
                   <option value="">Select LCC</option>
-                  {lccOptions.map(lcc => (
+                  {lccs.map(lcc => (
                     <option key={lcc.id} value={lcc.id}>{lcc.name}</option>
                   ))}
                 </select>
               </div>
               <div className="form-group">
-                <label htmlFor="establishedDate">Established Date *</label>
+                <label htmlFor="establishedDate">Established Date</label>
                 <input
                   type="date"
                   id="establishedDate"
                   value={formData.establishedDate}
                   onChange={(e) => setFormData(prev => ({...prev, establishedDate: e.target.value}))}
-                  required
                 />
               </div>
             </div>
@@ -278,7 +271,6 @@ export default function LCPage() {
                 value={formData.memberCount}
                 onChange={(e) => setFormData(prev => ({...prev, memberCount: parseInt(e.target.value) || 0}))}
                 min="0"
-                placeholder="Enter member count"
               />
             </div>
 
@@ -297,15 +289,19 @@ export default function LCPage() {
                     pastor: '',
                     establishedDate: '',
                     memberCount: 0,
-                    lccId: '',
-                    lccName: ''
+                    lccId: ''
                   })
                 }}
+                disabled={submitting}
               >
                 Cancel
               </button>
-              <button type="submit" className="btn btn-primary">
-                {editingId ? 'Update LC' : 'Add LC'}
+              <button
+                type="submit"
+                className="btn btn-primary"
+                disabled={submitting}
+              >
+                {submitting ? 'Saving...' : (editingId ? 'Update LC' : 'Add LC')}
               </button>
             </div>
           </form>
@@ -324,12 +320,11 @@ export default function LCPage() {
                 <tr>
                   <th>Name</th>
                   <th>Pastor</th>
-                  <th>LCC</th>
                   <th>Phone</th>
                   <th>Email</th>
+                  <th>LCC</th>
                   <th>Members</th>
                   <th>Status</th>
-                  <th>Established</th>
                   <th>Actions</th>
                 </tr>
               </thead>
@@ -338,23 +333,21 @@ export default function LCPage() {
                   <tr key={lc.id}>
                     <td><strong>{lc.name}</strong></td>
                     <td>{lc.pastor}</td>
-                    <td>{lc.lccName}</td>
                     <td>{lc.phone}</td>
                     <td>{lc.email}</td>
+                    <td>{lccs.find(lcc => lcc.id === lc.lccId)?.name || 'Unknown'}</td>
                     <td>{lc.memberCount}</td>
                     <td>
                       <span 
                         className="badge"
                         style={{
-                          backgroundColor: lc.status === 'active' ? 'var(--success)' : 
-                                          lc.status === 'inactive' ? 'var(--warning)' : 'var(--danger)',
+                          backgroundColor: getStatusColor(lc.status),
                           color: 'white'
                         }}
                       >
                         {lc.status}
                       </span>
                     </td>
-                    <td>{new Date(lc.establishedDate).toLocaleDateString()}</td>
                     <td>
                       <div className="btn-group">
                         <button

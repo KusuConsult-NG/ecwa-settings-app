@@ -6,13 +6,17 @@ interface StaffRecord {
   name: string;
   email: string;
   phone: string;
+  address: string;
   position: string;
   department: string;
   salary: number;
-  hireDate: string;
+  startDate: string;
   status: 'active' | 'inactive' | 'terminated';
-  address: string;
-  emergencyContact: string;
+  emergencyContact: {
+    name: string;
+    phone: string;
+    relationship: string;
+  };
   createdAt: string;
   updatedAt: string;
 }
@@ -22,66 +26,65 @@ export default function StaffPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [showForm, setShowForm] = useState(false)
-  const [editingId, setEditingId] = useState<string | null>(null)
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     phone: '',
+    address: '',
     position: '',
     department: '',
     salary: 0,
-    hireDate: '',
-    address: '',
-    emergencyContact: ''
+    startDate: '',
+    emergencyContact: {
+      name: '',
+      phone: '',
+      relationship: ''
+    }
   })
+  const [submitting, setSubmitting] = useState(false)
+  const [editingId, setEditingId] = useState<string | null>(null)
 
   const positions = [
     'Pastor', 'Assistant Pastor', 'Secretary', 'Treasurer', 'Financial Secretary',
     'Youth Pastor', 'Children Pastor', 'Music Director', 'Choir Director',
-    'Usher Leader', 'Security Officer', 'Maintenance Officer', 'Driver',
-    'Cleaner', 'Cook', 'Other'
+    'Usher', 'Security', 'Cleaner', 'Driver', 'Administrator', 'Accountant'
   ]
 
   const departments = [
     'Ministry', 'Administration', 'Finance', 'Music', 'Youth', 'Children',
-    'Women', 'Men', 'Security', 'Maintenance', 'Transport', 'Kitchen', 'Other'
+    'Women', 'Men', 'Security', 'Maintenance', 'Transportation'
   ]
 
+  // Mock data
   useEffect(() => {
-    fetchStaff()
+    setStaff([
+      {
+        id: 'staff1',
+        name: 'Rev. John Doe',
+        email: 'john.doe@ecwa.org',
+        phone: '+234-801-234-5678',
+        address: '123 Pastor Street, Jos, Plateau State',
+        position: 'Pastor',
+        department: 'Ministry',
+        salary: 150000,
+        startDate: '2020-01-15',
+        status: 'active',
+        emergencyContact: {
+          name: 'Jane Doe',
+          phone: '+234-802-345-6789',
+          relationship: 'Spouse'
+        },
+        createdAt: '2024-01-01T00:00:00Z',
+        updatedAt: '2024-01-01T00:00:00Z'
+      }
+    ])
+    setLoading(false)
   }, [])
-
-  const fetchStaff = async () => {
-    try {
-      setLoading(true)
-      // Mock data - replace with API call
-      const mockStaff: StaffRecord[] = [
-        {
-          id: 'staff1',
-          name: 'Rev. John Doe',
-          email: 'john.doe@ecwa.org',
-          phone: '+234-801-234-5678',
-          position: 'Pastor',
-          department: 'Ministry',
-          salary: 150000,
-          hireDate: '2020-01-15',
-          status: 'active',
-          address: '123 Pastor Street, Jos',
-          emergencyContact: '+234-802-345-6789',
-          createdAt: '2024-01-01T00:00:00Z',
-          updatedAt: '2024-01-01T00:00:00Z'
-        }
-      ]
-      setStaff(mockStaff)
-    } catch (err) {
-      setError('Failed to fetch staff')
-    } finally {
-      setLoading(false)
-    }
-  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    setSubmitting(true)
+    
     try {
       if (editingId) {
         // Update existing staff
@@ -102,21 +105,27 @@ export default function StaffPage() {
         setStaff(prev => [...prev, newStaff])
       }
       
-      setShowForm(false)
-      setEditingId(null)
       setFormData({
         name: '',
         email: '',
         phone: '',
+        address: '',
         position: '',
         department: '',
         salary: 0,
-        hireDate: '',
-        address: '',
-        emergencyContact: ''
+        startDate: '',
+        emergencyContact: {
+          name: '',
+          phone: '',
+          relationship: ''
+        }
       })
-    } catch (err) {
-      setError('Failed to save staff')
+      setShowForm(false)
+      setEditingId(null)
+    } catch (error) {
+      setError('Failed to save staff member')
+    } finally {
+      setSubmitting(false)
     }
   }
 
@@ -125,11 +134,11 @@ export default function StaffPage() {
       name: staffMember.name,
       email: staffMember.email,
       phone: staffMember.phone,
+      address: staffMember.address,
       position: staffMember.position,
       department: staffMember.department,
       salary: staffMember.salary,
-      hireDate: staffMember.hireDate,
-      address: staffMember.address,
+      startDate: staffMember.startDate,
       emergencyContact: staffMember.emergencyContact
     })
     setEditingId(staffMember.id)
@@ -150,6 +159,22 @@ export default function StaffPage() {
     ))
   }
 
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'active': return 'var(--success)'
+      case 'inactive': return 'var(--muted)'
+      case 'terminated': return 'var(--danger)'
+      default: return 'var(--muted)'
+    }
+  }
+
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-NG', {
+      style: 'currency',
+      currency: 'NGN'
+    }).format(amount)
+  }
+
   if (loading) {
     return (
       <section className="container">
@@ -167,9 +192,9 @@ export default function StaffPage() {
         <h2>Staff Management</h2>
         <button 
           className="btn btn-primary"
-          onClick={() => setShowForm(true)}
+          onClick={() => setShowForm(!showForm)}
         >
-          + Add Staff
+          {showForm ? 'Cancel' : 'Add New Staff'}
         </button>
       </div>
 
@@ -212,13 +237,12 @@ export default function StaffPage() {
 
             <div className="form-row">
               <div className="form-group">
-                <label htmlFor="phone">Phone Number *</label>
+                <label htmlFor="phone">Phone Number</label>
                 <input
                   type="tel"
                   id="phone"
                   value={formData.phone}
                   onChange={(e) => setFormData(prev => ({...prev, phone: e.target.value}))}
-                  required
                   placeholder="Enter phone number"
                 />
               </div>
@@ -266,29 +290,6 @@ export default function StaffPage() {
               </div>
             </div>
 
-            <div className="form-row">
-              <div className="form-group">
-                <label htmlFor="hireDate">Hire Date *</label>
-                <input
-                  type="date"
-                  id="hireDate"
-                  value={formData.hireDate}
-                  onChange={(e) => setFormData(prev => ({...prev, hireDate: e.target.value}))}
-                  required
-                />
-              </div>
-              <div className="form-group">
-                <label htmlFor="emergencyContact">Emergency Contact</label>
-                <input
-                  type="tel"
-                  id="emergencyContact"
-                  value={formData.emergencyContact}
-                  onChange={(e) => setFormData(prev => ({...prev, emergencyContact: e.target.value}))}
-                  placeholder="Enter emergency contact"
-                />
-              </div>
-            </div>
-
             <div className="form-group">
               <label htmlFor="address">Address</label>
               <textarea
@@ -298,6 +299,59 @@ export default function StaffPage() {
                 placeholder="Enter address"
                 rows={3}
               />
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="startDate">Start Date</label>
+              <input
+                type="date"
+                id="startDate"
+                value={formData.startDate}
+                onChange={(e) => setFormData(prev => ({...prev, startDate: e.target.value}))}
+              />
+            </div>
+
+            <h4 style={{marginTop: '1.5rem', marginBottom: '1rem'}}>Emergency Contact</h4>
+            <div className="form-row">
+              <div className="form-group">
+                <label htmlFor="emergencyName">Contact Name</label>
+                <input
+                  type="text"
+                  id="emergencyName"
+                  value={formData.emergencyContact.name}
+                  onChange={(e) => setFormData(prev => ({
+                    ...prev,
+                    emergencyContact: { ...prev.emergencyContact, name: e.target.value }
+                  }))}
+                  placeholder="Enter emergency contact name"
+                />
+              </div>
+              <div className="form-group">
+                <label htmlFor="emergencyPhone">Contact Phone</label>
+                <input
+                  type="tel"
+                  id="emergencyPhone"
+                  value={formData.emergencyContact.phone}
+                  onChange={(e) => setFormData(prev => ({
+                    ...prev,
+                    emergencyContact: { ...prev.emergencyContact, phone: e.target.value }
+                  }))}
+                  placeholder="Enter emergency contact phone"
+                />
+              </div>
+              <div className="form-group">
+                <label htmlFor="emergencyRelationship">Relationship</label>
+                <input
+                  type="text"
+                  id="emergencyRelationship"
+                  value={formData.emergencyContact.relationship}
+                  onChange={(e) => setFormData(prev => ({
+                    ...prev,
+                    emergencyContact: { ...prev.emergencyContact, relationship: e.target.value }
+                  }))}
+                  placeholder="e.g., Spouse, Parent, Sibling"
+                />
+              </div>
             </div>
 
             <div className="form-actions">
@@ -311,19 +365,28 @@ export default function StaffPage() {
                     name: '',
                     email: '',
                     phone: '',
+                    address: '',
                     position: '',
                     department: '',
                     salary: 0,
-                    hireDate: '',
-                    address: '',
-                    emergencyContact: ''
+                    startDate: '',
+                    emergencyContact: {
+                      name: '',
+                      phone: '',
+                      relationship: ''
+                    }
                   })
                 }}
+                disabled={submitting}
               >
                 Cancel
               </button>
-              <button type="submit" className="btn btn-primary">
-                {editingId ? 'Update Staff' : 'Add Staff'}
+              <button
+                type="submit"
+                className="btn btn-primary"
+                disabled={submitting}
+              >
+                {submitting ? 'Saving...' : (editingId ? 'Update Staff' : 'Add Staff')}
               </button>
             </div>
           </form>
@@ -343,11 +406,10 @@ export default function StaffPage() {
                   <th>Name</th>
                   <th>Position</th>
                   <th>Department</th>
-                  <th>Phone</th>
                   <th>Email</th>
+                  <th>Phone</th>
                   <th>Salary</th>
                   <th>Status</th>
-                  <th>Hire Date</th>
                   <th>Actions</th>
                 </tr>
               </thead>
@@ -357,22 +419,20 @@ export default function StaffPage() {
                     <td><strong>{staffMember.name}</strong></td>
                     <td>{staffMember.position}</td>
                     <td>{staffMember.department}</td>
-                    <td>{staffMember.phone}</td>
                     <td>{staffMember.email}</td>
-                    <td>₦{staffMember.salary.toLocaleString()}</td>
+                    <td>{staffMember.phone}</td>
+                    <td>{formatCurrency(staffMember.salary)}</td>
                     <td>
                       <span 
                         className="badge"
                         style={{
-                          backgroundColor: staffMember.status === 'active' ? 'var(--success)' : 
-                                          staffMember.status === 'inactive' ? 'var(--warning)' : 'var(--danger)',
+                          backgroundColor: getStatusColor(staffMember.status),
                           color: 'white'
                         }}
                       >
                         {staffMember.status}
                       </span>
                     </td>
-                    <td>{new Date(staffMember.hireDate).toLocaleDateString()}</td>
                     <td>
                       <div className="btn-group">
                         <button

@@ -24,11 +24,8 @@ export default function PayrollPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [showForm, setShowForm] = useState(false)
-  const [editingId, setEditingId] = useState<string | null>(null)
   const [formData, setFormData] = useState({
     staffId: '',
-    staffName: '',
-    position: '',
     basicSalary: 0,
     allowances: 0,
     deductions: 0,
@@ -36,8 +33,11 @@ export default function PayrollPage() {
     year: new Date().getFullYear(),
     paymentMethod: 'bank_transfer' as 'bank_transfer' | 'cash' | 'cheque'
   })
+  const [submitting, setSubmitting] = useState(false)
+  const [editingId, setEditingId] = useState<string | null>(null)
 
-  const staffOptions = [
+  // Mock staff data
+  const staff = [
     { id: 'staff1', name: 'Rev. John Doe', position: 'Pastor' },
     { id: 'staff2', name: 'Mary Johnson', position: 'Secretary' },
     { id: 'staff3', name: 'David Wilson', position: 'Treasurer' }
@@ -48,51 +48,38 @@ export default function PayrollPage() {
     'July', 'August', 'September', 'October', 'November', 'December'
   ]
 
+  // Mock data
   useEffect(() => {
-    fetchPayrolls()
+    setPayrolls([
+      {
+        id: 'payroll1',
+        staffId: 'staff1',
+        staffName: 'Rev. John Doe',
+        position: 'Pastor',
+        basicSalary: 150000,
+        allowances: 25000,
+        deductions: 15000,
+        netSalary: 160000,
+        month: 'January',
+        year: 2024,
+        status: 'paid',
+        paymentDate: '2024-01-31',
+        paymentMethod: 'bank_transfer',
+        createdAt: '2024-01-01T00:00:00Z',
+        updatedAt: '2024-01-01T00:00:00Z'
+      }
+    ])
+    setLoading(false)
   }, [])
-
-  const fetchPayrolls = async () => {
-    try {
-      setLoading(true)
-      // Mock data - replace with API call
-      const mockPayrolls: PayrollRecord[] = [
-        {
-          id: 'payroll1',
-          staffId: 'staff1',
-          staffName: 'Rev. John Doe',
-          position: 'Pastor',
-          basicSalary: 150000,
-          allowances: 25000,
-          deductions: 15000,
-          netSalary: 160000,
-          month: 'January',
-          year: 2024,
-          status: 'paid',
-          paymentDate: '2024-01-31',
-          paymentMethod: 'bank_transfer',
-          createdAt: '2024-01-01T00:00:00Z',
-          updatedAt: '2024-01-01T00:00:00Z'
-        }
-      ]
-      setPayrolls(mockPayrolls)
-    } catch (err) {
-      setError('Failed to fetch payrolls')
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const calculateNetSalary = (basic: number, allowances: number, deductions: number) => {
-    return basic + allowances - deductions
-  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    setSubmitting(true)
+    
     try {
-      const selectedStaff = staffOptions.find(s => s.id === formData.staffId)
-      const netSalary = calculateNetSalary(formData.basicSalary, formData.allowances, formData.deductions)
-      
+      const selectedStaff = staff.find(s => s.id === formData.staffId)
+      const netSalary = formData.basicSalary + formData.allowances - formData.deductions
+
       if (editingId) {
         // Update existing payroll
         setPayrolls(prev => prev.map(p => 
@@ -111,23 +98,25 @@ export default function PayrollPage() {
         // Create new payroll
         const newPayroll: PayrollRecord = {
           id: `payroll_${Date.now()}`,
-          ...formData,
+          staffId: formData.staffId,
           staffName: selectedStaff?.name || '',
           position: selectedStaff?.position || '',
+          basicSalary: formData.basicSalary,
+          allowances: formData.allowances,
+          deductions: formData.deductions,
           netSalary,
+          month: formData.month,
+          year: formData.year,
           status: 'pending',
+          paymentMethod: formData.paymentMethod,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString()
         }
         setPayrolls(prev => [...prev, newPayroll])
       }
       
-      setShowForm(false)
-      setEditingId(null)
       setFormData({
         staffId: '',
-        staffName: '',
-        position: '',
         basicSalary: 0,
         allowances: 0,
         deductions: 0,
@@ -135,16 +124,18 @@ export default function PayrollPage() {
         year: new Date().getFullYear(),
         paymentMethod: 'bank_transfer'
       })
-    } catch (err) {
+      setShowForm(false)
+      setEditingId(null)
+    } catch (error) {
       setError('Failed to save payroll')
+    } finally {
+      setSubmitting(false)
     }
   }
 
   const handleEdit = (payroll: PayrollRecord) => {
     setFormData({
       staffId: payroll.staffId,
-      staffName: payroll.staffName,
-      position: payroll.position,
       basicSalary: payroll.basicSalary,
       allowances: payroll.allowances,
       deductions: payroll.deductions,
@@ -175,12 +166,28 @@ export default function PayrollPage() {
     ))
   }
 
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'paid': return 'var(--success)'
+      case 'pending': return 'var(--warning)'
+      case 'cancelled': return 'var(--danger)'
+      default: return 'var(--muted)'
+    }
+  }
+
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-NG', {
+      style: 'currency',
+      currency: 'NGN'
+    }).format(amount)
+  }
+
   if (loading) {
     return (
       <section className="container">
         <div className="section-title"><h2>Payroll Management</h2></div>
         <div className="card" style={{padding:'1rem'}}>
-          <p>Loading payrolls...</p>
+          <p>Loading payroll...</p>
         </div>
       </section>
     )
@@ -192,9 +199,9 @@ export default function PayrollPage() {
         <h2>Payroll Management</h2>
         <button 
           className="btn btn-primary"
-          onClick={() => setShowForm(true)}
+          onClick={() => setShowForm(!showForm)}
         >
-          + Add Payroll
+          {showForm ? 'Cancel' : 'Add New Payroll'}
         </button>
       </div>
 
@@ -216,20 +223,12 @@ export default function PayrollPage() {
                 <select
                   id="staffId"
                   value={formData.staffId}
-                  onChange={(e) => {
-                    const selectedStaff = staffOptions.find(s => s.id === e.target.value)
-                    setFormData(prev => ({
-                      ...prev,
-                      staffId: e.target.value,
-                      staffName: selectedStaff?.name || '',
-                      position: selectedStaff?.position || ''
-                    }))
-                  }}
+                  onChange={(e) => setFormData(prev => ({...prev, staffId: e.target.value}))}
                   required
                 >
                   <option value="">Select Staff Member</option>
-                  {staffOptions.map(staff => (
-                    <option key={staff.id} value={staff.id}>{staff.name} - {staff.position}</option>
+                  {staff.map(s => (
+                    <option key={s.id} value={s.id}>{s.name} - {s.position}</option>
                   ))}
                 </select>
               </div>
@@ -263,12 +262,11 @@ export default function PayrollPage() {
                 />
               </div>
               <div className="form-group">
-                <label htmlFor="paymentMethod">Payment Method *</label>
+                <label htmlFor="paymentMethod">Payment Method</label>
                 <select
                   id="paymentMethod"
                   value={formData.paymentMethod}
-                  onChange={(e) => setFormData(prev => ({...prev, paymentMethod: e.target.value as any}))}
-                  required
+                  onChange={(e) => setFormData(prev => ({...prev, paymentMethod: e.target.value as 'bank_transfer' | 'cash' | 'cheque'}))}
                 >
                   <option value="bank_transfer">Bank Transfer</option>
                   <option value="cash">Cash</option>
@@ -277,16 +275,16 @@ export default function PayrollPage() {
               </div>
             </div>
 
+            <h4 style={{marginTop: '1.5rem', marginBottom: '1rem'}}>Salary Details</h4>
             <div className="form-row">
               <div className="form-group">
-                <label htmlFor="basicSalary">Basic Salary (₦) *</label>
+                <label htmlFor="basicSalary">Basic Salary (₦)</label>
                 <input
                   type="number"
                   id="basicSalary"
                   value={formData.basicSalary}
                   onChange={(e) => setFormData(prev => ({...prev, basicSalary: parseInt(e.target.value) || 0}))}
                   min="0"
-                  required
                   placeholder="Enter basic salary"
                 />
               </div>
@@ -315,11 +313,15 @@ export default function PayrollPage() {
               />
             </div>
 
-            <div className="form-group" style={{padding: '1rem', backgroundColor: '#f8f9fa', borderRadius: '8px'}}>
-              <label>Net Salary (₦)</label>
-              <div style={{fontSize: '1.2rem', fontWeight: 'bold', color: 'var(--primary)'}}>
-                ₦{calculateNetSalary(formData.basicSalary, formData.allowances, formData.deductions).toLocaleString()}
-              </div>
+            <div className="form-group" style={{
+              padding: '1rem',
+              backgroundColor: '#f8f9fa',
+              borderRadius: 'var(--radius-input)',
+              border: '1px solid var(--line)'
+            }}>
+              <label style={{fontWeight: 'bold', marginBottom: '0.5rem', display: 'block'}}>
+                Net Salary: {formatCurrency(formData.basicSalary + formData.allowances - formData.deductions)}
+              </label>
             </div>
 
             <div className="form-actions">
@@ -331,8 +333,6 @@ export default function PayrollPage() {
                   setEditingId(null)
                   setFormData({
                     staffId: '',
-                    staffName: '',
-                    position: '',
                     basicSalary: 0,
                     allowances: 0,
                     deductions: 0,
@@ -341,11 +341,16 @@ export default function PayrollPage() {
                     paymentMethod: 'bank_transfer'
                   })
                 }}
+                disabled={submitting}
               >
                 Cancel
               </button>
-              <button type="submit" className="btn btn-primary">
-                {editingId ? 'Update Payroll' : 'Add Payroll'}
+              <button
+                type="submit"
+                className="btn btn-primary"
+                disabled={submitting}
+              >
+                {submitting ? 'Saving...' : (editingId ? 'Update Payroll' : 'Add Payroll')}
               </button>
             </div>
           </form>
@@ -353,7 +358,7 @@ export default function PayrollPage() {
       )}
 
       <div className="card">
-        <h3 style={{marginBottom: '1rem'}}>Payroll List ({payrolls.length})</h3>
+        <h3 style={{marginBottom: '1rem'}}>Payroll Records ({payrolls.length})</h3>
         
         {payrolls.length === 0 ? (
           <p>No payroll records found. Add one using the form above.</p>
@@ -362,7 +367,7 @@ export default function PayrollPage() {
             <table className="table">
               <thead>
                 <tr>
-                  <th>Staff Name</th>
+                  <th>Staff Member</th>
                   <th>Position</th>
                   <th>Month/Year</th>
                   <th>Basic Salary</th>
@@ -370,7 +375,6 @@ export default function PayrollPage() {
                   <th>Deductions</th>
                   <th>Net Salary</th>
                   <th>Status</th>
-                  <th>Payment Date</th>
                   <th>Actions</th>
                 </tr>
               </thead>
@@ -380,23 +384,21 @@ export default function PayrollPage() {
                     <td><strong>{payroll.staffName}</strong></td>
                     <td>{payroll.position}</td>
                     <td>{payroll.month} {payroll.year}</td>
-                    <td>₦{payroll.basicSalary.toLocaleString()}</td>
-                    <td>₦{payroll.allowances.toLocaleString()}</td>
-                    <td>₦{payroll.deductions.toLocaleString()}</td>
-                    <td><strong>₦{payroll.netSalary.toLocaleString()}</strong></td>
+                    <td>{formatCurrency(payroll.basicSalary)}</td>
+                    <td>{formatCurrency(payroll.allowances)}</td>
+                    <td>{formatCurrency(payroll.deductions)}</td>
+                    <td><strong>{formatCurrency(payroll.netSalary)}</strong></td>
                     <td>
                       <span 
                         className="badge"
                         style={{
-                          backgroundColor: payroll.status === 'paid' ? 'var(--success)' : 
-                                          payroll.status === 'pending' ? 'var(--warning)' : 'var(--danger)',
+                          backgroundColor: getStatusColor(payroll.status),
                           color: 'white'
                         }}
                       >
                         {payroll.status}
                       </span>
                     </td>
-                    <td>{payroll.paymentDate ? new Date(payroll.paymentDate).toLocaleDateString() : '-'}</td>
                     <td>
                       <div className="btn-group">
                         <button
