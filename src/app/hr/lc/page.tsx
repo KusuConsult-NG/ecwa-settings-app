@@ -9,15 +9,17 @@ export default function LCPage() {
   const [showForm, setShowForm] = useState(false)
   const [formData, setFormData] = useState({
     name: '',
-    location: '',
+    code: '',
     address: '',
-    phone: '',
-    email: '',
-    leaderName: '',
-    leaderEmail: '',
-    leaderPhone: '',
-    maxCapacity: 0,
-    establishedDate: ''
+    city: '',
+    state: '',
+    country: '',
+    establishedDate: '',
+    memberCount: 0,
+    leaderId: '',
+    contactEmail: '',
+    contactPhone: '',
+    notes: ''
   })
   const [submitting, setSubmitting] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
@@ -76,15 +78,17 @@ export default function LCPage() {
   const resetForm = () => {
     setFormData({
       name: '',
-      location: '',
+      code: '',
       address: '',
-      phone: '',
-      email: '',
-      leaderName: '',
-      leaderEmail: '',
-      leaderPhone: '',
-      maxCapacity: 0,
-      establishedDate: ''
+      city: '',
+      state: '',
+      country: '',
+      establishedDate: '',
+      memberCount: 0,
+      leaderId: '',
+      contactEmail: '',
+      contactPhone: '',
+      notes: ''
     })
     setEditingId(null)
   }
@@ -92,15 +96,17 @@ export default function LCPage() {
   const handleEdit = (lc: LCRecord) => {
     setFormData({
       name: lc.name,
-      location: lc.city,
+      code: lc.code,
       address: lc.address,
-      phone: lc.contactPhone,
-      email: lc.contactEmail,
-      leaderName: lc.leaderName,
-      leaderEmail: lc.leaderEmail,
-      leaderPhone: lc.leaderPhone,
-      maxCapacity: lc.maxCapacity,
-      establishedDate: lc.establishedDate
+      city: lc.city,
+      state: lc.state,
+      country: lc.country,
+      establishedDate: lc.establishedDate,
+      memberCount: lc.memberCount,
+      leaderId: lc.leaderId,
+      contactEmail: lc.contactEmail,
+      contactPhone: lc.contactPhone,
+      notes: lc.notes || ''
     })
     setEditingId(lc.id)
     setShowForm(true)
@@ -222,11 +228,11 @@ export default function LCPage() {
                 />
               </div>
               <div className="form-group">
-                <label>Location *</label>
+                <label>LC Code *</label>
                 <input
                   type="text"
-                  value={formData.location}
-                  onChange={(e) => setFormData({...formData, location: e.target.value})}
+                  value={formData.code}
+                  onChange={(e) => setFormData({...formData, code: e.target.value})}
                   required
                 />
               </div>
@@ -244,51 +250,29 @@ export default function LCPage() {
 
             <div className="form-row">
               <div className="form-group">
-                <label>Phone *</label>
-                <input
-                  type="tel"
-                  value={formData.phone}
-                  onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                  required
-                />
-              </div>
-              <div className="form-group">
-                <label>Email *</label>
-                <input
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) => setFormData({...formData, email: e.target.value})}
-                  required
-                />
-              </div>
-            </div>
-
-            <h4>Leader Information</h4>
-            <div className="form-row">
-              <div className="form-group">
-                <label>Leader Name *</label>
+                <label>City *</label>
                 <input
                   type="text"
-                  value={formData.leaderName}
-                  onChange={(e) => setFormData({...formData, leaderName: e.target.value})}
+                  value={formData.city}
+                  onChange={(e) => setFormData({...formData, city: e.target.value})}
                   required
                 />
               </div>
               <div className="form-group">
-                <label>Leader Email *</label>
+                <label>State *</label>
                 <input
-                  type="email"
-                  value={formData.leaderEmail}
-                  onChange={(e) => setFormData({...formData, leaderEmail: e.target.value})}
+                  type="text"
+                  value={formData.state}
+                  onChange={(e) => setFormData({...formData, state: e.target.value})}
                   required
                 />
               </div>
               <div className="form-group">
-                <label>Leader Phone *</label>
+                <label>Country *</label>
                 <input
-                  type="tel"
-                  value={formData.leaderPhone}
-                  onChange={(e) => setFormData({...formData, leaderPhone: e.target.value})}
+                  type="text"
+                  value={formData.country}
+                  onChange={(e) => setFormData({...formData, country: e.target.value})}
                   required
                 />
               </div>
@@ -296,11 +280,32 @@ export default function LCPage() {
 
             <div className="form-row">
               <div className="form-group">
-                <label>Max Capacity *</label>
+                <label>Contact Email *</label>
+                <input
+                  type="email"
+                  value={formData.contactEmail}
+                  onChange={(e) => setFormData({...formData, contactEmail: e.target.value})}
+                  required
+                />
+              </div>
+              <div className="form-group">
+                <label>Contact Phone *</label>
+                <input
+                  type="tel"
+                  value={formData.contactPhone}
+                  onChange={(e) => setFormData({...formData, contactPhone: e.target.value})}
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="form-row">
+              <div className="form-group">
+                <label>Member Count *</label>
                 <input
                   type="number"
-                  value={formData.maxCapacity}
-                  onChange={(e) => setFormData({...formData, maxCapacity: Number(e.target.value)})}
+                  value={formData.memberCount}
+                  onChange={(e) => setFormData({...formData, memberCount: Number(e.target.value)})}
                   required
                 />
               </div>
@@ -313,6 +318,26 @@ export default function LCPage() {
                   required
                 />
               </div>
+            </div>
+
+            <div className="form-group">
+              <label>Leader ID *</label>
+              <input
+                type="text"
+                value={formData.leaderId}
+                onChange={(e) => setFormData({...formData, leaderId: e.target.value})}
+                required
+                placeholder="Enter leader ID"
+              />
+            </div>
+
+            <div className="form-group">
+              <label>Notes</label>
+              <textarea
+                value={formData.notes}
+                onChange={(e) => setFormData({...formData, notes: e.target.value})}
+                rows={3}
+              />
             </div>
 
             <div className="form-actions">
@@ -348,7 +373,8 @@ export default function LCPage() {
               <thead>
                 <tr>
                   <th>Name</th>
-                  <th>Location</th>
+                  <th>Code</th>
+                  <th>City</th>
                   <th>Leader</th>
                   <th>Members</th>
                   <th>Status</th>
@@ -365,12 +391,13 @@ export default function LCPage() {
                         <small style={{color: 'var(--muted)'}}>{lc.address}</small>
                       </div>
                     </td>
+                    <td>{lc.code}</td>
                     <td>{lc.city}</td>
                     <td>
                       <div>
                         <strong>{lc.leaderName}</strong>
                         <br />
-                        <small style={{color: 'var(--muted)'}}>{lc.leaderEmail}</small>
+                        <small style={{color: 'var(--muted)'}}>{lc.contactEmail}</small>
                       </div>
                     </td>
                     <td>{lc.memberCount}/{lc.maxCapacity}</td>
