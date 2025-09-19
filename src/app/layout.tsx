@@ -44,14 +44,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <a href="/hr/security" >🔒 <span>Security Settings</span></a>
               {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
               <a href="/agencies">🏛️ <span>Agencies & Groups</span></a>
-              <div style={{marginTop:'.5rem'}} className="badge">Organizations</div>
-              <div id="org-links" style={{display:'none'}}>
-                {/* Role-based org links will be populated by client-side JS */}
-              </div>
-              {/* Account menu */}
-              <div style={{marginTop:'.5rem'}} className="badge">Account</div>
-              {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
-              <a href="/account/statements">📄 <span>Generate Statements</span></a>
               <a href="/bank" >🏦 <span>Bank</span></a>
               <a href="/executive" >⭐ <span>Executive</span></a>
             </nav>
