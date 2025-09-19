@@ -122,28 +122,6 @@ export async function GET(req: NextRequest) {
           expenditures.push(JSON.parse(expenditureData))
         }
       }
-    } else {
-      // Return mock data if no expenditures exist
-      expenditures = [
-        {
-          id: 'exp_1',
-          purpose: 'Church Maintenance',
-          category: 'Maintenance',
-          amount: 50000,
-          beneficiary: 'John Doe',
-          bankName: 'First Bank',
-          accountNumber: '1234567890',
-          viaAgency: false,
-          status: 'pending',
-          submittedBy: payload.sub,
-          submittedByName: payload.name || 'Current User',
-          submittedAt: new Date().toISOString(),
-          orgId: payload.orgId,
-          orgName: payload.orgName || 'ECWA Organization',
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        }
-      ]
     }
 
     // Sort by creation date (newest first)

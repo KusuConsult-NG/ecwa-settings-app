@@ -1,22 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import { verifyJwt } from '@/lib/auth';
-
-// Mock user storage - replace with real database
-const users = new Map([
-  ['admin@example.com', {
-    id: 'u1',
-    email: 'admin@example.com',
-    name: 'Admin User',
-    role: 'admin',
-    passwordHash: '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', // password: "admin123"
-    createdAt: new Date().toISOString(),
-    orgId: 'org1',
-    orgName: 'ECWA Organization',
-    isActive: true,
-    lastLogin: null
-  }]
-]);
+import { kv, type UserRecord } from '@/lib/kv';
 
 export async function POST(req: NextRequest) {
   try {
@@ -33,11 +18,13 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
     }
 
-    // Find user
-    const user = users.get(payload.email as string);
-    if (!user) {
+    // Find user in KV store
+    const userData = await kv.get(`user:${payload.email}`);
+    if (!userData) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
+
+    const user: UserRecord = JSON.parse(userData);
 
     // Verify current password
     const isCurrentPasswordValid = await bcrypt.compare(currentPassword, user.passwordHash);
@@ -51,11 +38,12 @@ export async function POST(req: NextRequest) {
     }
 
     // Hash new password
-    const newPasswordHash = await bcrypt.hash(newPassword, 10);
+    const newPasswordHash = await bcrypt.hash(newPassword, 12);
 
-    // Update user password
+    // Update user password in KV store
     user.passwordHash = newPasswordHash;
-    users.set(payload.email as string, user);
+    user.updatedAt = new Date().toISOString();
+    await kv.set(`user:${payload.email}`, JSON.stringify(user));
 
     return NextResponse.json({
       success: true,

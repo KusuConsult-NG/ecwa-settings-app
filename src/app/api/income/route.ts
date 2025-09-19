@@ -120,26 +120,6 @@ export async function GET(req: NextRequest) {
           incomeList.push(JSON.parse(incomeData))
         }
       }
-    } else {
-      // Return mock data if no income exists
-      incomeList = [
-        {
-          id: 'inc_1',
-          ref: 'INC-2024-001',
-          source: 'Tithes',
-          giver: 'Church Members',
-          narration: 'Monthly tithes collection',
-          amount: 150000,
-          bankRef: 'TXN123456789',
-          submittedBy: payload.sub,
-          submittedByName: payload.name || 'Current User',
-          submittedAt: new Date().toISOString(),
-          orgId: payload.orgId,
-          orgName: payload.orgName || 'ECWA Organization',
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        }
-      ]
     }
 
     // Sort by creation date (newest first)

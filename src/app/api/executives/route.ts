@@ -70,7 +70,9 @@ export async function POST(req: NextRequest) {
       },
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
-      createdBy: payload.sub as string
+      createdBy: payload.sub as string,
+      orgId: payload.orgId as string,
+      orgName: payload.orgName as string
     };
 
     // Save to database
@@ -97,27 +99,43 @@ export async function POST(req: NextRequest) {
 
 export async function GET(req: NextRequest) {
   try {
+    // Authentication check
+    const token = req.cookies.get('auth')?.value;
+    if (!token) {
+      return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
+    }
+
+    const payload = await verifyJwt(token);
+    if (!payload) {
+      return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
+    }
+
     const { searchParams } = new URL(req.url);
     const status = searchParams.get('status');
     const position = searchParams.get('position');
     const search = searchParams.get('search');
 
-    let filteredExecutives = [...executives];
+    // Get executives from database
+    const executivesData = await kv.get('executives:index');
+    let executives: ExecutiveRecord[] = executivesData ? JSON.parse(executivesData) : [];
+
+    // Filter by organization
+    executives = executives.filter(exec => exec.orgId === payload.orgId);
 
     // Filter by status
     if (status) {
-      filteredExecutives = filteredExecutives.filter(exec => exec.status === status);
+      executives = executives.filter(exec => exec.status === status);
     }
 
     // Filter by position
     if (position) {
-      filteredExecutives = filteredExecutives.filter(exec => exec.position === position);
+      executives = executives.filter(exec => exec.position === position);
     }
 
     // Search by name, email, or position
     if (search) {
       const searchLower = search.toLowerCase();
-      filteredExecutives = filteredExecutives.filter(exec =>
+      executives = executives.filter(exec =>
         exec.name.toLowerCase().includes(searchLower) ||
         exec.email.toLowerCase().includes(searchLower) ||
         exec.position.toLowerCase().includes(searchLower)
@@ -125,12 +143,12 @@ export async function GET(req: NextRequest) {
     }
 
     // Sort by name
-    filteredExecutives.sort((a, b) => a.name.localeCompare(b.name));
+    executives.sort((a, b) => a.name.localeCompare(b.name));
 
     return NextResponse.json({
       success: true,
-      executives: filteredExecutives,
-      total: filteredExecutives.length
+      executives,
+      total: executives.length
     });
 
   } catch (error) {

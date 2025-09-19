@@ -19,6 +19,8 @@ export interface ExecutiveRecord {
   createdAt: string;
   updatedAt: string;
   createdBy: string;
+  orgId: string;
+  orgName: string;
 }
 
 export const EXECUTIVE_POSITIONS = [

@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyJwt } from '@/lib/auth';
-
-// Mock security settings storage - replace with real database
-const securitySettings = new Map();
+import { kv } from '@/lib/kv';
 
 export async function POST(req: NextRequest) {
   try {
@@ -30,8 +28,8 @@ export async function POST(req: NextRequest) {
       passwordExpiryDays
     } = settings;
 
-    // Store security settings for user
-    securitySettings.set(payload.email as string, {
+    // Store security settings for user in KV store
+    const securitySettings = {
       twoFactorAuth: Boolean(twoFactorAuth),
       sessionTimeout: Boolean(sessionTimeout),
       ipRestrictions: Boolean(ipRestrictions),
@@ -40,12 +38,14 @@ export async function POST(req: NextRequest) {
       passwordExpiry: Boolean(passwordExpiry),
       passwordExpiryDays: parseInt(passwordExpiryDays) || 90,
       updatedAt: new Date().toISOString()
-    });
+    };
+
+    await kv.set(`security_settings:${payload.email}`, JSON.stringify(securitySettings));
 
     return NextResponse.json({
       success: true,
       message: 'Security settings updated successfully',
-      settings: securitySettings.get(payload.email as string)
+      settings: securitySettings
     });
 
   } catch (error) {
@@ -70,8 +70,9 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
     }
 
-    // Get security settings for user
-    const settings = securitySettings.get(payload.email as string) || {
+    // Get security settings for user from KV store
+    const settingsData = await kv.get(`security_settings:${payload.email}`);
+    const settings = settingsData ? JSON.parse(settingsData) : {
       twoFactorAuth: false,
       sessionTimeout: true,
       ipRestrictions: false,

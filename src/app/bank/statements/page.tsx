@@ -50,74 +50,77 @@ export default function BankStatementsPage() {
     'Maintenance', 'Equipment', 'Travel', 'Training', 'Other'
   ]
 
-  // Mock data
+  // Fetch real data from APIs
   useEffect(() => {
-    setAccounts([
-      {
-        id: 'acc1',
-        accountName: 'ECWA Main Account',
-        accountNumber: '1234567890',
-        bankName: 'First Bank of Nigeria',
-        currency: 'NGN',
-        balance: 2500000
-      },
-      {
-        id: 'acc2',
-        accountName: 'ECWA Savings Account',
-        accountNumber: '0987654321',
-        bankName: 'Access Bank',
-        currency: 'NGN',
-        balance: 1500000
-      }
-    ])
+    const fetchData = async () => {
+      try {
+        setLoading(true)
+        
+        // Fetch bank accounts
+        const accountsResponse = await fetch('/api/bank')
+        if (accountsResponse.ok) {
+          const accountsData = await accountsResponse.json()
+          setAccounts(accountsData.accounts || [])
+        }
 
-    setTransactions([
-      {
-        id: 'txn1',
-        accountId: 'acc1',
-        type: 'credit',
-        amount: 500000,
-        description: 'Monthly Tithes Collection',
-        reference: 'TXN001',
-        category: 'Tithes & Offerings',
-        date: '2024-01-15',
-        balance: 2500000
-      },
-      {
-        id: 'txn2',
-        accountId: 'acc1',
-        type: 'debit',
-        amount: 150000,
-        description: 'Staff Salaries',
-        reference: 'TXN002',
-        category: 'Salaries',
-        date: '2024-01-14',
-        balance: 2000000
-      },
-      {
-        id: 'txn3',
-        accountId: 'acc1',
-        type: 'credit',
-        amount: 100000,
-        description: 'Donation from Member',
-        reference: 'TXN003',
-        category: 'Donations',
-        date: '2024-01-13',
-        balance: 2150000
-      },
-      {
-        id: 'txn4',
-        accountId: 'acc1',
-        type: 'debit',
-        amount: 50000,
-        description: 'Church Maintenance',
-        reference: 'TXN004',
-        category: 'Maintenance',
-        date: '2024-01-12',
-        balance: 2050000
+        // Fetch transactions (this would need to be implemented)
+        // For now, we'll use mock data but structure it to be easily replaceable
+        setTransactions([
+          {
+            id: 'txn1',
+            accountId: 'acc1',
+            type: 'credit',
+            amount: 500000,
+            description: 'Monthly Tithes Collection',
+            reference: 'TXN001',
+            category: 'Tithes & Offerings',
+            date: '2024-01-15',
+            balance: 2500000
+          },
+          {
+            id: 'txn2',
+            accountId: 'acc1',
+            type: 'debit',
+            amount: 150000,
+            description: 'Staff Salaries',
+            reference: 'TXN002',
+            category: 'Salaries',
+            date: '2024-01-14',
+            balance: 2000000
+          },
+          {
+            id: 'txn3',
+            accountId: 'acc1',
+            type: 'credit',
+            amount: 100000,
+            description: 'Donation from Member',
+            reference: 'TXN003',
+            category: 'Donations',
+            date: '2024-01-13',
+            balance: 2150000
+          },
+          {
+            id: 'txn4',
+            accountId: 'acc1',
+            type: 'debit',
+            amount: 50000,
+            description: 'Church Maintenance',
+            reference: 'TXN004',
+            category: 'Maintenance',
+            date: '2024-01-12',
+            balance: 2050000
+          }
+        ])
+        
+      } catch (error) {
+        console.error('Error fetching data:', error)
+        setError('Failed to load data')
+      } finally {
+        setLoading(false)
       }
-    ])
-    setLoading(false)
+    }
+
+    fetchData()
   }, [])
 
   // Filter transactions based on current filters

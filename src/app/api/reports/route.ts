@@ -64,7 +64,7 @@ export async function GET(req: NextRequest) {
     );
 
     const orgStaff = staff.filter((s: any) => s.orgId === payload.orgId);
-    const orgPayroll = payroll.filter((p: any) => s.orgId === payload.orgId);
+    const orgPayroll = payroll.filter((p: any) => p.orgId === payload.orgId);
     const orgLeave = leave.filter((l: any) => l.orgId === payload.orgId);
     const orgQueries = queries.filter((q: any) => q.orgId === payload.orgId);
 

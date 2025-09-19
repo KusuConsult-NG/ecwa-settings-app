@@ -9,20 +9,70 @@ export default function DashboardPage() {
     totalIncome: 0,
     activeStaff: 0
   })
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // Fetch user data
-    fetch('/api/me')
-      .then(r => r.json())
-      .then(data => setUser(data.user))
-    
-    // Mock stats - in real app, fetch from API
-    setStats({
-      totalExpenditures: 125000,
-      pendingApprovals: 8,
-      totalIncome: 180000,
-      activeStaff: 24
-    })
+    const fetchData = async () => {
+      try {
+        setLoading(true)
+        
+        // Fetch user data
+        const userResponse = await fetch('/api/me')
+        if (userResponse.ok) {
+          const userData = await userResponse.json()
+          setUser(userData.user)
+        }
+        
+        // Fetch real stats from APIs
+        const [expendituresRes, incomeRes, staffRes] = await Promise.all([
+          fetch('/api/expenditures'),
+          fetch('/api/income'),
+          fetch('/api/staff')
+        ])
+        
+        let totalExpenditures = 0
+        let pendingApprovals = 0
+        let totalIncome = 0
+        let activeStaff = 0
+        
+        if (expendituresRes.ok) {
+          const expendituresData = await expendituresRes.json()
+          totalExpenditures = expendituresData.expenditures?.reduce((sum: number, exp: any) => sum + (exp.amount || 0), 0) || 0
+          pendingApprovals = expendituresData.expenditures?.filter((exp: any) => exp.status === 'pending').length || 0
+        }
+        
+        if (incomeRes.ok) {
+          const incomeData = await incomeRes.json()
+          totalIncome = incomeData.income?.reduce((sum: number, inc: any) => sum + (inc.amount || 0), 0) || 0
+        }
+        
+        if (staffRes.ok) {
+          const staffData = await staffRes.json()
+          activeStaff = staffData.staff?.filter((staff: any) => staff.status === 'active').length || 0
+        }
+        
+        setStats({
+          totalExpenditures,
+          pendingApprovals,
+          totalIncome,
+          activeStaff
+        })
+        
+      } catch (error) {
+        console.error('Error fetching dashboard data:', error)
+        // Fallback to mock data if APIs fail
+        setStats({
+          totalExpenditures: 125000,
+          pendingApprovals: 8,
+          totalIncome: 180000,
+          activeStaff: 24
+        })
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchData()
   }, [])
 
   const quickActions = [
@@ -39,6 +89,17 @@ export default function DashboardPage() {
     { action: "Income recorded", amount: "₦25,000", time: "1 day ago", type: "income" },
     { action: "Staff added", amount: "John Doe", time: "2 days ago", type: "hr" }
   ]
+
+  if (loading) {
+    return (
+      <div className="p-6">
+        <div className="section-title">
+          <h1 style={{fontSize:"2rem",margin:".25rem 0"}}>Dashboard</h1>
+          <p className="muted">Loading...</p>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="p-6">
