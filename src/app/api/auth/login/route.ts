@@ -1,8 +1,7 @@
 import { NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import { signJwt } from '@/lib/auth';
-import { kv, type UserRecord } from '@/lib/kv';
-import { sql } from '@/lib/database';
+import { neon } from '@neondatabase/serverless';
 
 export async function POST(req: Request) {
   try {
@@ -17,11 +16,15 @@ export async function POST(req: Request) {
     const normalizedEmail = email.toLowerCase().trim();
     console.log('Normalized email:', normalizedEmail);
 
-    // Check if database is available
-    if (!sql) {
-      console.log('❌ Database not available in login route');
-      return NextResponse.json({ error: 'Database not available' }, { status: 500 });
+    // Check if DATABASE_URL is available
+    if (!process.env.DATABASE_URL) {
+      console.log('❌ DATABASE_URL not available');
+      return NextResponse.json({ error: 'Database not configured' }, { status: 500 });
     }
+
+    // Create direct Neon connection (same as signup)
+    const sql = neon(process.env.DATABASE_URL);
+    console.log('Database connection created');
 
     // Look up user directly in database
     console.log('Looking up user in database...');
@@ -38,7 +41,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
     }
 
-    const user: UserRecord = JSON.parse(result[0].value);
+    const user = JSON.parse(result[0].value);
     console.log('User found:', { email: user.email, name: user.name, isActive: user.isActive });
 
     // Check if user is active
@@ -61,7 +64,7 @@ export async function POST(req: Request) {
     user.lastLogin = new Date().toISOString();
     user.updatedAt = new Date().toISOString();
     
-    // Update user in database
+    // Update user in database using the same connection
     await sql`
       UPDATE kv_store 
       SET value = ${JSON.stringify(user)}, updated_at = NOW()
