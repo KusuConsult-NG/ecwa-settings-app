@@ -21,7 +21,7 @@ export async function POST(req: Request) {
     console.log('✅ SIMPLE LOGIN: Authentication successful for:', user.email);
     
     // Create response with cookie
-    return createAuthResponse(user);
+    return await createAuthResponse(user);
 
   } catch (error) {
     console.error('❌ SIMPLE LOGIN: Error:', error);

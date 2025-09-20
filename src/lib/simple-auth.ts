@@ -125,7 +125,7 @@ export async function authenticateUser(email: string, password: string): Promise
 }
 
 // Create authentication response with cookie
-export function createAuthResponse(user: SimpleUser): NextResponse {
+export async function createAuthResponse(user: SimpleUser): Promise<NextResponse> {
   const token = await signJwt({
     sub: user.id,
     email: user.email,

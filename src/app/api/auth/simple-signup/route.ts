@@ -77,7 +77,7 @@ export async function POST(req: Request) {
     console.log('✅ SIMPLE SIGNUP: User created successfully:', user.email);
     
     // Create response with cookie
-    return createAuthResponse(user);
+    return await createAuthResponse(user);
 
   } catch (error) {
     console.error('❌ SIMPLE SIGNUP: Error:', error);
