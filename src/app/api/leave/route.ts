@@ -4,6 +4,9 @@ import { kv } from '@/lib/kv';
 import { LeaveRecord, CreateLeaveRequest, generateLeaveId } from '@/lib/leave';
 import crypto from 'crypto';
 
+// Force dynamic rendering for this route
+export const dynamic = 'force-dynamic';
+
 // GET /api/leave - Get all leave requests
 export async function GET(req: NextRequest) {
   try {

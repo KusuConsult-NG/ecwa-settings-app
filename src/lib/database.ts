@@ -1,11 +1,15 @@
 import { neon } from '@neondatabase/serverless';
 
-// Database connection
-const sql = neon(process.env.DATABASE_URL!);
+// Database connection - only connect if DATABASE_URL is available
+const sql = process.env.DATABASE_URL ? neon(process.env.DATABASE_URL) : null;
 
 // Database schema creation
 export const createTables = async () => {
   try {
+    if (!sql) {
+      throw new Error('DATABASE_URL not configured');
+    }
+    
     // Users table
     await sql`
       CREATE TABLE IF NOT EXISTS users (

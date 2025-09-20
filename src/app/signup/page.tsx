@@ -1,6 +1,9 @@
 "use client"
 import { useState, Suspense } from "react"
 
+// Force dynamic rendering for this page
+export const dynamic = 'force-dynamic';
+
 interface SignupError {
   message: string
   code?: string

@@ -5,6 +5,9 @@ import { Leader, OrganizationLevel, getAvailablePositions } from '@/lib/organiza
 import { createVerificationData, sendVerificationEmail, getEmailTemplate } from '@/lib/email-verification';
 import crypto from 'crypto';
 
+// Force dynamic rendering for this route
+export const dynamic = 'force-dynamic';
+
 // GET /api/leaders - Get all leaders
 export async function GET(req: NextRequest) {
   try {

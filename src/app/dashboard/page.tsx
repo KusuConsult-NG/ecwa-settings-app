@@ -2,6 +2,9 @@
 import { useState, useEffect } from "react"
 import { apiGet } from "@/lib/fetch-utils"
 
+// Force dynamic rendering for this page
+export const dynamic = 'force-dynamic';
+
 export default function DashboardPage() {
   const [user, setUser] = useState<any>(null)
   const [stats, setStats] = useState({

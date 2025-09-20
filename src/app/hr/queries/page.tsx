@@ -3,6 +3,9 @@ import { useState, useEffect } from "react"
 import { QueryRecord, getStatusColor, getStatusIcon, getPriorityColor, getCategoryColor, QUERY_CATEGORIES, QUERY_PRIORITIES, QUERY_STATUSES } from '@/lib/queries'
 import { StaffRecord } from '@/lib/staff'
 
+// Force dynamic rendering for this page
+export const dynamic = 'force-dynamic';
+
 export default function QueriesPage() {
   const [queries, setQueries] = useState<QueryRecord[]>([])
   const [staff, setStaff] = useState<StaffRecord[]>([])

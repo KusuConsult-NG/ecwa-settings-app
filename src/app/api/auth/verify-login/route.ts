@@ -5,6 +5,9 @@ import { Leader, Organization } from '@/lib/organization';
 import { validateVerificationCode } from '@/lib/email-verification';
 import bcrypt from 'bcryptjs';
 
+// Force dynamic rendering for this route
+export const dynamic = 'force-dynamic';
+
 // POST /api/auth/verify-login - Login with email + verification code
 export async function POST(req: NextRequest) {
   try {

@@ -4,6 +4,9 @@ import { kv } from '@/lib/kv';
 import { PayrollRecord, CreatePayrollRequest, generatePayrollId } from '@/lib/payroll';
 import crypto from 'crypto';
 
+// Force dynamic rendering for this route
+export const dynamic = 'force-dynamic';
+
 // GET /api/payroll - Get all payroll records
 export async function GET(req: NextRequest) {
   try {

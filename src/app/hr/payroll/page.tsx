@@ -3,6 +3,9 @@ import { useState, useEffect } from "react"
 import { PayrollRecord, formatCurrency, getStatusColor, getStatusIcon, calculateNetSalary, PAYROLL_STATUSES } from '@/lib/payroll'
 import { StaffRecord } from '@/lib/staff'
 
+// Force dynamic rendering for this page
+export const dynamic = 'force-dynamic';
+
 export default function PayrollPage() {
   const [payroll, setPayroll] = useState<PayrollRecord[]>([])
   const [staff, setStaff] = useState<StaffRecord[]>([])

@@ -11,7 +11,7 @@ export async function GET() {
     
     if (!userData) {
       // Create a default admin user
-      const passwordHash = await bcrypt.hash('admin123', 12);
+      const passwordHash = await bcrypt.hash('password123', 12);
       const user = {
         id: crypto.randomUUID(),
         email: testEmail,

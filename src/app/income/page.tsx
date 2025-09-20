@@ -2,6 +2,9 @@
 import { useState, useEffect } from "react"
 import { IncomeRecord, formatCurrency, INCOME_SOURCES, generateIncomeRef } from "@/lib/income"
 
+// Force dynamic rendering for this page
+export const dynamic = 'force-dynamic';
+
 export default function IncomePage(){
   const [income, setIncome] = useState<IncomeRecord[]>([])
   const [loading, setLoading] = useState(true)

@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { verifyJwt } from '@/lib/auth';
 import { kv } from '@/lib/kv';
 
+// Force dynamic rendering for this route
+export const dynamic = 'force-dynamic';
+
 // GET /api/leave/balance - Get leave balance for staff
 export async function GET(req: NextRequest) {
   try {

@@ -3,6 +3,9 @@
 import { useState, useEffect } from 'react';
 import { Organization, OrganizationLevel, Leader, getAvailablePositions, ORGANIZATION_NAMES } from '@/lib/organization';
 
+// Force dynamic rendering for this page
+export const dynamic = 'force-dynamic';
+
 export default function OrganizationManagement() {
   const [organizations, setOrganizations] = useState<Organization[]>([]);
   const [leaders, setLeaders] = useState<Leader[]>([]);

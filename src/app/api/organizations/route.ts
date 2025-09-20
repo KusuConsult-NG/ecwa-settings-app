@@ -5,6 +5,9 @@ import { Organization, OrganizationLevel, Leader, AgencyGroup } from '@/lib/orga
 import { createVerificationData, sendVerificationEmail, getEmailTemplate } from '@/lib/email-verification';
 import crypto from 'crypto';
 
+// Force dynamic rendering for this route
+export const dynamic = 'force-dynamic';
+
 // GET /api/organizations - Get all organizations
 export async function GET(req: NextRequest) {
   try {

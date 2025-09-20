@@ -3,6 +3,9 @@ import { verifyJwt } from "@/lib/auth"
 import { kv } from "@/lib/kv"
 import { ExpenditureRecord, UpdateExpenditureStatusRequest } from "@/lib/expenditure"
 
+// Force dynamic rendering for this route
+export const dynamic = 'force-dynamic';
+
 export async function PATCH(
   req: NextRequest,
   { params }: { params: { id: string } }

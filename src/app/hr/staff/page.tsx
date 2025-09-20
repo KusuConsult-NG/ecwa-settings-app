@@ -2,6 +2,9 @@
 import { useState, useEffect } from "react"
 import { StaffRecord, formatCurrency, getStatusColor, getStatusIcon, STAFF_POSITIONS, STAFF_DEPARTMENTS, STAFF_STATUSES } from '@/lib/staff'
 
+// Force dynamic rendering for this page
+export const dynamic = 'force-dynamic';
+
 export default function StaffPage() {
   const [staff, setStaff] = useState<StaffRecord[]>([])
   const [loading, setLoading] = useState(true)

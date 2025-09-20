@@ -2,6 +2,9 @@
 import { useState, useEffect } from "react"
 import { BankAccount, formatCurrency, getStatusColor, getStatusIcon } from '@/lib/bank'
 
+// Force dynamic rendering for this page
+export const dynamic = 'force-dynamic';
+
 export default function BankPage() {
   const [accounts, setAccounts] = useState<BankAccount[]>([])
   const [loading, setLoading] = useState(true)

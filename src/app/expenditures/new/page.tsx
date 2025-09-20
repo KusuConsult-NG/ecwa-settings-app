@@ -2,6 +2,9 @@
 import { useState } from "react"
 import { EXPENDITURE_CATEGORIES } from "@/lib/expenditure"
 
+// Force dynamic rendering for this page
+export const dynamic = 'force-dynamic';
+
 export default function RaiseExpenditurePage(){
   const [purpose,setPurpose]=useState("")
   const [category,setCategory]=useState("Maintenance")

@@ -2,6 +2,9 @@
 import { useState, useEffect } from "react"
 import { AgencyRecord, formatCurrency, getStatusColor, getStatusIcon, getTypeColor } from '@/lib/agencies'
 
+// Force dynamic rendering for this page
+export const dynamic = 'force-dynamic';
+
 export default function AgenciesPage() {
   const [agencies, setAgencies] = useState<AgencyRecord[]>([])
   const [loading, setLoading] = useState(true)

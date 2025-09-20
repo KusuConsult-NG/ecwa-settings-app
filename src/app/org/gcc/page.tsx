@@ -1,6 +1,9 @@
 "use client"
 import { useEffect, useState } from "react"
 
+// Force dynamic rendering for this page
+export const dynamic = 'force-dynamic';
+
 type ExecutiveRole = {
   id: string
   title: string

@@ -1,6 +1,9 @@
 "use client"
 import { useState, useEffect } from "react"
 
+// Force dynamic rendering for this page
+export const dynamic = 'force-dynamic';
+
 const organizationHierarchy = [
   { id: "GCC001", name: "ECWA General Church Council", type: "GCC", parent: null as string | null, level: 0 },
   { id: "DCC001", name: "ECWA Jos DCC", type: "DCC", parent: "GCC001", level: 1 },

@@ -2,6 +2,9 @@
 import { useState, useEffect } from "react"
 import { LCCRecord, getStatusColor, getStatusIcon, LCC_STATUSES } from '@/lib/lcc'
 
+// Force dynamic rendering for this page
+export const dynamic = 'force-dynamic';
+
 export default function LCCPage() {
   const [lccs, setLccs] = useState<LCCRecord[]>([])
   const [loading, setLoading] = useState(true)

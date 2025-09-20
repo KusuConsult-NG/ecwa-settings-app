@@ -2,6 +2,9 @@
 import { useState, useEffect } from "react"
 import { ExpenditureRecord, formatCurrency, getStatusColor, getStatusIcon } from "@/lib/expenditure"
 
+// Force dynamic rendering for this page
+export const dynamic = 'force-dynamic';
+
 export default function ExpendituresPage(){
   const [expenditures, setExpenditures] = useState<ExpenditureRecord[]>([])
   const [loading, setLoading] = useState(true)

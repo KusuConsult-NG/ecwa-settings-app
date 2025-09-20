@@ -3,6 +3,9 @@ import { verifyJwt } from '@/lib/auth';
 import { kv } from '@/lib/kv';
 import { AuditLog } from '@/lib/audit';
 
+// Force dynamic rendering for this route
+export const dynamic = 'force-dynamic';
+
 export async function GET(req: NextRequest) {
   try {
     const token = req.cookies.get('auth')?.value;

@@ -4,6 +4,9 @@ import { kv } from '@/lib/kv';
 import { StaffRecord, CreateStaffRequest, generateStaffId } from '@/lib/staff';
 import crypto from 'crypto';
 
+// Force dynamic rendering for this route
+export const dynamic = 'force-dynamic';
+
 // GET /api/staff - Get all staff
 export async function GET(req: NextRequest) {
   try {

@@ -3,6 +3,9 @@
 import { useState, useEffect } from 'react';
 import { ExecutiveRecord, EXECUTIVE_POSITIONS, EXECUTIVE_STATUSES, getStatusColor, getStatusIcon } from '@/lib/executive';
 
+// Force dynamic rendering for this page
+export const dynamic = 'force-dynamic';
+
 export default function ExecutivePage() {
   const [executives, setExecutives] = useState<ExecutiveRecord[]>([]);
   const [loading, setLoading] = useState(true);

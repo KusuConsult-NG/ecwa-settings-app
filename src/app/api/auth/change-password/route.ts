@@ -3,6 +3,9 @@ import bcrypt from 'bcryptjs';
 import { verifyJwt } from '@/lib/auth';
 import { kv, type UserRecord } from '@/lib/kv';
 
+// Force dynamic rendering for this route
+export const dynamic = 'force-dynamic';
+
 export async function POST(req: NextRequest) {
   try {
     const { currentPassword, newPassword } = await req.json();

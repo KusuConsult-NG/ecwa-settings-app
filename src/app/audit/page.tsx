@@ -1,6 +1,9 @@
 "use client"
 import { useState, useEffect } from "react"
 
+// Force dynamic rendering for this page
+export const dynamic = 'force-dynamic';
+
 interface AuditLog {
   id: string;
   action: string;

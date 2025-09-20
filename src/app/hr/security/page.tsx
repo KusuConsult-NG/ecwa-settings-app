@@ -1,6 +1,9 @@
 "use client"
 import { useState, useEffect } from "react"
 
+// Force dynamic rendering for this page
+export const dynamic = 'force-dynamic';
+
 export default function SecurityPage() {
   const [mounted, setMounted] = useState(false)
   const [securitySettings, setSecuritySettings] = useState({

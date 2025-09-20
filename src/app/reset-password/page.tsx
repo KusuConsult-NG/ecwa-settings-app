@@ -2,6 +2,9 @@
 import { useState, useEffect, Suspense } from "react"
 import { useSearchParams } from "next/navigation"
 
+// Force dynamic rendering for this page
+export const dynamic = 'force-dynamic';
+
 interface ResetPasswordError {
   message: string
   code?: string

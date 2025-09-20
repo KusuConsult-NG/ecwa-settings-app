@@ -1,6 +1,9 @@
 "use client"
 import { useEffect, useState } from "react"
 
+// Force dynamic rendering for this page
+export const dynamic = 'force-dynamic';
+
 type Org = { id: string; name: string; type: string; parentId?: string }
 
 export default function CreateDccPage(){

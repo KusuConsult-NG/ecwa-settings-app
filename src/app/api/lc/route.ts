@@ -4,6 +4,9 @@ import { kv } from '@/lib/kv';
 import { LCRecord, CreateLCRequest, generateLCId } from '@/lib/lc';
 import crypto from 'crypto';
 
+// Force dynamic rendering for this route
+export const dynamic = 'force-dynamic';
+
 // GET /api/lc - Get all LC records
 export async function GET(req: NextRequest) {
   try {

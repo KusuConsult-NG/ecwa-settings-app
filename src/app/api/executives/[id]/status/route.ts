@@ -3,6 +3,9 @@ import { ExecutiveRecord } from '@/lib/executive';
 import { verifyJwt } from '@/lib/auth';
 import { kv } from '@/lib/kv';
 
+// Force dynamic rendering for this route
+export const dynamic = 'force-dynamic';
+
 export async function PATCH(
   req: NextRequest,
   { params }: { params: { id: string } }

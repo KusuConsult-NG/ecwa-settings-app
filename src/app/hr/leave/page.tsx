@@ -3,6 +3,9 @@ import { useState, useEffect } from "react"
 import { LeaveRecord, getStatusColor, getStatusIcon, getTypeColor, calculateLeaveDays, LEAVE_TYPES, LEAVE_STATUSES } from '@/lib/leave'
 import { StaffRecord } from '@/lib/staff'
 
+// Force dynamic rendering for this page
+export const dynamic = 'force-dynamic';
+
 export default function LeavePage() {
   const [leaveRecords, setLeaveRecords] = useState<LeaveRecord[]>([])
   const [staff, setStaff] = useState<StaffRecord[]>([])

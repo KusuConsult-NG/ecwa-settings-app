@@ -3,6 +3,9 @@ import { useState, Suspense } from "react"
 import { useSearchParams } from "next/navigation"
 import { apiPost } from "@/lib/fetch-utils"
 
+// Force dynamic rendering for this page
+export const dynamic = 'force-dynamic';
+
 interface LoginError {
   message: string
   code?: string

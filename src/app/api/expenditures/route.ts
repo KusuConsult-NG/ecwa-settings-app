@@ -4,6 +4,9 @@ import { kv } from "@/lib/kv"
 import { ExpenditureRecord, CreateExpenditureRequest } from "@/lib/expenditure"
 import crypto from "crypto"
 
+// Force dynamic rendering for this route
+export const dynamic = 'force-dynamic';
+
 export async function POST(req: NextRequest) {
   try {
     // Get user from JWT token

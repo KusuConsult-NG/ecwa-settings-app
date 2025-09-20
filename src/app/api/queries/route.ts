@@ -4,6 +4,9 @@ import { kv } from '@/lib/kv';
 import { QueryRecord, CreateQueryRequest, generateQueryId } from '@/lib/queries';
 import crypto from 'crypto';
 
+// Force dynamic rendering for this route
+export const dynamic = 'force-dynamic';
+
 // GET /api/queries - Get all queries
 export async function GET(req: NextRequest) {
   try {

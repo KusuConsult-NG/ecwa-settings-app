@@ -111,7 +111,10 @@ export const kv = {
     try {
       // Use Neon KV if available
       if (neonKV) {
-        return await neonKV.get(key);
+        console.log(`🔍 Using Neon KV for get: ${key}`);
+        const result = await neonKV.get(key);
+        console.log(`🔍 Neon KV result for ${key}:`, result ? 'Found' : 'Not found');
+        return result;
       }
 
       const res = await kvFetch(`/get/${encodeURIComponent(key)}`)
@@ -135,7 +138,9 @@ export const kv = {
     try {
       // Use Neon KV if available
       if (neonKV) {
+        console.log(`💾 Using Neon KV for set: ${key}`);
         await neonKV.set(key, value);
+        console.log(`💾 Neon KV set successful for: ${key}`);
         return;
       }
 
