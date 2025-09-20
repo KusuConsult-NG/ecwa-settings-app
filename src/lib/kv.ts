@@ -16,12 +16,29 @@ export type UserRecord = {
 
 // Import Neon KV if available
 let neonKV: any = null;
-try {
-  if (process.env.DATABASE_URL) {
-    neonKV = require('./neon-kv').neonKV;
+let neonKVInitialized = false;
+
+async function initializeNeonKV() {
+  if (neonKVInitialized) return neonKV;
+  
+  try {
+    if (process.env.DATABASE_URL) {
+      console.log('🔧 Initializing Neon KV...');
+      const { neonKV: importedNeonKV } = await import('./neon-kv');
+      neonKV = importedNeonKV;
+      
+      // Initialize the database tables
+      await neonKV.initKVStore();
+      console.log('✅ Neon KV initialized successfully');
+      neonKVInitialized = true;
+      return neonKV;
+    }
+  } catch (error) {
+    console.log('⚠️ Neon KV not available, using file storage:', error.message);
   }
-} catch (error) {
-  console.log('Neon KV not available, using file storage');
+  
+  neonKVInitialized = true;
+  return null;
 }
 
 export class KVError extends Error {
@@ -109,10 +126,13 @@ async function kvFetch(path: string, init?: RequestInit) {
 export const kv = {
   async get(key: string): Promise<string | null> {
     try {
+      // Initialize Neon KV if available
+      const neon = await initializeNeonKV();
+      
       // Use Neon KV if available
-      if (neonKV) {
+      if (neon) {
         console.log(`🔍 Using Neon KV for get: ${key}`);
-        const result = await neonKV.get(key);
+        const result = await neon.get(key);
         console.log(`🔍 Neon KV result for ${key}:`, result ? 'Found' : 'Not found');
         return result;
       }
@@ -136,10 +156,13 @@ export const kv = {
   
   async set(key: string, value: string): Promise<void> {
     try {
+      // Initialize Neon KV if available
+      const neon = await initializeNeonKV();
+      
       // Use Neon KV if available
-      if (neonKV) {
+      if (neon) {
         console.log(`💾 Using Neon KV for set: ${key}`);
-        await neonKV.set(key, value);
+        await neon.set(key, value);
         console.log(`💾 Neon KV set successful for: ${key}`);
         return;
       }
@@ -172,9 +195,12 @@ export const kv = {
   
   async delete(key: string): Promise<void> {
     try {
+      // Initialize Neon KV if available
+      const neon = await initializeNeonKV();
+      
       // Use Neon KV if available
-      if (neonKV) {
-        await neonKV.delete(key);
+      if (neon) {
+        await neon.delete(key);
         return;
       }
 
