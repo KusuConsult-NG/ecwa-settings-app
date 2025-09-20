@@ -29,6 +29,7 @@ export async function middleware(req: NextRequest) {
       pathname.startsWith('/api/org') ||
       pathname.startsWith('/api/test-auth') ||
       pathname.startsWith('/api/setup-db') ||
+      pathname.startsWith('/api/init-db') ||
       pathname.startsWith('/_static') ||
       pathname.match(/\.(ico|png|jpg|jpeg|gif|svg|css|js)$/)) {
     return NextResponse.next();
@@ -52,7 +53,7 @@ export async function middleware(req: NextRequest) {
   return NextResponse.next();
 }
 
-// Apply to all routes except _next, favicon, api/public, api/auth, and api/setup-db
+// Apply to all routes except _next, favicon, api/public, api/auth, api/setup-db, and api/init-db
 export const config = {
-  matcher: ['/((?!_next|favicon.ico|api/public|api/auth|api/setup-db|_static).*)'],
+  matcher: ['/((?!_next|favicon.ico|api/public|api/auth|api/setup-db|api/init-db|_static).*)'],
 };
