@@ -2,14 +2,11 @@ import { MongoClient, Db } from 'mongodb';
 import { attachDatabasePool } from '@vercel/functions';
 
 // MongoDB connection configuration
-const uri = process.env.MONGODB_URI || process.env.DATABASE_URL || 'mongodb://localhost:27017/ecwa-settings';
+const uri = process.env.MONGODB_URI || 'mongodb+srv://gonana:_)(*!%40%23%24%25%5EJo2030%25%26%24%5E@churchflow.mnlhhpg.mongodb.net/ecwa-settings?retryWrites=true&w=majority&appName=Churchflow';
 const options = {
   maxPoolSize: 10,
   serverSelectionTimeoutMS: 5000,
   socketTimeoutMS: 45000,
-  bufferMaxEntries: 0,
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
 };
 
 // Global variable to store the client in development
