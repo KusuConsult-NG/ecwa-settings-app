@@ -6,12 +6,17 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "setup-neon": "node setup-neon.js",
+    "migrate-neon": "node migrate-to-neon.js",
+    "test-neon": "node test-neon-connection.js"
   },
   "dependencies": {
+    "@neondatabase/serverless": "^1.0.1",
     "@sendgrid/mail": "^8.1.6",
     "@types/bcryptjs": "^3.0.0",
     "bcryptjs": "^3.0.2",
+    "dotenv": "^17.2.2",
     "jose": "^6.1.0",
     "lucide-react": "^0.460.0",
     "next": "14.2.5",

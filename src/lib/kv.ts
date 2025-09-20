@@ -14,6 +14,16 @@ export type UserRecord = {
   isActive?: boolean
 }
 
+// Import Neon KV if available
+let neonKV: any = null;
+try {
+  if (process.env.DATABASE_URL) {
+    neonKV = require('./neon-kv').neonKV;
+  }
+} catch (error) {
+  console.log('Neon KV not available, using file storage');
+}
+
 export class KVError extends Error {
   public readonly code: string
   public readonly statusCode: number
@@ -99,6 +109,11 @@ async function kvFetch(path: string, init?: RequestInit) {
 export const kv = {
   async get(key: string): Promise<string | null> {
     try {
+      // Use Neon KV if available
+      if (neonKV) {
+        return await neonKV.get(key);
+      }
+
       const res = await kvFetch(`/get/${encodeURIComponent(key)}`)
       if (!res) {
         // Fallback to file storage
@@ -118,6 +133,12 @@ export const kv = {
   
   async set(key: string, value: string): Promise<void> {
     try {
+      // Use Neon KV if available
+      if (neonKV) {
+        await neonKV.set(key, value);
+        return;
+      }
+
       const res = await kvFetch(`/set/${encodeURIComponent(key)}`, {
         method: 'POST',
         body: JSON.stringify({ value }),
@@ -146,6 +167,12 @@ export const kv = {
   
   async delete(key: string): Promise<void> {
     try {
+      // Use Neon KV if available
+      if (neonKV) {
+        await neonKV.delete(key);
+        return;
+      }
+
       const res = await kvFetch(`/del/${encodeURIComponent(key)}`, {
         method: 'POST',
       })

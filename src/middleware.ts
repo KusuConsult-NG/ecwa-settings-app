@@ -27,6 +27,7 @@ export async function middleware(req: NextRequest) {
       pathname.startsWith('/api/public') || 
       pathname.startsWith('/api/auth') ||
       pathname.startsWith('/api/org') ||
+      pathname.startsWith('/api/test-auth') ||
       pathname.startsWith('/_static') ||
       pathname.match(/\.(ico|png|jpg|jpeg|gif|svg|css|js)$/)) {
     return NextResponse.next();
