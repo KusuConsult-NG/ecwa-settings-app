@@ -86,6 +86,7 @@ function SignupForm() {
       const res = await fetch("/api/auth/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include", // Ensure cookies are included
         body: JSON.stringify({ 
           name: name.trim(), 
           email: email.trim(), 
@@ -118,7 +119,8 @@ function SignupForm() {
       // Redirect to dashboard after successful signup (user is already authenticated)
       setTimeout(() => {
         console.log("Redirecting to dashboard now...")
-        window.location.replace("/dashboard")
+        // Use window.location.href instead of replace to ensure proper navigation
+        window.location.href = "/dashboard"
       }, 1000)
     } catch (err: any) {
       setError({
