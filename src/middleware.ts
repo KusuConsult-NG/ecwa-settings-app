@@ -33,6 +33,9 @@ export async function middleware(req: NextRequest) {
       pathname.startsWith('/api/debug-storage') ||
       pathname.startsWith('/api/fix-login') ||
       pathname.startsWith('/api/force-init') ||
+      pathname.startsWith('/api/init-simple') ||
+      pathname.startsWith('/api/auth/login-new') ||
+      pathname.startsWith('/api/auth/signup-new') ||
       pathname.startsWith('/_static') ||
       pathname.match(/\.(ico|png|jpg|jpeg|gif|svg|css|js)$/)) {
     return NextResponse.next();
@@ -56,7 +59,7 @@ export async function middleware(req: NextRequest) {
   return NextResponse.next();
 }
 
-// Apply to all routes except _next, favicon, api/public, api/auth, api/setup-db, api/init-db, api/debug-storage, api/fix-login, and api/force-init
+// Apply to all routes except _next, favicon, api/public, api/auth, api/setup-db, api/init-db, api/debug-storage, api/fix-login, api/force-init, api/init-simple, api/auth/login-new, and api/auth/signup-new
 export const config = {
-  matcher: ['/((?!_next|favicon.ico|api/public|api/auth|api/setup-db|api/init-db|api/debug-storage|api/fix-login|api/force-init|_static).*)'],
+  matcher: ['/((?!_next|favicon.ico|api/public|api/auth|api/setup-db|api/init-db|api/debug-storage|api/fix-login|api/force-init|api/init-simple|api/auth/login-new|api/auth/signup-new|_static).*)'],
 };
