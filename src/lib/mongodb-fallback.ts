@@ -1,8 +1,29 @@
 import { MongoClient, Db } from 'mongodb';
 import { attachDatabasePool } from '@vercel/functions';
 
-// MongoDB connection configuration
-const uri = process.env.MONGODB_URI || 'mongodb+srv://gonana:_)(*!%40%23%24%25%5EJo2030%25%26%24%5E@churchflow.mnlhhpg.mongodb.net/ecwa-settings?retryWrites=true&w=majority&appName=Churchflow';
+// MongoDB connection configuration with fallbacks
+const getConnectionString = () => {
+  // Try environment variable first
+  if (process.env.MONGODB_URI) {
+    return process.env.MONGODB_URI;
+  }
+  
+  // Try the provided connection string
+  const providedUri = 'mongodb+srv://gonana:_)(*!%40%23%24%25%5EJo2030%25%26%24%5E@churchflow.mnlhhpg.mongodb.net/ecwa-settings?retryWrites=true&w=majority&appName=Churchflow';
+  
+  // Fallback to local MongoDB for development
+  const fallbackUri = 'mongodb://localhost:27017/ecwa-settings';
+  
+  // In production, use the provided URI
+  if (process.env.NODE_ENV === 'production') {
+    return providedUri;
+  }
+  
+  // In development, try local MongoDB first
+  return fallbackUri;
+};
+
+const uri = getConnectionString();
 const options = {
   maxPoolSize: 10,
   serverSelectionTimeoutMS: 5000,
@@ -36,8 +57,13 @@ if (process.env.NODE_ENV === 'development') {
 }
 
 export async function getDatabase(): Promise<Db> {
-  const client = await clientPromise;
-  return client.db('ecwa-settings');
+  try {
+    const client = await clientPromise;
+    return client.db('ecwa-settings');
+  } catch (error) {
+    console.error('❌ MongoDB connection failed:', error);
+    throw new Error('Database connection failed');
+  }
 }
 
 export async function getUsersCollection() {

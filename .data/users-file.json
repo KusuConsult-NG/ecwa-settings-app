@@ -1,0 +1,32 @@
+[
+  {
+    "email": "admin@example.com",
+    "name": "Admin User",
+    "phone": "1234567890",
+    "address": "Test Address",
+    "passwordHash": "$2b$12$/6IEPmGeU.nhK8f1hg6YwOFwkmqYnjlx.IPPZwpubU1bH/Ja4bqp.",
+    "role": "Admin",
+    "orgId": "c3193e66-d5bb-4718-813c-98f821320008",
+    "orgName": "ECWA Organization",
+    "isActive": true,
+    "id": "da084b07-828f-42f2-af43-602c469bfb9f",
+    "createdAt": "2025-09-20T14:09:11.815Z",
+    "updatedAt": "2025-09-20T14:09:11.816Z",
+    "lastLogin": null
+  },
+  {
+    "email": "testfile@example.com",
+    "name": "Test File User",
+    "phone": "1234567890",
+    "address": "Test Address",
+    "passwordHash": "$2b$12$Jn5blNuIFmYJLyq056RhjeH54G60eP18LUENoXGeXvqV6i3QonHbq",
+    "role": "Secretary",
+    "orgId": "3c581670-7993-4036-b6b0-84bb95a812e7",
+    "orgName": "ECWA Organization",
+    "isActive": true,
+    "id": "a208a3c0-5cb4-431d-a0e3-bb4fee7f6a5d",
+    "createdAt": "2025-09-20T14:09:15.416Z",
+    "updatedAt": "2025-09-20T14:09:19.453Z",
+    "lastLogin": "2025-09-20T14:09:19.453Z"
+  }
+]
