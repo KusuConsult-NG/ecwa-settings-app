@@ -2,7 +2,7 @@ import { MongoClient, Db } from 'mongodb';
 import { attachDatabasePool } from '@vercel/functions';
 
 // MongoDB connection configuration
-const uri = process.env.MONGODB_URI || 'mongodb+srv://gonana:_)(*!%40%23%24%25%5EJo2030%25%26%24%5E@churchflow.mnlhhpg.mongodb.net/ecwa-settings?retryWrites=true&w=majority&appName=Churchflow';
+const uri = process.env.MONGODB_URI || 'mongodb+srv://gonana:_)(*!@#$%^Jo2030%&$^@churchflow.mnlhhpg.mongodb.net/ecwa-settings?retryWrites=true&w=majority&appName=Churchflow';
 const options = {
   maxPoolSize: 10,
   serverSelectionTimeoutMS: 5000,
