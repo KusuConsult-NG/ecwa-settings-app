@@ -1,0 +1,17 @@
+[
+  {
+    "email": "admin@example.com",
+    "name": "Admin User",
+    "phone": "1234567890",
+    "address": "Test Address",
+    "passwordHash": "$2b$12$NLEb28KQ.92a6brXxdDOnOSj04MfisuBXAQoAOs4oS5xa.ezsNLGm",
+    "role": "Admin",
+    "orgId": "3ae73af5-140c-44c7-b026-b56a059a2b18",
+    "orgName": "ECWA Organization",
+    "isActive": true,
+    "id": "13c2d426-e7ba-4b6a-b917-68fb097e8ae0",
+    "createdAt": "2025-09-20T10:58:45.604Z",
+    "updatedAt": "2025-09-20T10:58:45.604Z",
+    "lastLogin": null
+  }
+]
