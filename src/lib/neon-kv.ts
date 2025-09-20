@@ -1,7 +1,15 @@
 import { sql } from './database';
 
 // Check if database is available
-const isDatabaseAvailable = () => sql !== null;
+const isDatabaseAvailable = () => {
+  const available = sql !== null && process.env.DATABASE_URL;
+  console.log('🔍 Database availability check:', { 
+    sqlAvailable: sql !== null, 
+    databaseUrl: !!process.env.DATABASE_URL,
+    overall: available 
+  });
+  return available;
+};
 
 export type UserRecord = {
   id: string
@@ -183,10 +191,15 @@ export const neonKV = {
   // Initialize KV store table
   async initKVStore(): Promise<void> {
     try {
+      console.log('🔧 Initializing KV store...');
+      console.log('🔧 Database available:', isDatabaseAvailable());
+      
       if (!isDatabaseAvailable()) {
+        console.log('❌ Database not available for KV store initialization');
         throw new NeonKVError('Database not available');
       }
       
+      console.log('🔧 Creating kv_store table...');
       await sql!`
         CREATE TABLE IF NOT EXISTS kv_store (
           key VARCHAR(255) PRIMARY KEY,
@@ -195,7 +208,7 @@ export const neonKV = {
           updated_at TIMESTAMP DEFAULT NOW()
         )
       `;
-      console.log('✅ KV store table initialized');
+      console.log('✅ KV store table initialized successfully');
     } catch (error) {
       console.error('❌ Error initializing KV store:', error);
       throw error;
