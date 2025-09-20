@@ -24,17 +24,24 @@ async function initializeNeonKV() {
   try {
     if (process.env.DATABASE_URL) {
       console.log('🔧 Initializing Neon KV...');
+      console.log('🔧 DATABASE_URL available:', !!process.env.DATABASE_URL);
+      
       const { neonKV: importedNeonKV } = await import('./neon-kv');
       neonKV = importedNeonKV;
       
       // Initialize the database tables
+      console.log('🔧 Initializing KV store...');
       await neonKV.initKVStore();
       console.log('✅ Neon KV initialized successfully');
+      
       neonKVInitialized = true;
       return neonKV;
+    } else {
+      console.log('⚠️ DATABASE_URL not available, using file storage');
     }
   } catch (error) {
     console.log('⚠️ Neon KV not available, using file storage:', error.message);
+    console.log('⚠️ Error details:', error);
   }
   
   neonKVInitialized = true;
