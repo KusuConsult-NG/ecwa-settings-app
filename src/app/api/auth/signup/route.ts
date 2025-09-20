@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { kv, type UserRecord } from "@/lib/kv"
 import { signJwt, validateEmail, validatePassword, AuthenticationError } from "@/lib/auth"
+import { sql } from '@/lib/database'
 import bcrypt from "bcryptjs"
 import crypto from "crypto"
 
@@ -54,8 +55,13 @@ export async function POST(req: Request) {
     const normalizedAddress = address.trim()
 
     // Check if user already exists
-    const existing = await kv.get(`user:${normalizedEmail}`)
-    if (existing) {
+    const existing = await sql`
+      SELECT key FROM kv_store 
+      WHERE key = ${`user:${normalizedEmail}`}
+      LIMIT 1
+    `;
+    
+    if (existing.length > 0) {
       return NextResponse.json(
         { error: "User already exists with this email", code: "USER_EXISTS" }, 
         { status: 409 }
@@ -83,8 +89,15 @@ export async function POST(req: Request) {
       lastLogin: null
     }
 
-    // Save user to storage
-    await kv.set(`user:${normalizedEmail}`, JSON.stringify(user))
+    // Save user to database
+    await sql`
+      INSERT INTO kv_store (key, value, created_at, updated_at)
+      VALUES (${`user:${normalizedEmail}`}, ${JSON.stringify(user)}, NOW(), NOW())
+      ON CONFLICT (key) 
+      DO UPDATE SET 
+        value = EXCLUDED.value,
+        updated_at = NOW();
+    `;
 
     // Generate token using new JWT system
     const token = await signJwt({

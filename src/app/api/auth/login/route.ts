@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import { signJwt } from '@/lib/auth';
 import { kv, type UserRecord } from '@/lib/kv';
+import { sql } from '@/lib/database';
 
 export async function POST(req: Request) {
   try {
@@ -16,16 +17,22 @@ export async function POST(req: Request) {
     const normalizedEmail = email.toLowerCase().trim();
     console.log('Normalized email:', normalizedEmail);
 
-    // Look up user in KV store
-    const userData = await kv.get(`user:${normalizedEmail}`);
-    console.log('User data found:', !!userData);
+    // Look up user directly in database
+    console.log('Looking up user in database...');
+    const result = await sql`
+      SELECT key, value FROM kv_store 
+      WHERE key = ${`user:${normalizedEmail}`}
+      LIMIT 1
+    `;
     
-    if (!userData) {
+    console.log('Database result:', result.length > 0 ? 'User found' : 'User not found');
+    
+    if (result.length === 0) {
       console.log('No user found for email:', normalizedEmail);
       return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
     }
 
-    const user: UserRecord = JSON.parse(userData);
+    const user: UserRecord = JSON.parse(result[0].value);
     console.log('User found:', { email: user.email, name: user.name, isActive: user.isActive });
 
     // Check if user is active
@@ -47,7 +54,13 @@ export async function POST(req: Request) {
     // Update last login
     user.lastLogin = new Date().toISOString();
     user.updatedAt = new Date().toISOString();
-    await kv.set(`user:${normalizedEmail}`, JSON.stringify(user));
+    
+    // Update user in database
+    await sql`
+      UPDATE kv_store 
+      SET value = ${JSON.stringify(user)}, updated_at = NOW()
+      WHERE key = ${`user:${normalizedEmail}`}
+    `;
 
     // Generate JWT token
     const token = await signJwt({ 
