@@ -14,37 +14,44 @@ export type UserRecord = {
   isActive?: boolean
 }
 
+// COMMENTED OUT - CAUSING DATABASE MISMATCH ERRORS
 // Import Neon KV if available
-let neonKV: any = null;
-let neonKVInitialized = false;
+// let neonKV: any = null;
+// let neonKVInitialized = false;
 
+// async function initializeNeonKV() {
+//   if (neonKVInitialized) return neonKV;
+//   
+//   try {
+//     if (process.env.DATABASE_URL) {
+//       console.log('🔧 Initializing Neon KV...');
+//       console.log('🔧 DATABASE_URL available:', !!process.env.DATABASE_URL);
+//       
+//       const { neonKV: importedNeonKV } = await import('./neon-kv');
+//       neonKV = importedNeonKV;
+//       
+//       // Initialize the database tables
+//       console.log('🔧 Initializing KV store...');
+//       await neonKV.initKVStore();
+//       console.log('✅ Neon KV initialized successfully');
+//       
+//       neonKVInitialized = true;
+//       return neonKV;
+//     } else {
+//       console.log('⚠️ DATABASE_URL not available, using file storage');
+//     }
+//   } catch (error) {
+//     console.log('⚠️ Neon KV not available, using file storage:', error.message);
+//     console.log('⚠️ Error details:', error);
+//   }
+//   
+//   neonKVInitialized = true;
+//   return null;
+// }
+
+// Simplified initialization - always use file storage
 async function initializeNeonKV() {
-  if (neonKVInitialized) return neonKV;
-  
-  try {
-    if (process.env.DATABASE_URL) {
-      console.log('🔧 Initializing Neon KV...');
-      console.log('🔧 DATABASE_URL available:', !!process.env.DATABASE_URL);
-      
-      const { neonKV: importedNeonKV } = await import('./neon-kv');
-      neonKV = importedNeonKV;
-      
-      // Initialize the database tables
-      console.log('🔧 Initializing KV store...');
-      await neonKV.initKVStore();
-      console.log('✅ Neon KV initialized successfully');
-      
-      neonKVInitialized = true;
-      return neonKV;
-    } else {
-      console.log('⚠️ DATABASE_URL not available, using file storage');
-    }
-  } catch (error) {
-    console.log('⚠️ Neon KV not available, using file storage:', error.message);
-    console.log('⚠️ Error details:', error);
-  }
-  
-  neonKVInitialized = true;
+  console.log('🔧 Using file storage (Neon KV disabled)');
   return null;
 }
 

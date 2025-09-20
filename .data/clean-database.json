@@ -1,0 +1,47 @@
+{
+  "users": [
+    {
+      "id": "711911a9-d8c0-41d6-873e-8ad90dc77813",
+      "email": "admin@example.com",
+      "name": "Admin User",
+      "phone": "1234567890",
+      "address": "Admin Address",
+      "passwordHash": "$2b$12$XGuLIV8RZLvoAvC5n//F1uwIEY4k9X78dJmXTLtEgLZ3DsNEQNDty",
+      "role": "Admin",
+      "orgId": "42b256ec-fdf5-4546-ae92-8ceb3f3eac89",
+      "orgName": "ECWA Organization",
+      "isActive": true,
+      "createdAt": "2025-09-20T14:17:07.373Z",
+      "updatedAt": "2025-09-20T14:17:07.373Z",
+      "lastLogin": null
+    },
+    {
+      "email": "cleantest@example.com",
+      "name": "Clean Test User",
+      "phone": "1234567890",
+      "address": "Clean Address",
+      "passwordHash": "$2b$12$RztkOYn9CKWGPU9bWT0VS.yK/CRiLDy5JrzaTpkIuY1mun95ZDjme",
+      "role": "Secretary",
+      "orgId": "4833bd77-9ff2-466a-82ef-2ec66bc25e3c",
+      "orgName": "ECWA Organization",
+      "isActive": true,
+      "id": "7361410a-6b55-4445-8e1f-875a6296a53c",
+      "createdAt": "2025-09-20T14:17:12.703Z",
+      "updatedAt": "2025-09-20T14:17:17.170Z",
+      "lastLogin": "2025-09-20T14:17:17.170Z"
+    }
+  ],
+  "organizations": [],
+  "agencies": [],
+  "staff": [],
+  "leaders": [],
+  "lc": [],
+  "lcc": [],
+  "leave_requests": [],
+  "payroll": [],
+  "queries": [],
+  "expenditures": [],
+  "income": [],
+  "bank_accounts": [],
+  "executives": []
+}
