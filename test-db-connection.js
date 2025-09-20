@@ -1,63 +1,79 @@
-// Test Neon Database Connection
-import { neon } from '@neondatabase/serverless';
+// Test database connection across different endpoints
+const BASE_URL = 'https://ecwa-settings-app-1zja.vercel.app';
 
-const DATABASE_URL = 'postgresql://neondb_owner:npg_8iVZwHmaxgy7@ep-old-truth-admsvs0a-pooler.c-2.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require';
+async function testDatabaseConnection() {
+  console.log('🔍 TESTING DATABASE CONNECTION ACROSS APPLICATION\n');
 
-async function testConnection() {
   try {
-    console.log('🔌 Testing Neon database connection...');
+    // Test 1: Test-auth endpoint (should work)
+    console.log('1️⃣ Testing test-auth endpoint...');
+    const testAuthResponse = await fetch(`${BASE_URL}/api/test-auth`);
+    const testAuthData = await testAuthResponse.json();
+    console.log('✅ Test-auth result:', testAuthData);
+
+    // Test 2: Signup endpoint (should work)
+    console.log('\n2️⃣ Testing signup endpoint...');
+    const signupResponse = await fetch(`${BASE_URL}/api/auth/signup`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        email: 'dbtest2@example.com',
+        password: 'DbTest123!',
+        name: 'DB Test User 2',
+        phone: '1234567890',
+        address: 'DB Test Address 2'
+      })
+    });
     
-    const sql = neon(DATABASE_URL);
+    const signupData = await signupResponse.json();
+    console.log('✅ Signup result:', signupData);
+
+    // Test 3: Login endpoint (currently failing)
+    console.log('\n3️⃣ Testing login endpoint...');
+    const loginResponse = await fetch(`${BASE_URL}/api/auth/login`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        email: 'dbtest2@example.com',
+        password: 'DbTest123!'
+      })
+    });
     
-    // Test basic connection
-    const result = await sql`SELECT NOW() as current_time, version() as postgres_version`;
-    
-    console.log('✅ Database connected successfully!');
-    console.log('📅 Current time:', result[0].current_time);
-    console.log('🐘 PostgreSQL version:', result[0].postgres_version);
-    
-    // Test if we can create tables
-    console.log('\n🔧 Testing table creation...');
-    
-    await sql`
-      CREATE TABLE IF NOT EXISTS test_table (
-        id SERIAL PRIMARY KEY,
-        name VARCHAR(100),
-        created_at TIMESTAMP DEFAULT NOW()
-      )
-    `;
-    
-    console.log('✅ Table creation successful!');
-    
-    // Test insert
-    await sql`
-      INSERT INTO test_table (name) 
-      VALUES ('Test Entry') 
-      ON CONFLICT DO NOTHING
-    `;
-    
-    console.log('✅ Insert operation successful!');
-    
-    // Test select
-    const testData = await sql`SELECT * FROM test_table LIMIT 5`;
-    console.log('✅ Select operation successful!');
-    console.log('📊 Test data:', testData);
-    
-    // Clean up test table
-    await sql`DROP TABLE IF EXISTS test_table`;
-    console.log('🧹 Test table cleaned up!');
-    
-    console.log('\n🎉 All database tests passed! Your Neon database is ready for deployment.');
-    
+    const loginData = await loginResponse.json();
+    console.log('❌ Login result:', loginData);
+
+    // Test 4: Organizations endpoint (requires auth)
+    console.log('\n4️⃣ Testing organizations endpoint...');
+    const orgResponse = await fetch(`${BASE_URL}/api/organizations`);
+    const orgData = await orgResponse.json();
+    console.log('🔒 Organizations result:', orgData);
+
+    // Test 5: Agencies endpoint (requires auth)
+    console.log('\n5️⃣ Testing agencies endpoint...');
+    const agenciesResponse = await fetch(`${BASE_URL}/api/agencies`);
+    const agenciesData = await agenciesResponse.json();
+    console.log('🔒 Agencies result:', agenciesData);
+
+    console.log('\n📊 SUMMARY:');
+    console.log('✅ test-auth: Working (uses KV storage)');
+    console.log('✅ signup: Working (uses direct database)');
+    console.log('❌ login: Failing (uses direct database)');
+    console.log('🔒 organizations: Requires authentication');
+    console.log('🔒 agencies: Requires authentication');
+
+    console.log('\n🔍 ANALYSIS:');
+    console.log('- Database connection works for some endpoints');
+    console.log('- Signup works (creates users in database)');
+    console.log('- Login fails (can\'t read users from database)');
+    console.log('- This suggests a read/write inconsistency');
+
   } catch (error) {
-    console.error('❌ Database connection failed:');
-    console.error('Error:', error.message);
-    console.error('\n🔍 Troubleshooting:');
-    console.error('1. Check if the DATABASE_URL is correct');
-    console.error('2. Verify your Neon database is active');
-    console.error('3. Check if your IP is whitelisted in Neon console');
-    console.error('4. Ensure the database exists and is accessible');
+    console.error('❌ Test failed:', error.message);
   }
 }
 
-testConnection();
+testDatabaseConnection();

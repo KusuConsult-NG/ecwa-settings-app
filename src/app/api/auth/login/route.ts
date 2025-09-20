@@ -17,6 +17,12 @@ export async function POST(req: Request) {
     const normalizedEmail = email.toLowerCase().trim();
     console.log('Normalized email:', normalizedEmail);
 
+    // Check if database is available
+    if (!sql) {
+      console.log('❌ Database not available in login route');
+      return NextResponse.json({ error: 'Database not available' }, { status: 500 });
+    }
+
     // Look up user directly in database
     console.log('Looking up user in database...');
     const result = await sql`
