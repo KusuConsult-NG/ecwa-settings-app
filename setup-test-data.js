@@ -78,14 +78,58 @@ async function setupTestData() {
       data[`user:${user.email}`] = JSON.stringify(user);
     }
     
+    // Create some test leaders for verification login
+    const testLeaders = [
+      {
+        id: 'leader-001',
+        firstName: 'Test',
+        surname: 'Leader',
+        email: 'leader@ecwa.org',
+        position: 'Chairman',
+        organizationId: 'org-001',
+        organizationLevel: 'LC',
+        verificationCode: '123456',
+        verificationExpiry: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+        verificationStatus: 'pending',
+        isActive: true,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      },
+      {
+        id: 'leader-002',
+        firstName: 'John',
+        surname: 'Doe',
+        email: 'john@ecwa.org',
+        position: 'Secretary',
+        organizationId: 'org-001',
+        organizationLevel: 'DCC',
+        verificationCode: '654321',
+        verificationExpiry: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+        verificationStatus: 'pending',
+        isActive: true,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      }
+    ];
+    
+    data['leaders:index'] = JSON.stringify(testLeaders);
+    for (const leader of testLeaders) {
+      data[`leader:${leader.id}`] = JSON.stringify(leader);
+    }
+    
     // Save updated data
     await fs.writeFile(dataFile, JSON.stringify(data, null, 2));
     
     console.log('✅ Test data setup complete!');
     console.log('');
     console.log('🔑 Test Credentials:');
-    console.log('Admin: admin@ecwa.org / admin123');
-    console.log('User:  test@ecwa.org / test123');
+    console.log('Regular Login:');
+    console.log('  Admin: admin@ecwa.org / admin123');
+    console.log('  User:  test@ecwa.org / test123');
+    console.log('');
+    console.log('Leader Verification Login:');
+    console.log('  Leader 1: leader@ecwa.org / 123456');
+    console.log('  Leader 2: john@ecwa.org / 654321');
     console.log('');
     console.log('🚀 You can now run: bun run dev');
     

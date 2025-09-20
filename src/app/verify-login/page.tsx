@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, Suspense } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 
 interface LoginError {
@@ -13,14 +13,61 @@ function VerifyLoginForm() {
   const [code, setCode] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [surname, setSurname] = useState("");
+  const [phone, setPhone] = useState("");
+  const [address, setAddress] = useState("");
+  const [selectedDcc, setSelectedDcc] = useState("");
+  const [selectedLcc, setSelectedLcc] = useState("");
+  const [selectedLc, setSelectedLc] = useState("");
+  const [dccs, setDccs] = useState<any[]>([]);
+  const [lccs, setLccs] = useState<any[]>([]);
+  const [lcs, setLcs] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<LoginError | null>(null);
-  const [step, setStep] = useState<'verify' | 'password'>('verify');
+  const [step, setStep] = useState<'verify' | 'profile'>('verify');
   const [user, setUser] = useState<any>(null);
   const searchParams = useSearchParams();
 
   // Check for redirect parameter
   const redirect = searchParams?.get("next") || "/dashboard";
+
+  // Load organizations when profile step is reached
+  useEffect(() => {
+    if (step === 'profile') {
+      // Load DCCs
+      fetch('/api/org?type=DCC')
+        .then(r => r.json())
+        .then(data => setDccs(data.items || []))
+        .catch(err => console.error('Failed to load DCCs:', err));
+    }
+  }, [step]);
+
+  // Load LCCs when DCC is selected
+  useEffect(() => {
+    if (selectedDcc) {
+      fetch(`/api/org?type=LCC&parentId=${selectedDcc}`)
+        .then(r => r.json())
+        .then(data => setLccs(data.items || []))
+        .catch(err => console.error('Failed to load LCCs:', err));
+    } else {
+      setLccs([]);
+      setSelectedLcc("");
+    }
+  }, [selectedDcc]);
+
+  // Load LCs when LCC is selected
+  useEffect(() => {
+    if (selectedLcc) {
+      fetch(`/api/org?type=LC&parentId=${selectedLcc}`)
+        .then(r => r.json())
+        .then(data => setLcs(data.items || []))
+        .catch(err => console.error('Failed to load LCs:', err));
+    } else {
+      setLcs([]);
+      setSelectedLc("");
+    }
+  }, [selectedLcc]);
 
   async function handleVerifyLogin(e: React.FormEvent) {
     e.preventDefault();
@@ -67,10 +114,15 @@ function VerifyLoginForm() {
 
       setUser(data.user);
       
-      // Check if this is first login (needs password setup)
+      // Check if this is first login (needs profile setup)
       if (data.user.isFirstLogin) {
-        setStep('password');
-        console.log("First login - password setup required");
+        setStep('profile');
+        // Pre-populate with existing data if available
+        setFirstName(data.user.firstName || '');
+        setSurname(data.user.surname || '');
+        setPhone(data.user.phone || '');
+        setAddress(data.user.address || '');
+        console.log("First login - profile setup required");
       } else {
         // Regular login - redirect to dashboard
         console.log("Login successful, redirecting to:", redirect);
@@ -90,12 +142,24 @@ function VerifyLoginForm() {
     }
   }
 
-  async function handlePasswordSetup(e: React.FormEvent) {
+  async function handleProfileSetup(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
     setError(null);
 
     // Basic client-side validation
+    if (!firstName.trim()) {
+      setError({ message: "First name is required", code: "MISSING_FIRST_NAME" });
+      setLoading(false);
+      return;
+    }
+
+    if (!surname.trim()) {
+      setError({ message: "Surname is required", code: "MISSING_SURNAME" });
+      setLoading(false);
+      return;
+    }
+
     if (!password) {
       setError({ message: "Password is required", code: "MISSING_PASSWORD" });
       setLoading(false);
@@ -115,84 +179,221 @@ function VerifyLoginForm() {
     }
 
     try {
-      console.log("Frontend: Setting up password");
+      console.log("Frontend: Setting up profile and password");
       const res = await fetch("/api/auth/verify-login", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ password })
+        body: JSON.stringify({ 
+          password,
+          firstName: firstName.trim(),
+          surname: surname.trim(),
+          phone: phone.trim() || undefined,
+          address: address.trim() || undefined,
+          dccId: selectedDcc || undefined,
+          lccId: selectedLcc || undefined,
+          lcId: selectedLc || undefined
+        })
       });
       
-      console.log("Frontend: Password setup response status:", res.status);
+      console.log("Frontend: Profile setup response status:", res.status);
       
       if (!res.ok) {
         const errorText = await res.text();
-        console.log("Frontend: Password setup failed with error text:", errorText);
+        console.log("Frontend: Profile setup failed with error text:", errorText);
         let errorData;
         try {
           errorData = JSON.parse(errorText);
         } catch {
-          errorData = { error: errorText || "Password setup failed" };
+          errorData = { error: errorText || "Profile setup failed" };
         }
-        throw new Error(errorData.error || "Password setup failed");
+        throw new Error(errorData.error || "Profile setup failed");
       }
       
       const data = await res.json();
-      console.log("Frontend: Password setup response data:", data);
+      console.log("Frontend: Profile setup response data:", data);
 
-      // Password setup successful - redirect to dashboard
-      console.log("Password setup successful, redirecting to:", redirect);
+      // Profile setup successful - redirect to dashboard
+      console.log("Profile setup successful, redirecting to:", redirect);
       window.dispatchEvent(new CustomEvent('userLoggedIn', { detail: user }));
       setTimeout(() => {
         window.location.replace(redirect);
       }, 1000);
     } catch (err: any) {
-      console.log("Frontend: Password setup error caught:", err);
+      console.log("Frontend: Profile setup error caught:", err);
       setError({
         message: err.message || "An unexpected error occurred",
-        code: "PASSWORD_SETUP_FAILED"
+        code: "PROFILE_SETUP_FAILED"
       });
     } finally {
       setLoading(false);
     }
   }
 
-  if (step === 'password') {
+  if (step === 'profile') {
     return (
       <section className="container">
         <div className="auth card">
           <h2>Complete Your Profile</h2>
-          <p>Welcome, {user?.name}! Please set up your password to complete your profile.</p>
+          <p>Welcome, {user?.name}! Please complete your profile information and set up your password.</p>
           
-          <form onSubmit={handlePasswordSetup}>
-            <div style={{ marginBottom: "1rem" }}>
-              <label htmlFor="password">New Password *</label>
-              <input
-                id="password"
-                type="password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Enter your password"
-                disabled={loading}
-                autoComplete="new-password"
-                minLength={8}
-              />
-              <small>Password must be at least 8 characters long</small>
+          <form onSubmit={handleProfileSetup}>
+            {/* Personal Information Section */}
+            <div style={{ marginBottom: "1.5rem", paddingBottom: "1rem", borderBottom: "1px solid var(--line)" }}>
+              <h3 style={{ margin: "0 0 1rem 0", color: "var(--primary)", fontSize: "1.1rem" }}>Personal Information</h3>
+              
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem", marginBottom: "1rem" }}>
+                <div>
+                  <label htmlFor="firstName">First Name *</label>
+                  <input
+                    id="firstName"
+                    type="text"
+                    required
+                    value={firstName}
+                    onChange={(e) => setFirstName(e.target.value)}
+                    placeholder="Enter your first name"
+                    disabled={loading}
+                    autoComplete="given-name"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="surname">Surname *</label>
+                  <input
+                    id="surname"
+                    type="text"
+                    required
+                    value={surname}
+                    onChange={(e) => setSurname(e.target.value)}
+                    placeholder="Enter your surname"
+                    disabled={loading}
+                    autoComplete="family-name"
+                  />
+                </div>
+              </div>
+              
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem", marginBottom: "1rem" }}>
+                <div>
+                  <label htmlFor="phone">Phone Number</label>
+                  <input
+                    id="phone"
+                    type="tel"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    placeholder="+234 803 123 4567"
+                    disabled={loading}
+                    autoComplete="tel"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="address">Address</label>
+                  <input
+                    id="address"
+                    type="text"
+                    value={address}
+                    onChange={(e) => setAddress(e.target.value)}
+                    placeholder="123 Church Street, City, State"
+                    disabled={loading}
+                    autoComplete="street-address"
+                  />
+                </div>
+              </div>
+
+              {/* Organization Selection */}
+              <div style={{ marginBottom: "1rem" }}>
+                <h4 style={{ margin: "0 0 0.75rem 0", color: "var(--text)", fontSize: "1rem", fontWeight: "600" }}>Organization Affiliation</h4>
+                <p style={{ margin: "0 0 1rem 0", color: "var(--muted)", fontSize: "0.875rem" }}>
+                  Select the organizations you are affiliated with (optional)
+                </p>
+                
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "1rem" }}>
+                  <div>
+                    <label htmlFor="selectedDcc">DCC (District)</label>
+                    <select
+                      id="selectedDcc"
+                      value={selectedDcc}
+                      onChange={(e) => {
+                        setSelectedDcc(e.target.value);
+                        setSelectedLcc("");
+                        setSelectedLc("");
+                      }}
+                      disabled={loading}
+                    >
+                      <option value="">Select DCC</option>
+                      {dccs.map(dcc => (
+                        <option key={dcc.id} value={dcc.id}>{dcc.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                  
+                  <div>
+                    <label htmlFor="selectedLcc">LCC (Local Council)</label>
+                    <select
+                      id="selectedLcc"
+                      value={selectedLcc}
+                      onChange={(e) => {
+                        setSelectedLcc(e.target.value);
+                        setSelectedLc("");
+                      }}
+                      disabled={!selectedDcc || loading}
+                    >
+                      <option value="">Select LCC</option>
+                      {lccs.map(lcc => (
+                        <option key={lcc.id} value={lcc.id}>{lcc.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                  
+                  <div>
+                    <label htmlFor="selectedLc">LC (Local Church)</label>
+                    <select
+                      id="selectedLc"
+                      value={selectedLc}
+                      onChange={(e) => setSelectedLc(e.target.value)}
+                      disabled={!selectedLcc || loading}
+                    >
+                      <option value="">Select LC</option>
+                      {lcs.map(lc => (
+                        <option key={lc.id} value={lc.id}>{lc.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+              </div>
             </div>
-            
-            <div style={{ marginBottom: "1rem" }}>
-              <label htmlFor="confirmPassword">Confirm Password *</label>
-              <input
-                id="confirmPassword"
-                type="password"
-                required
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                placeholder="Confirm your password"
-                disabled={loading}
-                autoComplete="new-password"
-                minLength={8}
-              />
+
+            {/* Security Section */}
+            <div style={{ marginBottom: "1.5rem" }}>
+              <h3 style={{ margin: "0 0 1rem 0", color: "var(--primary)", fontSize: "1.1rem" }}>Security</h3>
+              
+              <div style={{ marginBottom: "1rem" }}>
+                <label htmlFor="password">New Password *</label>
+                <input
+                  id="password"
+                  type="password"
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Enter your password"
+                  disabled={loading}
+                  autoComplete="new-password"
+                  minLength={8}
+                />
+                <small>Password must be at least 8 characters long</small>
+              </div>
+              
+              <div style={{ marginBottom: "1rem" }}>
+                <label htmlFor="confirmPassword">Confirm Password *</label>
+                <input
+                  id="confirmPassword"
+                  type="password"
+                  required
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="Confirm your password"
+                  disabled={loading}
+                  autoComplete="new-password"
+                  minLength={8}
+                />
+              </div>
             </div>
             
             <div style={{ marginTop: "1rem", display: "flex", gap: ".5rem", justifyContent: "space-between", alignItems: "center" }}>
@@ -209,7 +410,7 @@ function VerifyLoginForm() {
                 className="btn primary" 
                 disabled={loading}
               >
-                {loading ? "Setting up..." : "Complete Setup"}
+                {loading ? "Completing Setup..." : "Complete Profile Setup"}
               </button>
             </div>
           </form>

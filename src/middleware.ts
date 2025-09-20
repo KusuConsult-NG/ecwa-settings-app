@@ -3,7 +3,20 @@ import type { NextRequest } from 'next/server';
 import { verifyJwt } from '@/lib/auth';
 
 // Public routes (no login required)
-const PUBLIC = new Set<string>(['/', '/login', '/signup', '/reset', '/reset-password', '/verify-login', '/favicon.ico']);
+const PUBLIC = new Set<string>([
+  '/', 
+  '/login', 
+  '/signup', 
+  '/reset', 
+  '/reset-password', 
+  '/verify-login', 
+  '/org',
+  '/org/gcc',
+  '/org/dcc',
+  '/org/lcc', 
+  '/org/create',
+  '/favicon.ico'
+]);
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
@@ -13,6 +26,7 @@ export async function middleware(req: NextRequest) {
       pathname.startsWith('/_next') || 
       pathname.startsWith('/api/public') || 
       pathname.startsWith('/api/auth') ||
+      pathname.startsWith('/api/org') ||
       pathname.startsWith('/_static') ||
       pathname.match(/\.(ico|png|jpg|jpeg|gif|svg|css|js)$/)) {
     return NextResponse.next();

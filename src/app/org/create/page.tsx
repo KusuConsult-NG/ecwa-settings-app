@@ -9,9 +9,11 @@ export default function OrgCreatePage() {
   const [selectedDcc, setSelectedDcc] = useState<string>("")
   const [selectedLcc, setSelectedLcc] = useState<string>("")
   const [lcName, setLcName] = useState("")
+  const [email, setEmail] = useState("")
   const [address, setAddress] = useState("")
   const [phone, setPhone] = useState("")
   const [mounted, setMounted] = useState(false)
+  const [loading, setLoading] = useState(false)
 
   useEffect(() => {
     setMounted(true)
@@ -29,8 +31,9 @@ export default function OrgCreatePage() {
 
   async function createLC(e: React.FormEvent) {
     e.preventDefault()
-    if (!selectedLcc || !lcName) return
+    if (!selectedLcc || !lcName || !email) return
     
+    setLoading(true)
     try {
       const res = await fetch("/api/org", { 
         method: "POST", 
@@ -39,6 +42,7 @@ export default function OrgCreatePage() {
           name: lcName, 
           type: "LC", 
           parentId: selectedLcc,
+          email: email.trim(),
           address: address || undefined,
           phone: phone || undefined
         }) 
@@ -56,6 +60,7 @@ export default function OrgCreatePage() {
             role: "admin" // Give admin privileges to the creator
           }) 
         })
+        alert(`LC created successfully! Verification code sent to ${email}`)
         window.location.href = "/settings"
       } else {
         const error = await res.json()
@@ -64,6 +69,8 @@ export default function OrgCreatePage() {
     } catch (error) {
       console.error('Error creating organization:', error)
       alert('Failed to create organization. Please try again.')
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -125,6 +132,18 @@ export default function OrgCreatePage() {
                 onChange={(e)=>setLcName(e.target.value)} 
                 placeholder="ECWA • LC – ..." 
                 required
+                disabled={loading}
+              />
+            </div>
+            <div>
+              <label >Contact Email *</label>
+              <input 
+                type="email"
+                value={email} 
+                onChange={(e)=>setEmail(e.target.value)} 
+                placeholder="admin@ecwa-lc-name.org"
+                required
+                disabled={loading}
               />
             </div>
           </div>
@@ -149,7 +168,13 @@ export default function OrgCreatePage() {
           <div className="row">
             <div>
               <label>&nbsp;</label>
-              <button type="submit" className="btn primary">Create LC</button>
+              <button 
+                type="submit" 
+                className="btn primary"
+                disabled={loading || !selectedLcc || !lcName || !email}
+              >
+                {loading ? 'Creating...' : 'Create LC'}
+              </button>
             </div>
           </div>
         </form>

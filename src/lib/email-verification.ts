@@ -58,7 +58,7 @@ export function getEmailTemplate(
             <ul>
               <li>This code expires in 30 minutes</li>
               <li>Use your email address and this code to log in</li>
-              <li>You will be prompted to set up your password on first login</li>
+              <li>You will be prompted to complete your profile and set up your password on first login</li>
             </ul>
             <p>If you did not expect this email, please contact the organization administrator.</p>
             <hr style="margin: 30px 0; border: none; border-top: 1px solid #e5e7eb;">
@@ -81,7 +81,7 @@ VERIFICATION CODE: ${code}
 Important:
 - This code expires in 30 minutes
 - Use your email address and this code to log in
-- You will be prompted to set up your password on first login
+- You will be prompted to complete your profile and set up your password on first login
 
 If you did not expect this email, please contact the organization administrator.
 

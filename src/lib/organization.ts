@@ -22,6 +22,7 @@ export interface Leader {
   otherNames?: string;
   email: string;
   phone: string;
+  address?: string;
   position: LeaderPosition;
   organizationId: string;
   organizationLevel: OrganizationLevel;
@@ -33,6 +34,11 @@ export interface Leader {
   createdAt: string;
   updatedAt: string;
   lastLogin?: string;
+  affiliations?: {
+    dccId?: string;
+    lccId?: string;
+    lcId?: string;
+  };
 }
 
 export interface Organization {

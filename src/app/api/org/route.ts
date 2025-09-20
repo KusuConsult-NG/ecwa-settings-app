@@ -169,7 +169,7 @@ async function seedECWAData() {
 
 export async function POST(req: Request) {
   const body = await req.json()
-  const { id, name, type, parentId, address, phone } = body || {}
+  const { id, name, type, parentId, address, phone, email, website, executiveRoles } = body || {}
   if (!name || !type) return NextResponse.json({ error: 'Missing fields' }, { status: 400 })
   
   const raw = await kv.get(`org:index`)
@@ -182,13 +182,212 @@ export async function POST(req: Request) {
     parentId,
     address: address || null,
     phone: phone || null,
+    email: email || null,
+    website: website || null,
+    executiveRoles: executiveRoles || [],
     createdAt: new Date().toISOString()
   }
   
   index.push(rec)
   await kv.set(`org:index`, JSON.stringify(index))
   await kv.set(`org:${newId}`, JSON.stringify(rec))
+  
+  // If email is provided, create leader records and send verification codes
+  if (email) {
+    if (type === 'GCC' && executiveRoles && executiveRoles.length > 0) {
+      // For GCC, create multiple executive leaders
+      await createGCCExecutives(rec, email, executiveRoles)
+    } else {
+      // For other organizations, create admin leader and assign secretary role
+      await createLeaderAndSendCode(rec, email, 'admin')
+      
+      // Also create a secretary role for the first user
+      await createLeaderAndSendCode(rec, email, 'Secretary')
+    }
+  }
+  
   return NextResponse.json({ ok: true, org: rec })
+}
+
+async function createLeaderAndSendCode(org: any, email: string, role: string = 'admin') {
+  try {
+    // Generate verification code
+    const verificationCode = Math.floor(100000 + Math.random() * 900000).toString()
+    const verificationExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString() // 24 hours
+    
+    // Create leader record
+    const leaderId = `leader-${Math.random().toString(36).slice(2,8)}`
+    const leader = {
+      id: leaderId,
+      firstName: 'Admin',
+      surname: org.name.split(' ').pop() || 'Leader',
+      email: email.toLowerCase().trim(),
+      position: role === 'admin' ? 'Administrator' : role,
+      organizationId: org.id,
+      organizationLevel: org.type,
+      verificationCode,
+      verificationExpiry,
+      verificationStatus: 'pending',
+      isActive: true,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    }
+    
+    // Save leader
+    await kv.set(`leader:${leaderId}`, JSON.stringify(leader))
+    
+    // Update leaders index
+    const leadersData = await kv.get('leaders:index')
+    const leaders = leadersData ? JSON.parse(leadersData) : []
+    leaders.push(leader)
+    await kv.set('leaders:index', JSON.stringify(leaders))
+    
+    // Send verification email
+    await sendVerificationEmail(email, verificationCode, org.name, role)
+    
+    console.log(`Verification code ${verificationCode} sent to ${email} for ${org.name} (${role})`)
+  } catch (error) {
+    console.error('Error creating leader and sending verification code:', error)
+  }
+}
+
+async function createGCCExecutives(org: any, email: string, executiveRoles: string[]) {
+  try {
+    const roleTitles: { [key: string]: string } = {
+      'president': 'President',
+      'vice-president': 'Vice President',
+      'general-secretary': 'General Secretary',
+      'assistant-secretary': 'Assistant Secretary',
+      'treasurer': 'Treasurer',
+      'assistant-treasurer': 'Assistant Treasurer',
+      'evangelism-secretary': 'Evangelism Secretary',
+      'youth-secretary': 'Youth Secretary',
+      'women-secretary': 'Women Secretary',
+      'men-secretary': 'Men Secretary',
+      'children-secretary': 'Children Secretary',
+      'education-secretary': 'Education Secretary',
+      'social-secretary': 'Social Secretary',
+      'legal-advisor': 'Legal Advisor',
+      'auditor': 'Auditor'
+    }
+
+    const leaders = []
+    
+    for (const roleId of executiveRoles) {
+      const roleTitle = roleTitles[roleId] || roleId
+      const verificationCode = Math.floor(100000 + Math.random() * 900000).toString()
+      const verificationExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
+      
+      const leaderId = `leader-${Math.random().toString(36).slice(2,8)}`
+      const leader = {
+        id: leaderId,
+        firstName: roleTitle.split(' ')[0],
+        surname: org.name.split(' ').pop() || 'Executive',
+        email: email.toLowerCase().trim(),
+        position: roleTitle,
+        organizationId: org.id,
+        organizationLevel: org.type,
+        verificationCode,
+        verificationExpiry,
+        verificationStatus: 'pending',
+        isActive: true,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      }
+      
+      // Save individual leader
+      await kv.set(`leader:${leaderId}`, JSON.stringify(leader))
+      leaders.push(leader)
+      
+      // Send verification email for each role
+      await sendVerificationEmail(email, verificationCode, org.name, roleTitle)
+      
+      console.log(`Verification code ${verificationCode} sent to ${email} for ${org.name} (${roleTitle})`)
+    }
+    
+    // Update leaders index with all new leaders
+    const leadersData = await kv.get('leaders:index')
+    const existingLeaders = leadersData ? JSON.parse(leadersData) : []
+    const allLeaders = [...existingLeaders, ...leaders]
+    await kv.set('leaders:index', JSON.stringify(allLeaders))
+    
+  } catch (error) {
+    console.error('Error creating GCC executives:', error)
+  }
+}
+
+async function sendVerificationEmail(email: string, code: string, orgName: string, role: string = 'Administrator') {
+  try {
+    const { sendEmail } = await import('@/lib/email-service')
+    
+    const subject = `Verification Code for ${orgName} - ${role} Position`
+    const html = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <h2 style="color: #2563eb;">ECWA Settings - Executive Verification</h2>
+        <p>Hello,</p>
+        <p>You have been assigned the position of <strong>${role}</strong> in the organization <strong>${orgName}</strong>!</p>
+        <p>To complete your setup and gain access to your executive dashboard, please use the verification code below:</p>
+        
+        <div style="background-color: #f3f4f6; padding: 20px; text-align: center; margin: 20px 0; border-radius: 8px;">
+          <h1 style="color: #1f2937; font-size: 32px; margin: 0; letter-spacing: 4px;">${code}</h1>
+        </div>
+        
+        <p>Please visit <a href="https://ecwa-settings-app-1zja.vercel.app/verify-login" style="color: #2563eb;">https://ecwa-settings-app-1zja.vercel.app/verify-login</a> and enter this code along with your email address.</p>
+        
+        <div style="background-color: #fef3c7; padding: 15px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #f59e0b;">
+          <p style="margin: 0; color: #92400e; font-weight: 600;">Executive Access:</p>
+          <p style="margin: 5px 0 0 0; color: #92400e;">As ${role}, you will have administrative privileges to manage your organization and oversee operations.</p>
+        </div>
+        
+        <p><strong>Important:</strong></p>
+        <ul>
+          <li>This code expires in 24 hours</li>
+          <li>Keep this code confidential</li>
+          <li>You will be prompted to set up your password after verification</li>
+          <li>Your role: <strong>${role}</strong></li>
+        </ul>
+        
+        <p>If you didn't request this, please ignore this email.</p>
+        
+        <hr style="margin: 30px 0; border: none; border-top: 1px solid #e5e7eb;">
+        <p style="color: #6b7280; font-size: 14px;">
+          This is an automated message from ECWA Settings System.<br>
+          Please do not reply to this email.
+        </p>
+      </div>
+    `
+    const text = `
+ECWA Settings - Executive Verification
+
+Hello,
+
+You have been assigned the position of ${role} in the organization ${orgName}!
+
+To complete your setup and gain access to your executive dashboard, please use the verification code below:
+
+VERIFICATION CODE: ${code}
+
+Please visit https://ecwa-settings-app-1zja.vercel.app/verify-login and enter this code along with your email address.
+
+Executive Access:
+As ${role}, you will have administrative privileges to manage your organization and oversee operations.
+
+Important:
+- This code expires in 24 hours
+- Keep this code confidential
+- You will be prompted to set up your password after verification
+- Your role: ${role}
+
+If you didn't request this, please ignore this email.
+
+This is an automated message from ECWA Settings System.
+Please do not reply to this email.
+    `
+    
+    await sendEmail(email, subject, html, text)
+  } catch (error) {
+    console.error('Failed to send verification email:', error)
+  }
 }
 
 

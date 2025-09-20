@@ -24,32 +24,119 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <span>ECWA Settings</span>
             </div>
             <nav className="nav" id="nav">
-              <a href="/" >🏠 <span>Home</span></a>
-              <a href="/dashboard" >📊 <span>Dashboard</span></a>
-              <a href="/expenditures" >🧾 <span>Expenditures</span></a>
-              <a href="/expenditures/new" >➕ <span>Raise Expenditure</span></a>
-              <a href="/income" >💰 <span>Income</span></a>
-              <a href="/reports" >📈 <span>Reports</span></a>
-              <a href="/audit" >🔍 <span>Audit Logs</span></a>
-        <a href="/organization-management" >🏛️ <span>Organization Management</span></a>
-        <a href="/verify-login" >🔐 <span>Leader Login</span></a>
-        <a href="/hr" >🧑‍💼 <span>HR Dashboard</span></a>
-        <a href="/hr/staff" >👥 <span>Staff Management</span></a>
-        <a href="/hr/payroll" >🧾 <span>Payroll Management</span></a>
-        <a href="/hr/leave" >🏖️ <span>Leave Management</span></a>
-        <a href="/hr/queries" >📨 <span>Queries Management</span></a>
-        <a href="/hr/lcc" >🏛️ <span>LCC Management</span></a>
-        <a href="/hr/lc" >🏢 <span>LC Management</span></a>
-        <a href="/hr/organization" >🏢 <span>Organization Settings</span></a>
-        <a href="/hr/user-roles" >👤 <span>User Role Management</span></a>
-        <a href="/hr/system-config" >⚙️ <span>System Configuration</span></a>
-        <a href="/hr/security" >🔒 <span>Security Settings</span></a>
-              <a href="/bank" >🏦 <span>Bank Management</span></a>
-              <a href="/executive" >⭐ <span>Executive</span></a>
-              <a href="/agencies">🏛️ <span>Agencies & Groups</span></a>
-              
-              {/* Placeholder for dynamic organization links */}
-              <div id="org-links" style={{display: 'none'}}></div>
+              {/* Main Navigation */}
+              <div className="nav-section">
+                <div className="nav-section-title">Main</div>
+                <a href="/" className="nav-link">
+                  <span className="nav-icon">🏠</span>
+                  <span>Home</span>
+                </a>
+                <a href="/dashboard" className="nav-link">
+                  <span className="nav-icon">📊</span>
+                  <span>Dashboard</span>
+                </a>
+              </div>
+
+              {/* Financial Management */}
+              <div className="nav-section">
+                <div className="nav-section-title">Financial</div>
+                <a href="/expenditures" className="nav-link">
+                  <span className="nav-icon">🧾</span>
+                  <span>Expenditures</span>
+                </a>
+                <a href="/expenditures/new" className="nav-link">
+                  <span className="nav-icon">➕</span>
+                  <span>Raise Expenditure</span>
+                </a>
+                <a href="/income" className="nav-link">
+                  <span className="nav-icon">💰</span>
+                  <span>Income</span>
+                </a>
+                <a href="/bank" className="nav-link">
+                  <span className="nav-icon">🏦</span>
+                  <span>Bank Management</span>
+                </a>
+                <a href="/reports" className="nav-link">
+                  <span className="nav-icon">📈</span>
+                  <span>Reports</span>
+                </a>
+              </div>
+
+              {/* Organization Management */}
+              <div className="nav-section">
+                <div className="nav-section-title">Organizations</div>
+                <a href="/org" className="nav-link">
+                  <span className="nav-icon">🏢</span>
+                  <span>Create Organization</span>
+                </a>
+                <a href="/organization-management" className="nav-link">
+                  <span className="nav-icon">⚙️</span>
+                  <span>Manage Organizations</span>
+                </a>
+              </div>
+
+              {/* Human Resources */}
+              <div className="nav-section">
+                <div className="nav-section-title">Human Resources</div>
+                <a href="/hr" className="nav-link">
+                  <span className="nav-icon">🧑‍💼</span>
+                  <span>HR Dashboard</span>
+                </a>
+                <a href="/hr/staff" className="nav-link">
+                  <span className="nav-icon">👥</span>
+                  <span>Staff Management</span>
+                </a>
+                <a href="/hr/payroll" className="nav-link">
+                  <span className="nav-icon">💳</span>
+                  <span>Payroll</span>
+                </a>
+                <a href="/hr/leave" className="nav-link">
+                  <span className="nav-icon">🏖️</span>
+                  <span>Leave Management</span>
+                </a>
+                <a href="/hr/queries" className="nav-link">
+                  <span className="nav-icon">📨</span>
+                  <span>Queries</span>
+                </a>
+              </div>
+
+              {/* Leadership & Administration */}
+              <div className="nav-section">
+                <div className="nav-section-title">Leadership</div>
+                <a href="/executive" className="nav-link">
+                  <span className="nav-icon">⭐</span>
+                  <span>Executive</span>
+                </a>
+                <a href="/agencies" className="nav-link">
+                  <span className="nav-icon">🏛️</span>
+                  <span>Agencies & Groups</span>
+                </a>
+                <a href="/verify-login" className="nav-link">
+                  <span className="nav-icon">🔐</span>
+                  <span>Leader Login</span>
+                </a>
+              </div>
+
+              {/* System & Security */}
+              <div className="nav-section">
+                <div className="nav-section-title">System</div>
+                <a href="/audit" className="nav-link">
+                  <span className="nav-icon">🔍</span>
+                  <span>Audit Logs</span>
+                </a>
+                <a href="/hr/user-roles" className="nav-link">
+                  <span className="nav-icon">👤</span>
+                  <span>User Roles</span>
+                </a>
+                <a href="/hr/system-config" className="nav-link">
+                  <span className="nav-icon">⚙️</span>
+                  <span>System Config</span>
+                </a>
+                <a href="/hr/security" className="nav-link">
+                  <span className="nav-icon">🔒</span>
+                  <span>Security</span>
+                </a>
+              </div>
             </nav>
           </aside>
           <main className="content">
@@ -59,7 +146,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         
         <script dangerouslySetInnerHTML={{
           __html: `
-            // Role-based sidebar organization links
+            // Update user info in topbar
             fetch('/api/me', {
               credentials: 'include',
               cache: 'no-store'
@@ -67,22 +154,16 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               const user = data.user;
               if (!user) return;
               
-              const orgLinks = document.getElementById('org-links');
-              if (!orgLinks) return;
-              
-              const canCreateDCC = ['admin', 'President', 'General Secretary', 'Treasurer'].includes(user.role);
-              const canCreateLC = ['admin', 'President', 'General Secretary', 'Treasurer', 'Chairman', 'Secretary', 'LO'].includes(user.role);
-              
-              let links = '';
-              if (canCreateDCC) links += '<a href="/org/dcc">Create DCCs (HQ)</a>';
-              if (canCreateLC) links += '<a href="/org/create">Create LC (LCC)</a>';
-              
-              if (links) {
-                orgLinks.innerHTML = links;
-                orgLinks.style.display = 'block';
+              // Update topbar with user info
+              const topbar = document.querySelector('.topbar');
+              if (topbar) {
+                const userInfo = topbar.querySelector('.user-info');
+                if (userInfo) {
+                  userInfo.textContent = \`Hello, \${user.name || 'User'}\`;
+                }
               }
             }).catch(err => {
-              console.log('Failed to load organization links:', err);
+              console.log('Failed to load user info:', err);
             });
           `
         }} />

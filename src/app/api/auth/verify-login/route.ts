@@ -124,7 +124,7 @@ export async function POST(req: NextRequest) {
   }
 }
 
-// PUT /api/auth/verify-login - Complete profile setup (set password)
+// PUT /api/auth/verify-login - Complete profile setup (update profile + set password)
 export async function PUT(req: NextRequest) {
   try {
     const token = req.cookies.get('auth')?.value;
@@ -137,11 +137,18 @@ export async function PUT(req: NextRequest) {
       return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
     }
 
-    const { password } = await req.json();
+    const { password, firstName, surname, phone, address, dccId, lccId, lcId } = await req.json();
 
+    // Validate required fields
     if (!password) {
       return NextResponse.json({ 
         error: 'Password is required' 
+      }, { status: 400 });
+    }
+
+    if (!firstName || !surname) {
+      return NextResponse.json({ 
+        error: 'First name and surname are required' 
       }, { status: 400 });
     }
 
@@ -166,9 +173,20 @@ export async function PUT(req: NextRequest) {
 
     const leader: Leader = JSON.parse(leaderData);
 
-    // Update leader with password
+    // Update leader with profile information and password
+    leader.firstName = firstName.trim();
+    leader.surname = surname.trim();
+    leader.phone = phone?.trim() || undefined;
+    leader.address = address?.trim() || undefined;
     leader.passwordHash = passwordHash;
     leader.updatedAt = new Date().toISOString();
+
+    // Add organization affiliations
+    leader.affiliations = {
+      dccId: dccId || undefined,
+      lccId: lccId || undefined,
+      lcId: lcId || undefined
+    };
 
     // Save updated leader
     await kv.set(`leader:${leader.id}`, JSON.stringify(leader));
@@ -183,7 +201,19 @@ export async function PUT(req: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: 'Profile setup completed successfully'
+      message: 'Profile setup completed successfully',
+      user: {
+        id: leader.id,
+        email: leader.email,
+        name: `${leader.firstName} ${leader.surname}`,
+        firstName: leader.firstName,
+        surname: leader.surname,
+        phone: leader.phone,
+        address: leader.address,
+        role: leader.position,
+        orgId: leader.organizationId,
+        organizationLevel: leader.organizationLevel
+      }
     });
 
   } catch (error) {
