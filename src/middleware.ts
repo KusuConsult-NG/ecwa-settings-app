@@ -4,7 +4,8 @@ import type { NextRequest } from 'next/server';
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
-  // TEMPORARY FIX: Allow ALL routes to bypass middleware
+  // FORCE VERCEL CACHE INVALIDATION - VERSION 2
+  // Allow ALL routes to bypass middleware
   // This will be fixed once Vercel cache clears
   return NextResponse.next();
 }
