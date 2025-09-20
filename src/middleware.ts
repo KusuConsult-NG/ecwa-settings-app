@@ -2,83 +2,50 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { verifyJwt } from '@/lib/auth';
 
-// Public routes (no login required)
-const PUBLIC = new Set<string>([
-  '/', 
-  '/login', 
-  '/signup', 
-  '/reset', 
-  '/reset-password', 
-  '/verify-login', 
-  '/org',
-  '/org/gcc',
-  '/org/dcc',
-  '/org/lcc', 
-  '/org/create',
-  '/favicon.ico'
-]);
-
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
-  // Allow public paths, auth API routes, static assets, and Next.js internal/static assets
-  if (PUBLIC.has(pathname) || 
-      pathname.startsWith('/_next') || 
-      pathname.startsWith('/api/public') || 
-      pathname.startsWith('/api/auth') ||
-      pathname.startsWith('/api/org') ||
-      pathname.startsWith('/api/test-auth') ||
-      pathname.startsWith('/api/setup-db') ||
-      pathname.startsWith('/api/init-db') ||
-      pathname.startsWith('/api/debug-storage') ||
-      pathname.startsWith('/api/fix-login') ||
-      pathname.startsWith('/api/force-init') ||
-      pathname.startsWith('/api/init-simple') ||
-      pathname.startsWith('/api/auth/login-new') ||
-      pathname.startsWith('/api/auth/signup-new') ||
-      pathname.startsWith('/api/test-db') ||
-      pathname.startsWith('/api/init-neon') ||
-      pathname.startsWith('/api/auth/login-neon') ||
-      pathname.startsWith('/api/auth/signup-neon') ||
-      pathname.startsWith('/api/test-simple') ||
-      pathname.startsWith('/api/init-simple-auth') ||
-      pathname.startsWith('/api/auth/simple-login') ||
-      pathname.startsWith('/api/auth/simple-signup') ||
-      pathname.startsWith('/api/init-mongo') ||
-      pathname.startsWith('/api/auth/mongo-login') ||
-      pathname.startsWith('/api/auth/mongo-signup') ||
-      pathname.startsWith('/api/init-file-auth') ||
-      pathname.startsWith('/api/auth/file-login') ||
-      pathname.startsWith('/api/auth/file-signup') ||
-      pathname.startsWith('/api/init-clean') ||
-      pathname.startsWith('/api/auth/clean-login') ||
-      pathname.startsWith('/api/auth/clean-signup') ||
+  // Allow all API routes - this is the key fix
+  if (pathname.startsWith('/api/')) {
+    return NextResponse.next();
+  }
+
+  // Allow public pages
+  if (pathname === '/' || 
+      pathname === '/login' || 
+      pathname === '/signup' || 
+      pathname === '/reset' || 
+      pathname === '/reset-password' || 
+      pathname === '/verify-login' ||
+      pathname.startsWith('/org') ||
+      pathname === '/favicon.ico') {
+    return NextResponse.next();
+  }
+
+  // Allow static assets
+  if (pathname.startsWith('/_next') || 
       pathname.startsWith('/_static') ||
       pathname.match(/\.(ico|png|jpg|jpeg|gif|svg|css|js)$/)) {
     return NextResponse.next();
   }
 
+  // Check authentication for protected routes
   const token = req.cookies.get('auth')?.value;
   const payload = token ? await verifyJwt(token) : null;
 
   if (!payload) {
-    // Don't redirect if already on login page to prevent loops
-    if (pathname === '/login') {
-      return NextResponse.next();
-    }
-    
     const url = req.nextUrl.clone();
     url.pathname = '/login';
-    url.searchParams.set('next', pathname); // so we can go back after login
+    url.searchParams.set('next', pathname);
     return NextResponse.redirect(url);
   }
 
   return NextResponse.next();
 }
 
-// Apply to all routes except _next, favicon, api/public, api/auth, and various setup endpoints
+// Simplified matcher - only apply to non-API routes
 export const config = {
   matcher: [
-    '/((?!_next|favicon.ico|api/public|api/auth|api/setup-db|api/init-db|api/debug-storage|api/fix-login|api/force-init|api/init-simple|api/auth/login-new|api/auth/signup-new|api/test-db|api/init-neon|api/auth/login-neon|api/auth/signup-neon|api/test-simple|api/init-simple-auth|api/auth/simple-login|api/auth/simple-signup|api/init-mongo|api/auth/mongo-login|api/auth/mongo-signup|api/init-file-auth|api/auth/file-login|api/auth/file-signup|api/init-clean|api/auth/clean-login|api/auth/clean-signup|_static).*)'
+    '/((?!api|_next|_static|favicon.ico).*)'
   ],
 };
