@@ -4,6 +4,16 @@ JWT_SECRET=change-me-to-a-long-random-string
 # Legacy auth secret (keeping for compatibility)
 AUTH_SECRET=your-super-secret-jwt-key-here-change-this-in-production
 
+# SendGrid Email Configuration (Primary)
+SENDGRID_API_KEY=your_sendgrid_api_key_here
+FROM_EMAIL=noreply@ecwa.org
+
+# SMTP Configuration (Fallback - Optional)
+# SMTP_HOST=smtp.gmail.com
+# SMTP_PORT=587
+# SMTP_USER=your_email@gmail.com
+# SMTP_PASS=your_app_password
+
 # Key-Value Storage (Optional - falls back to memory if not provided)
 KV_REST_API_URL=
 KV_REST_API_TOKEN=

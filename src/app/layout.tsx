@@ -47,6 +47,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <a href="/bank" >🏦 <span>Bank Management</span></a>
               <a href="/executive" >⭐ <span>Executive</span></a>
               <a href="/agencies">🏛️ <span>Agencies & Groups</span></a>
+              
+              {/* Placeholder for dynamic organization links */}
+              <div id="org-links" style={{display: 'none'}}></div>
             </nav>
           </aside>
           <main className="content">
@@ -57,7 +60,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <script dangerouslySetInnerHTML={{
           __html: `
             // Role-based sidebar organization links
-            fetch('/api/me').then(r => r.json()).then(data => {
+            fetch('/api/me', {
+              credentials: 'include',
+              cache: 'no-store'
+            }).then(r => r.json()).then(data => {
               const user = data.user;
               if (!user) return;
               
@@ -75,6 +81,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 orgLinks.innerHTML = links;
                 orgLinks.style.display = 'block';
               }
+            }).catch(err => {
+              console.log('Failed to load organization links:', err);
             });
           `
         }} />

@@ -14,7 +14,7 @@ export async function GET(req: NextRequest) {
     }
 
     const payload = await verifyJwt(token);
-    if (!payload) {
+    if (!payload || !payload.sub || !payload.orgId || !payload.orgName) {
       return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
     }
 
@@ -29,14 +29,14 @@ export async function GET(req: NextRequest) {
     const allPayroll: PayrollRecord[] = payrollData ? JSON.parse(payrollData) : [];
 
     // Filter payroll records by organization
-    let filteredPayroll = allPayroll.filter(record => record.orgId === payload.orgId);
+    let filteredPayroll = allPayroll.filter(record => record.orgId === (payload.orgId as string));
 
     // Apply additional filters
     if (status) {
       filteredPayroll = filteredPayroll.filter(record => record.status === status);
     }
     if (month) {
-      filteredPayroll = filteredPayroll.filter(record => record.month === month);
+      filteredPayroll = filteredPayroll.filter(record => record.payPeriod.includes(month));
     }
     if (search) {
       filteredPayroll = filteredPayroll.filter(record => 
@@ -61,21 +61,21 @@ export async function POST(req: NextRequest) {
     }
 
     const payload = await verifyJwt(token);
-    if (!payload) {
+    if (!payload || !payload.sub || !payload.orgId || !payload.orgName) {
       return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
     }
 
     const body: CreatePayrollRequest = await req.json();
 
     // Validate required fields
-    if (!body.staffId || !body.month || !body.year || !body.baseSalary || !body.paymentDate) {
+    if (!body.staffId || !body.payPeriod || !body.payDate || body.basicSalary === undefined || body.allowances === undefined || body.deductions === undefined) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
     // Get staff information
     const staffData = await kv.get('staff:index');
     const allStaff = staffData ? JSON.parse(staffData) : [];
-    const staff = allStaff.find((s: any) => s.id === body.staffId && s.orgId === payload.orgId);
+    const staff = allStaff.find((s: any) => s.id === body.staffId && s.orgId === (payload.orgId as string));
 
     if (!staff) {
       return NextResponse.json({ error: 'Staff member not found' }, { status: 404 });
@@ -86,17 +86,17 @@ export async function POST(req: NextRequest) {
     const existingPayroll: PayrollRecord[] = payrollData ? JSON.parse(payrollData) : [];
     const duplicate = existingPayroll.find(record => 
       record.staffId === body.staffId && 
-      record.month === body.month && 
-      record.year === body.year &&
-      record.orgId === payload.orgId
+      record.payPeriod === body.payPeriod &&
+      record.orgId === (payload.orgId as string)
     );
 
     if (duplicate) {
       return NextResponse.json({ error: 'Payroll record already exists for this staff member and period' }, { status: 409 });
     }
 
-    // Calculate net salary
-    const netSalary = body.baseSalary + body.allowances - body.deductions;
+    // Calculate salaries
+    const grossSalary = body.basicSalary + body.allowances;
+    const netSalary = grossSalary - body.deductions;
 
     // Create payroll record
     const payrollRecord: PayrollRecord = {
@@ -104,20 +104,21 @@ export async function POST(req: NextRequest) {
       staffId: body.staffId,
       staffName: staff.name,
       staffEmail: staff.email,
-      month: body.month,
-      year: body.year,
-      baseSalary: body.baseSalary,
+      staffPosition: staff.position || '',
+      staffDepartment: staff.department || '',
+      basicSalary: body.basicSalary,
       allowances: body.allowances,
       deductions: body.deductions,
+      grossSalary: grossSalary,
       netSalary: netSalary,
-      paymentDate: body.paymentDate,
+      payPeriod: body.payPeriod,
+      payDate: body.payDate,
       status: 'pending',
-      notes: body.notes || '',
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
-      createdBy: payload.sub,
-      orgId: payload.orgId,
-      orgName: payload.orgName
+      createdBy: payload.sub as string,
+      orgId: payload.orgId as string,
+      orgName: payload.orgName as string
     };
 
     // Save individual payroll record

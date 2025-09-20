@@ -3,7 +3,7 @@ import type { NextRequest } from 'next/server';
 import { verifyJwt } from '@/lib/auth';
 
 // Public routes (no login required)
-const PUBLIC = new Set<string>(['/', '/login', '/signup', '/favicon.ico']);
+const PUBLIC = new Set<string>(['/', '/login', '/signup', '/reset', '/reset-password', '/verify-login', '/favicon.ico']);
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
@@ -22,6 +22,11 @@ export async function middleware(req: NextRequest) {
   const payload = token ? await verifyJwt(token) : null;
 
   if (!payload) {
+    // Don't redirect if already on login page to prevent loops
+    if (pathname === '/login') {
+      return NextResponse.next();
+    }
+    
     const url = req.nextUrl.clone();
     url.pathname = '/login';
     url.searchParams.set('next', pathname); // so we can go back after login
@@ -33,5 +38,5 @@ export async function middleware(req: NextRequest) {
 
 // Apply to all routes except _next, favicon, api/public, and api/auth
 export const config = {
-  matcher: ['/((?!_next|favicon.ico|api/public|api/auth).*)'],
+  matcher: ['/((?!_next|favicon.ico|api/public|api/auth|_static).*)'],
 };

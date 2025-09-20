@@ -14,7 +14,7 @@ export async function GET(req: NextRequest) {
     }
 
     const payload = await verifyJwt(token);
-    if (!payload) {
+    if (!payload || !payload.sub || !payload.orgId || !payload.orgName) {
       return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
     }
 
@@ -30,7 +30,7 @@ export async function GET(req: NextRequest) {
     const allQueries: QueryRecord[] = queriesData ? JSON.parse(queriesData) : [];
 
     // Filter queries by organization
-    let filteredQueries = allQueries.filter(query => query.orgId === payload.orgId);
+    let filteredQueries = allQueries.filter(query => query.orgId === (payload.orgId as string));
 
     // Apply additional filters
     if (status) {
@@ -66,7 +66,7 @@ export async function POST(req: NextRequest) {
     }
 
     const payload = await verifyJwt(token);
-    if (!payload) {
+    if (!payload || !payload.sub || !payload.orgId || !payload.orgName) {
       return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
     }
 
@@ -77,16 +77,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
-    // Get assigned staff information if provided
-    let assignedToName = '';
-    if (body.assignedToId) {
-      const staffData = await kv.get('staff:index');
-      const allStaff = staffData ? JSON.parse(staffData) : [];
-      const assignedStaff = allStaff.find((s: any) => s.id === body.assignedToId && s.orgId === payload.orgId);
-      if (assignedStaff) {
-        assignedToName = assignedStaff.name;
-      }
-    }
+    // Queries start as 'open' status and can be assigned later
 
     // Create query record
     const queryRecord: QueryRecord = {
@@ -96,14 +87,11 @@ export async function POST(req: NextRequest) {
       category: body.category,
       priority: body.priority,
       status: 'open',
-      assignedToId: body.assignedToId || '',
-      assignedToName: assignedToName,
-      resolutionNotes: '',
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
-      createdBy: payload.sub,
-      orgId: payload.orgId,
-      orgName: payload.orgName
+      createdBy: payload.sub as string,
+      orgId: payload.orgId as string,
+      orgName: payload.orgName as string
     };
 
     // Save individual query record

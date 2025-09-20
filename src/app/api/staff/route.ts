@@ -14,7 +14,7 @@ export async function GET(req: NextRequest) {
     }
 
     const payload = await verifyJwt(token);
-    if (!payload) {
+    if (!payload || !payload.sub || !payload.orgId || !payload.orgName) {
       return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
     }
 
@@ -28,7 +28,7 @@ export async function GET(req: NextRequest) {
     let staff: StaffRecord[] = staffData ? JSON.parse(staffData) : [];
 
     // Filter by organization
-    staff = staff.filter(s => s.orgId === payload.orgId);
+    staff = staff.filter(s => s.orgId === (payload.orgId as string));
 
     // Apply filters
     if (status) {
@@ -69,7 +69,7 @@ export async function POST(req: NextRequest) {
     }
 
     const payload = await verifyJwt(token);
-    if (!payload) {
+    if (!payload || !payload.sub || !payload.orgId || !payload.orgName) {
       return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
     }
 
@@ -83,7 +83,9 @@ export async function POST(req: NextRequest) {
       department,
       salary,
       startDate,
-      emergencyContact
+      emergencyContact,
+      qualifications,
+      previousExperience
     } = body;
 
     // Validation
@@ -99,7 +101,7 @@ export async function POST(req: NextRequest) {
     const existingStaff: StaffRecord[] = staffData ? JSON.parse(staffData) : [];
     
     const emailExists = existingStaff.some(s => 
-      s.email.toLowerCase() === email.toLowerCase() && s.orgId === payload.orgId
+      s.email.toLowerCase() === email.toLowerCase() && s.orgId === (payload.orgId as string)
     );
 
     if (emailExists) {
@@ -119,13 +121,15 @@ export async function POST(req: NextRequest) {
       position: position.trim(),
       department: department.trim(),
       salary: Number(salary) || 0,
-      startDate,
+      hireDate: startDate,
       status: 'active',
       emergencyContact: {
         name: emergencyContact?.name?.trim() || '',
         phone: emergencyContact?.phone?.trim() || '',
         relationship: emergencyContact?.relationship?.trim() || ''
       },
+      qualifications: qualifications?.trim() || '',
+      previousExperience: previousExperience?.trim() || '',
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
       createdBy: payload.sub as string,

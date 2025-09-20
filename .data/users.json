@@ -1,5 +1,18 @@
 {
-  "user:persistent@example.com": "{\"id\":\"bb355b2b-9e95-4d61-8be1-de4427a200be\",\"email\":\"persistent@example.com\",\"name\":\"Persistent User\",\"phone\":\"+1234567890\",\"address\":\"123 Test St\",\"passwordHash\":\"$2b$12$aycljP4kJF8zIQt6Ql8qzuo2.UANFvra4FW4DUSCdYax8KxQ5mQe.\",\"createdAt\":\"2025-09-18T21:02:51.535Z\",\"orgId\":\"751b1741-d4d6-4dd4-9f4c-29865e8a0f8f\",\"orgName\":\"Persistent User's Organization\",\"role\":\"Secretary\",\"isActive\":true,\"lastLogin\":\"2025-09-18T21:19:15.093Z\"}",
-  "user:me@and.com": "{\"id\":\"77897f6e-c9e5-4e1e-ad37-e1089e21e257\",\"email\":\"me@and.com\",\"name\":\"Stephen Sunday\",\"phone\":\"07036171049\",\"address\":\"23 Nenrot Plaza, Domkat Bali Road\",\"passwordHash\":\"$2b$12$wQ39Ynqg0UeyrZidlbNsbeLX1WXJCd6Mwj/0NBLoFnANxoEc9dZZK\",\"createdAt\":\"2025-09-18T23:15:36.075Z\",\"orgId\":\"fcf2216c-1800-4b34-a1b2-eee552890fa3\",\"orgName\":\"Stephen Sunday's Organization\",\"role\":\"Secretary\",\"isActive\":true,\"lastLogin\":null}",
-  "user:admin@example.com": "{\"id\":\"admin-001\",\"email\":\"admin@example.com\",\"name\":\"Admin User\",\"phone\":\"1234567890\",\"address\":\"Admin Address\",\"passwordHash\":\"$2b$12$aycljP4kJF8zIQt6Ql8qzuo2.UANFvra4FW4DUSCdYax8KxQ5mQe.\",\"createdAt\":\"2025-09-19T14:08:47.000Z\",\"orgId\":\"admin-org-001\",\"orgName\":\"ECWA Organization\",\"role\":\"Admin\",\"isActive\":true,\"lastLogin\":null}"
+  "users:index": "[{\"id\":\"admin-001\",\"email\":\"admin@ecwa.org\",\"name\":\"System Administrator\",\"passwordHash\":\"$2b$10$a4xss.KnxuqYUyRtdpD91OB2lCC8M5jzF3KtS.9cnnoBuNnxPAo8a\",\"role\":\"admin\",\"orgId\":\"org-001\",\"orgName\":\"ECWA Headquarters\",\"isActive\":true,\"createdAt\":\"2025-09-20T00:01:34.941Z\",\"updatedAt\":\"2025-09-20T00:01:34.941Z\"},{\"id\":\"user-001\",\"email\":\"test@ecwa.org\",\"name\":\"Test User\",\"passwordHash\":\"$2b$10$QWL0Nv1hD/LW5yxRvthNAuaJJHe7StO5jJipSJcv6SZ8vcAblyOiK\",\"role\":\"Treasurer\",\"orgId\":\"org-001\",\"orgName\":\"ECWA Headquarters\",\"isActive\":true,\"createdAt\":\"2025-09-20T00:01:34.941Z\",\"updatedAt\":\"2025-09-20T00:01:34.941Z\"}]",
+  "organizations:index": "[{\"id\":\"org-001\",\"name\":\"ECWA Headquarters\",\"code\":\"ECWA-HQ\",\"address\":\"123 Church Street, Lagos, Nigeria\",\"city\":\"Lagos\",\"state\":\"Lagos\",\"country\":\"Nigeria\",\"establishedDate\":\"1954-01-01\",\"status\":\"active\",\"contactEmail\":\"info@ecwa.org\",\"contactPhone\":\"+234-123-456-7890\",\"createdAt\":\"2025-09-20T00:01:34.941Z\",\"updatedAt\":\"2025-09-20T00:01:34.941Z\",\"createdBy\":\"admin-001\"}]",
+  "leaders:index": "[]",
+  "staff:index": "[]",
+  "lc:index": "[]",
+  "lcc:index": "[]",
+  "leave:index": "[]",
+  "payroll:index": "[]",
+  "queries:index": "[]",
+  "expenditures:index": "[]",
+  "income:index": "[]",
+  "bank:index": "[]",
+  "executives:index": "[]",
+  "agencies:index": "[]",
+  "user:admin@ecwa.org": "{\"id\":\"admin-001\",\"email\":\"admin@ecwa.org\",\"name\":\"System Administrator\",\"passwordHash\":\"$2b$10$a4xss.KnxuqYUyRtdpD91OB2lCC8M5jzF3KtS.9cnnoBuNnxPAo8a\",\"role\":\"admin\",\"orgId\":\"org-001\",\"orgName\":\"ECWA Headquarters\",\"isActive\":true,\"createdAt\":\"2025-09-20T00:01:34.941Z\",\"updatedAt\":\"2025-09-20T00:01:38.907Z\",\"lastLogin\":\"2025-09-20T00:01:38.907Z\"}",
+  "user:test@ecwa.org": "{\"id\":\"user-001\",\"email\":\"test@ecwa.org\",\"name\":\"Test User\",\"passwordHash\":\"$2b$10$QWL0Nv1hD/LW5yxRvthNAuaJJHe7StO5jJipSJcv6SZ8vcAblyOiK\",\"role\":\"Treasurer\",\"orgId\":\"org-001\",\"orgName\":\"ECWA Headquarters\",\"isActive\":true,\"createdAt\":\"2025-09-20T00:01:34.941Z\",\"updatedAt\":\"2025-09-20T00:01:34.941Z\"}"
 }

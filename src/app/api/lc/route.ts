@@ -14,7 +14,7 @@ export async function GET(req: NextRequest) {
     }
 
     const payload = await verifyJwt(token);
-    if (!payload) {
+    if (!payload || !payload.sub || !payload.orgId || !payload.orgName) {
       return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
     }
 
@@ -28,7 +28,7 @@ export async function GET(req: NextRequest) {
     const allLC: LCRecord[] = lcData ? JSON.parse(lcData) : [];
 
     // Filter LC records by organization
-    let filteredLC = allLC.filter(lc => lc.orgId === payload.orgId);
+    let filteredLC = allLC.filter(lc => lc.orgId === (payload.orgId as string));
 
     // Apply additional filters
     if (status) {
@@ -58,7 +58,7 @@ export async function POST(req: NextRequest) {
     }
 
     const payload = await verifyJwt(token);
-    if (!payload) {
+    if (!payload || !payload.sub || !payload.orgId || !payload.orgName) {
       return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
     }
 
@@ -73,7 +73,7 @@ export async function POST(req: NextRequest) {
     const lcData = await kv.get('lc:index');
     const existingLC: LCRecord[] = lcData ? JSON.parse(lcData) : [];
     const duplicate = existingLC.find(lc => 
-      lc.code.toLowerCase() === body.code.toLowerCase() && lc.orgId === payload.orgId
+      lc.code.toLowerCase() === body.code.toLowerCase() && lc.orgId === (payload.orgId as string)
     );
 
     if (duplicate) {
@@ -83,7 +83,7 @@ export async function POST(req: NextRequest) {
     // Get leader information
     const leadersData = await kv.get('leaders:index');
     const allLeaders = leadersData ? JSON.parse(leadersData) : [];
-    const leader = allLeaders.find((l: any) => l.id === body.leaderId && l.orgId === payload.orgId);
+    const leader = allLeaders.find((l: any) => l.id === body.leaderId && l.orgId === (payload.orgId as string));
 
     if (!leader) {
       return NextResponse.json({ error: 'Leader not found' }, { status: 404 });
@@ -109,9 +109,9 @@ export async function POST(req: NextRequest) {
       notes: body.notes || '',
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
-      createdBy: payload.sub,
-      orgId: payload.orgId,
-      orgName: payload.orgName
+      createdBy: payload.sub as string,
+      orgId: payload.orgId as string,
+      orgName: payload.orgName as string
     };
 
     // Save individual LC record

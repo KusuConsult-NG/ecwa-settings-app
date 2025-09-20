@@ -1,5 +1,6 @@
 "use client"
 import { useState, useEffect } from "react"
+import { apiGet } from "@/lib/fetch-utils"
 
 export default function DashboardPage() {
   const [user, setUser] = useState<any>(null)
@@ -17,7 +18,7 @@ export default function DashboardPage() {
         setLoading(true)
         
         // Fetch user data
-        const userResponse = await fetch('/api/me')
+        const userResponse = await apiGet('/api/me')
         if (userResponse.ok) {
           const userData = await userResponse.json()
           setUser(userData.user)
@@ -25,9 +26,9 @@ export default function DashboardPage() {
         
         // Fetch real stats from APIs
         const [expendituresRes, incomeRes, staffRes] = await Promise.all([
-          fetch('/api/expenditures'),
-          fetch('/api/income'),
-          fetch('/api/staff')
+          apiGet('/api/expenditures'),
+          apiGet('/api/income'),
+          apiGet('/api/staff')
         ])
         
         let totalExpenditures = 0

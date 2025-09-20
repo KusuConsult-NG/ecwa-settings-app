@@ -1,13 +1,14 @@
 "use client"
 import { useEffect, useState } from "react"
 import Image from "next/image"
+import { apiGet, apiPost } from "@/lib/fetch-utils"
 
 export default function ClientTopbar() {
   const [me, setMe] = useState<any>(null)
   
   const fetchUser = async () => {
     try {
-      const response = await fetch('/api/me')
+      const response = await apiGet('/api/me')
       const data = await response.json()
       setMe(data.user || null)
     } catch (error) {
@@ -62,7 +63,7 @@ export default function ClientTopbar() {
   }, [])
   
   async function logout(){ 
-    await fetch('/api/auth/logout',{method:'POST'})
+    await apiPost('/api/auth/logout')
     setMe(null) // Clear user state immediately
     window.location.href='/' 
   }
@@ -74,12 +75,12 @@ export default function ClientTopbar() {
     <div className="topbar">
       <div style={{display:"flex",gap:"0.75rem",alignItems:"center"}}>
         <button id="menuBtn" className="btn ghost" aria-label="Toggle Menu">☰</button>
-        <div className="badge"><Image src="/logo.svg" alt="ChurchFlow" width={20} height={20} /> {me?.name || 'CHURCHFLOW'}</div>
+        <div className="badge"><Image src="/logo.svg" alt="ChurchFlow" width={20} height={20} /> {me?.name || 'ECWA SETTINGS'}</div>
       </div>
       <div style={{display:"flex",gap:"0.5rem",alignItems:"center"}}>
         {me && (
           <div className="text-sm" style={{marginRight:"1rem"}}>
-            Hello, <span className="font-medium">{me.name || 'User'}</span>
+            Hello, <span className="font-medium">{me?.name || 'User'}</span>
           </div>
         )}
         {!me ? (

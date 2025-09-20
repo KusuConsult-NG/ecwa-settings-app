@@ -1,6 +1,7 @@
 "use client"
 import { useState, Suspense } from "react"
 import { useSearchParams } from "next/navigation"
+import { apiPost } from "@/lib/fetch-utils"
 
 interface LoginError {
   message: string
@@ -38,11 +39,7 @@ function LoginForm() {
 
     try {
       console.log("Frontend: Attempting login for:", email.trim())
-      const res = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: email.trim(), password })
-      })
+      const res = await apiPost("/api/auth/login", { email: email.trim(), password })
       
       console.log("Frontend: Login response status:", res.status)
       

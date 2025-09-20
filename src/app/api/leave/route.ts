@@ -14,7 +14,7 @@ export async function GET(req: NextRequest) {
     }
 
     const payload = await verifyJwt(token);
-    if (!payload) {
+    if (!payload || !payload.sub || !payload.orgId || !payload.orgName) {
       return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
     }
 
@@ -29,7 +29,7 @@ export async function GET(req: NextRequest) {
     const allLeave: LeaveRecord[] = leaveData ? JSON.parse(leaveData) : [];
 
     // Filter leave records by organization
-    let filteredLeave = allLeave.filter(record => record.orgId === payload.orgId);
+    let filteredLeave = allLeave.filter(record => record.orgId === (payload.orgId as string));
 
     // Apply additional filters
     if (status) {
@@ -61,7 +61,7 @@ export async function POST(req: NextRequest) {
     }
 
     const payload = await verifyJwt(token);
-    if (!payload) {
+    if (!payload || !payload.sub || !payload.orgId || !payload.orgName) {
       return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
     }
 
@@ -75,7 +75,7 @@ export async function POST(req: NextRequest) {
     // Get staff information
     const staffData = await kv.get('staff:index');
     const allStaff = staffData ? JSON.parse(staffData) : [];
-    const staff = allStaff.find((s: any) => s.id === body.staffId && s.orgId === payload.orgId);
+    const staff = allStaff.find((s: any) => s.id === body.staffId && s.orgId === (payload.orgId as string));
 
     if (!staff) {
       return NextResponse.json({ error: 'Staff member not found' }, { status: 404 });
@@ -96,8 +96,7 @@ export async function POST(req: NextRequest) {
     const overlapping = existingLeave.find(record => 
       record.staffId === body.staffId && 
       record.status !== 'rejected' &&
-      record.status !== 'cancelled' &&
-      record.orgId === payload.orgId &&
+      record.orgId === (payload.orgId as string) &&
       (
         (new Date(record.startDate) <= startDate && new Date(record.endDate) >= startDate) ||
         (new Date(record.startDate) <= endDate && new Date(record.endDate) >= endDate) ||
@@ -118,15 +117,14 @@ export async function POST(req: NextRequest) {
       leaveType: body.leaveType,
       startDate: body.startDate,
       endDate: body.endDate,
-      durationDays: durationDays,
+      daysRequested: durationDays,
       reason: body.reason,
       status: 'pending',
-      attachmentUrl: body.attachmentUrl || '',
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
-      createdBy: payload.sub,
-      orgId: payload.orgId,
-      orgName: payload.orgName
+      createdBy: payload.sub as string,
+      orgId: payload.orgId as string,
+      orgName: payload.orgName as string
     };
 
     // Save individual leave record
