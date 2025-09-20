@@ -6,10 +6,12 @@ export const dynamic = 'force-dynamic';
 export async function GET(req: Request) {
   return NextResponse.json({
     success: true,
-    message: 'Vercel cache test successful!',
+    message: 'Vercel cache test successful! CACHE CLEARED!',
     timestamp: new Date().toISOString(),
     environment: process.env.NODE_ENV,
-    vercel: true
+    vercel: true,
+    cacheCleared: true,
+    version: '2.0.0'
   });
 }
 
