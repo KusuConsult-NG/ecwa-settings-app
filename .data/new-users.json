@@ -1,0 +1,39 @@
+[
+  {
+    "id": "525bb1b3-8b66-4753-9947-1f3c31fdc681",
+    "email": "admin@ecwa.com",
+    "name": "System Administrator",
+    "passwordHash": "$2b$12$g600wsJK4EeQUfZ7Y9Y1huvvkYE92ZzBdpdLuwaBPOx2YlfgTUeC6",
+    "role": "admin",
+    "orgId": "84596830-eb87-4765-9065-6cb9757585c4",
+    "orgName": "ECWA Organization",
+    "isActive": true,
+    "createdAt": "2025-09-20T14:32:50.143Z",
+    "updatedAt": "2025-09-20T14:32:53.660Z",
+    "lastLogin": "2025-09-20T14:32:53.660Z"
+  },
+  {
+    "id": "ea197752-7e01-4c29-9cf8-8375280be84e",
+    "email": "test@ecwa.com",
+    "name": "Test User",
+    "passwordHash": "$2b$12$oDlk7l3dHCSPH8dYBhJt1.9.K/srgGgdhQQ6BDNbM3panlvV4PafW",
+    "role": "member",
+    "orgId": "970b136e-44b0-4254-b8ba-cd2099865f37",
+    "orgName": "ECWA Organization",
+    "isActive": true,
+    "createdAt": "2025-09-20T14:32:50.487Z",
+    "updatedAt": "2025-09-20T14:32:50.487Z"
+  },
+  {
+    "id": "e5f452c3-1bbb-4ca1-8a88-5add4d4df37a",
+    "email": "newuser@ecwa.com",
+    "name": "New User",
+    "passwordHash": "$2b$12$ABxETmKHqa8qGmEne8tHO.8k8sfs9Yom8wFcm8R7o3lZIUp/Y/JcO",
+    "role": "member",
+    "orgId": "0cb7f702-16da-44ac-b002-73a8b20f2ff5",
+    "orgName": "ECWA Organization",
+    "isActive": true,
+    "createdAt": "2025-09-20T14:32:56.948Z",
+    "updatedAt": "2025-09-20T14:32:56.948Z"
+  }
+]
